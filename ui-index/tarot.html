@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 塔罗占卜</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+            --mystical-purple: #9061F9;
+            --mystical-blue: #6E8FEA;
+            --mystical-pink: #E74694;
+            --card-back-pattern: url('https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1334&q=80');
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+            background-color: #F9FAFB;
+            background-image: url('https://images.unsplash.com/photo-1518655048521-f130df041f66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .tarot-table {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            min-height: 450px;
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .ritual-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: url('https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.07;
+            mix-blend-mode: overlay;
+            z-index: 0;
+        }
+
+        .card-slot {
+            width: 100px;
+            height: 170px;
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            margin: 0.75rem;
+            display: inline-block;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background-color: rgba(255, 255, 255, 0.7);
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .card-slot:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.25);
+            cursor: pointer;
+        }
+        
+        .card-slot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, var(--mystical-purple), var(--mystical-blue));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+            z-index: -1;
+        }
+        
+        .card-slot:hover::before {
+            opacity: 0.2;
+        }
+
+        .celtic-cross {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card-interpretation {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .deck {
+            position: relative;
+            width: 100px;
+            height: 170px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            border-radius: 10px;
+            margin: 2rem auto;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .deck:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .deck::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1334&q=80') center/cover;
+            opacity: 0.1;
+            border-radius: 10px;
+        }
+
+        @keyframes cardFlip {
+            0% {
+                transform: rotateY(0deg);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: rotateY(90deg);
+                box-shadow: 0 15px 30px rgba(99, 102, 241, 0.2);
+            }
+            100% {
+                transform: rotateY(180deg);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+        }
+        
+        @keyframes cardDraw {
+            0% {
+                transform: translateY(50px) scale(0.8);
+                opacity: 0;
+            }
+            30% {
+                transform: translateY(-30px) scale(1.1) rotate(-5deg);
+                opacity: 1;
+            }
+            60% {
+                transform: translateY(-10px) scale(1.05) rotate(3deg);
+            }
+            100% {
+                transform: translateY(0) scale(1) rotate(0);
+            }
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            25% { transform: translateY(-8px) rotate(-1deg); }
+            75% { transform: translateY(-4px) rotate(1deg); }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+                filter: blur(5px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+        
+        @keyframes glowPulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(99, 102, 241, 0.3), 0 0 20px rgba(99, 102, 241, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
+            }
+        }
+        
+        @keyframes mysticalSparkle {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+        }
+
+        .card-slot {
+            transition: all 0.5s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, var(--mystical-purple), var(--mystical-blue));
+            transform: rotateY(0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .card-back::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--card-back-pattern);
+            opacity: 0.1;
+            mix-blend-mode: overlay;
+        }
+        
+        .card-back::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0) 100%);
+            transform: rotate(45deg);
+            animation: mysticalSparkle 3s ease-in-out infinite;
+        }
+        
+        .card-front {
+            transform: rotateY(-180deg);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-slot:hover {
+            animation: floatCard 3s ease-in-out infinite;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .card-slot.flipped .card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .card-slot.flipped .card-front {
+            transform: rotateY(0deg);
+        }
+        
+        .card-slot.drawing {
+            animation: cardDraw 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .deck {
+            animation: floatCard 3s ease-in-out infinite, glowPulse 4s ease-in-out infinite;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-interpretation {
+            animation: fadeInScale 0.7s ease-out;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .tarot-table {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tarot-table::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+        
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tarot-card {
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .tarot-card:hover {
+            transform: translateY(-5px) rotate(2deg);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div class="text-lg font-bold text-indigo-600">塔罗占卜</div>
+            <div>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-question-circle text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 左侧牌阵选择区 -->
+            <div class="md:col-span-2">
+                <div class="card">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">塔罗牌阵</h3>
+                        
+                        <div class="mb-4">
+                            <select class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option selected>三牌阵 - 过去、现在、未来</option>
+                                <option>凯尔特十字牌阵 - 全面解析</option>
+                                <option>关系牌阵 - 两人关系</option>
+                                <option>生命之树牌阵 - 灵性探索</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <input type="text" placeholder="输入你想占卦的问题，例如：我的事业发展方向？" class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">事业发展</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">感情变化</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">财运如何</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">人生选择</span>
+                        </div>
+
+                        <div class="tarot-table">
+                            <!-- 仪式背景圆环 -->
+                            <div class="ritual-circle"></div>
+                            
+                            <!-- 三牌阵展示 -->
+                            <div class="text-center py-8 relative z-10">
+                                <div class="inline-flex space-x-8 justify-center">
+                                    <div class="card-slot" data-position="past" style="width: 100px; height: 170px;">
+                                        <div class="card-back">
+                                            <img src="https://img.icons8.com/fluency/48/000000/crystal-ball.png" class="w-10 h-10 opacity-70">
+                                        </div>
+                                        <div class="card-front" style="background-image: url('https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                                    </div>
+                                    
+                                    <div class="card-slot" data-position="present" style="width: 100px; height: 170px;">
+                                        <div class="card-back">
+                                            <img src="https://img.icons8.com/fluency/48/000000/crystal-ball.png" class="w-10 h-10 opacity-70">
+                                        </div>
+                                        <div class="card-front" style="background-image: url('https://images.unsplash.com/photo-1659800429493-6a1e7cf6c1c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                                    </div>
+                                    
+                                    <div class="card-slot" data-position="future" style="width: 100px; height: 170px;">
+                                        <div class="card-back">
+                                            <img src="https://img.icons8.com/fluency/48/000000/crystal-ball.png" class="w-10 h-10 opacity-70">
+                                        </div>
+                                        <div class="card-front" style="background-image: url('https://images.unsplash.com/photo-1659800429493-6a1e7cf6c1c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 text-center">
+                                    <p class="text-sm text-gray-600 mb-2 font-medium">占卜进度 <span class="text-indigo-600 font-bold card-progress">0/3</span> 张牌</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5 progress-container">
+                                        <div class="bg-indigo-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 牌堆和仪式提示 -->
+                            <div class="relative z-10">
+                                <div class="text-center mb-4">
+                                    <p class="text-sm text-gray-600 italic">请在心中默念你的问题，集中注意力，然后点击牌堆...</p>
+                                </div>
+                                
+                                <div class="deck mx-auto" id="tarot-deck">
+                                    <div class="text-center text-white pt-5">
+                                        <i class="fas fa-hand-point-up fa-2x mb-2 animate-bounce"></i>
+                                        <p>点击抽牌</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 神秘元素装饰 -->
+                                <div class="absolute -bottom-4 -right-4 opacity-10 z-0">
+                                    <i class="fas fa-moon text-indigo-600 text-6xl"></i>
+                                </div>
+                                <div class="absolute -top-4 -left-4 opacity-10 z-0">
+                                    <i class="fas fa-stars text-purple-600 text-6xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3 mt-4">
+                            <button class="flex-1 py-2 bg-white border border-gray-200 rounded-lg text-indigo-600 font-medium flex justify-center items-center">
+                                <i class="fas fa-redo-alt mr-2"></i> 重新开始
+                            </button>
+                            <button class="flex-1 py-2 bg-indigo-600 rounded-lg text-white font-medium flex justify-center items-center">
+                                <i class="fas fa-magic mr-2"></i> 自动完成
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧牌义解析区 -->
+            <div>
+                <div class="card">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">牌义解析</h3>
+                            <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">三牌阵</span>
+                        </div>
+                        
+                        <div class="card-interpretation">
+                            <div class="flex items-start">
+                                <div class="w-12 h-20 rounded overflow-hidden flex-shrink-0 mr-3">
+                                    <img src="https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="命运之轮" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">过去 - 命运之轮</h4>
+                                    <div class="text-xs text-indigo-600 mb-1">正位</div>
+                                    <p class="text-sm text-gray-600">这张牌表示你经历了命运的转折点，过去的事件带来了新的机遇和变化。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-interpretation mt-4">
+                            <div class="flex items-center justify-center h-24 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-2">
+                                <p class="text-gray-400 text-sm">等待抽取第二张牌...</p>
+                            </div>
+                            <h4 class="font-medium text-gray-800">现在 - 待抽取</h4>
+                            <p class="text-sm text-gray-500 mt-1">这张牌将揭示你当前的处境和面临的问题。</p>
+                        </div>
+
+                        <div class="card-interpretation mt-4">
+                            <div class="flex items-center justify-center h-24 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-2">
+                                <p class="text-gray-400 text-sm">等待抽取第三张牌...</p>
+                            </div>
+                            <h4 class="font-medium text-gray-800">未来 - 待抽取</h4>
+                            <p class="text-sm text-gray-500 mt-1">这张牌将揭示可能的未来发展和结果。</p>
+                        </div>
+
+                        <button class="btn-primary w-full mt-4 flex items-center justify-center">
+                            <i class="fas fa-book mr-2"></i>完整解析报告
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 激励提示 -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white mt-4">
+                    <h4 class="font-bold mb-2">今日小贴士</h4>
+                    <p class="text-sm opacity-90">塔罗牌只是工具，真正的力量在于你自己的直觉和选择！不管牌面怎么说，你才是命运的主导者～</p>
+                    <div class="mt-3 flex justify-end">
+                        <button class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs">我懂了</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script>
+        // 塔罗牌数据
+        const tarotCards = [
+            { name: '命运之轮', image: 'https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '命运的转折点，新的机遇和变化' },
+            { name: '星星', image: 'https://images.unsplash.com/photo-1659800429493-6a1e7cf6c1c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '希望，灵感，治愈与重生' },
+            { name: '太阳', image: 'https://images.unsplash.com/photo-1517430554953-a5ba4678fe85?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '成功，喜悦，光明与温暖' },
+            { name: '月亮', image: 'https://images.unsplash.com/photo-1518331368925-fd87393c5ad3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '直觉，梦境，情感与内在智慧' },
+            { name: '魔术师', image: 'https://images.unsplash.com/photo-1572816703439-d8b34c4dc93f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '创造力，意志力，控制与技能' },
+            { name: '正义', image: 'https://images.unsplash.com/photo-1659800429493-6a1e7cf6c1c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', position: 'upright', meaning: '平衡，公正，真理与法律' }
+        ];
+        
+        // 随机打乱卡片数组
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化变量
+            let drawnCards = 0;
+            let shuffledCards = shuffleArray([...tarotCards]);
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.card-progress');
+            const cardSlots = document.querySelectorAll('.card-slot');
+            const tarotDeck = document.getElementById('tarot-deck');
+            const cardPositions = ['past', 'present', 'future'];
+            
+            // 添加初始动画
+            gsap.from('.tarot-table', {duration: 1, opacity: 0, y: 30, ease: 'power3.out'});
+            gsap.from('.card-slot', {duration: 0.8, opacity: 0, y: 20, stagger: 0.2, ease: 'back.out(1.7)'});
+            gsap.from('#tarot-deck', {duration: 1, opacity: 0, y: 50, delay: 0.8, ease: 'elastic.out(1, 0.5)'});
+            
+            // 添加卡片点击事件
+            cardSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    // 只有未翻开的卡才能点击
+                    if (!this.classList.contains('flipped')) {
+                        playCardFlipSound();
+                        this.classList.add('flipped');
+                    }
+                });
+            });
+            
+            // 添加牌堆点击事件
+            tarotDeck.addEventListener('click', function() {
+                if (drawnCards < 3) {
+                    drawNextCard();
+                } else {
+                    // 已经抽完所有牌
+                    showCompletionMessage();
+                }
+            });
+            
+            // 重置按钮事件
+            document.querySelector('.flex-1:first-child').addEventListener('click', resetReading);
+            
+            // 自动完成按钮事件
+            document.querySelector('.flex-1:last-child').addEventListener('click', autoComplete);
+            
+            // 抽取下一张牌的函数
+            function drawNextCard() {
+                if (drawnCards >= 3) return;
+                
+                // 播放抽牌音效
+                playCardDrawSound();
+                
+                // 添加抽牌动画效果
+                const currentSlot = cardSlots[drawnCards];
+                const currentCard = shuffledCards[drawnCards];
+                
+                // 设置卡片正面图案
+                const cardFront = currentSlot.querySelector('.card-front');
+                cardFront.style.backgroundImage = `url('${currentCard.image}')`;
+                
+                // 添加抽牌动画类
+                currentSlot.classList.add('drawing');
+                
+                // 使用GSAP创建更复杂的动画序列
+                const tl = gsap.timeline();
+                
+                // 牌堆晃动效果
+                tl.to('#tarot-deck', {duration: 0.3, x: 5, yoyo: true, repeat: 3, ease: 'power1.inOut'});
+                
+                // 卡片从牌堆飞到目标位置
+                setTimeout(() => {
+                    currentSlot.classList.add('flipped');
+                    
+                    // 更新进度条
+                    drawnCards++;
+                    updateProgress();
+                    
+                    // 更新解析区域
+                    updateInterpretation(drawnCards - 1, currentCard);
+                    
+                    // 检查是否所有牌都已抽取
+                    if (drawnCards === 3) {
+                        setTimeout(showCompletionMessage, 1000);
+                    }
+                }, 500);
+            }
+            
+            // 更新进度条
+            function updateProgress() {
+                progressText.textContent = `${drawnCards}/3`;
+                progressBar.style.width = `${(drawnCards / 3) * 100}%`;
+            }
+            
+            // 更新解析区域
+            function updateInterpretation(index, card) {
+                const interpretations = document.querySelectorAll('.card-interpretation');
+                const interpretation = interpretations[index];
+                
+                // 清除等待抽取提示
+                interpretation.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="w-12 h-20 rounded overflow-hidden flex-shrink-0 mr-3">
+                            <img src="${card.image}" alt="${card.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-800">${cardPositions[index] === 'past' ? '过去' : cardPositions[index] === 'present' ? '现在' : '未来'} - ${card.name}</h4>
+                            <div class="text-xs text-indigo-600 mb-1">${card.position === 'upright' ? '正位' : '逆位'}</div>
+                            <p class="text-sm text-gray-600">${card.meaning}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加消失再出现的动画效果
+                gsap.fromTo(interpretation, 
+                    {opacity: 0, y: 20}, 
+                    {duration: 0.5, opacity: 1, y: 0, ease: 'back.out(1.7)'}
+                );
+            }
+            
+            // 重置占卦
+            function resetReading() {
+                // 重置卡片状态
+                cardSlots.forEach(slot => {
+                    slot.classList.remove('flipped', 'drawing');
+                });
+                
+                // 重置进度
+                drawnCards = 0;
+                updateProgress();
+                
+                // 重新打乱卡组
+                shuffledCards = shuffleArray([...tarotCards]);
+                
+                // 重置解析区域
+                const interpretations = document.querySelectorAll('.card-interpretation');
+                interpretations.forEach((interpretation, index) => {
+                    if (index === 0) {
+                        interpretation.innerHTML = `
+                            <div class="flex items-center justify-center h-24 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-2">
+                                <p class="text-gray-400 text-sm">等待抽取第一张牌...</p>
+                            </div>
+                            <h4 class="font-medium text-gray-800">过去 - 待抽取</h4>
+                            <p class="text-sm text-gray-500 mt-1">这张牌将揭示你过去的经历和影响。</p>
+                        `;
+                    } else if (index === 1) {
+                        interpretation.innerHTML = `
+                            <div class="flex items-center justify-center h-24 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-2">
+                                <p class="text-gray-400 text-sm">等待抽取第二张牌...</p>
+                            </div>
+                            <h4 class="font-medium text-gray-800">现在 - 待抽取</h4>
+                            <p class="text-sm text-gray-500 mt-1">这张牌将揭示你当前的处境和面临的问题。</p>
+                        `;
+                    } else {
+                        interpretation.innerHTML = `
+                            <div class="flex items-center justify-center h-24 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-2">
+                                <p class="text-gray-400 text-sm">等待抽取第三张牌...</p>
+                            </div>
+                            <h4 class="font-medium text-gray-800">未来 - 待抽取</h4>
+                            <p class="text-sm text-gray-500 mt-1">这张牌将揭示可能的未来发展和结果。</p>
+                        `;
+                    }
+                });
+                
+                // 添加重置动画
+                gsap.from('.card-slot', {duration: 0.5, opacity: 0, y: 20, stagger: 0.1, ease: 'back.out(1.7)'});
+                gsap.from('#tarot-deck', {duration: 0.8, opacity: 0, y: 30, delay: 0.5, ease: 'elastic.out(1, 0.5)'});
+            }
+            
+            // 自动完成占卦
+            function autoComplete() {
+                // 如果还有牌未抽取，自动抽取剩余的牌
+                const remainingCards = 3 - drawnCards;
+                if (remainingCards > 0) {
+                    for (let i = 0; i < remainingCards; i++) {
+                        setTimeout(() => drawNextCard(), i * 1200);
+                    }
+                }
+            }
+            
+            // 显示完成信息
+            function showCompletionMessage() {
+                // 添加完成动画效果
+                gsap.to('.btn-primary', {
+                    duration: 0.5, 
+                    scale: 1.05, 
+                    backgroundColor: '#8B5CF6',
+                    repeat: 1, 
+                    yoyo: true,
+                    ease: 'power1.inOut'
+                });
+                
+                // 添加轮廓效果到所有卡片
+                gsap.to('.card-slot', {
+                    duration: 0.3, 
+                    y: -5, 
+                    stagger: 0.1, 
+                    repeat: 1, 
+                    yoyo: true,
+                    ease: 'power1.inOut'
+                });
+            }
+            
+            // 播放抽牌音效
+            function playCardDrawSound() {
+                // 如果有音效文件可以在这里播放
+                console.log('播放抽牌音效');
+            }
+            
+            // 播放翻牌音效
+            function playCardFlipSound() {
+                // 如果有音效文件可以在这里播放
+                console.log('播放翻牌音效');
+            }
+            
+            // 初始化重置占卦
+            resetReading();
+        });
+    </script>
+</body>
+</html>

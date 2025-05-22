@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>玄学命理 - 小程序预览</title>
+    <style>
+        :root {
+            /* 微信小程序推荐配色 */
+            --wx-primary: #07C160;
+            --wx-bg: #F7F7F7;
+            --wx-text: #333333;
+            --wx-text-secondary: #666666;
+            --wx-border: #EEEEEE;
+            
+            /* 保留一些神秘元素的配色 */
+            --mystical-gold: #FFD700;
+            --mystical-blue: #1a237e;
+            --mystical-purple: #4a148c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Segoe UI, Arial, Roboto, "PingFang SC", "miui", "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
+            background: var(--wx-bg);
+            color: var(--wx-text);
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--wx-text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .content {
+            margin-top: 56px;
+            padding-bottom: 70px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #FFFFFF;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 24px;
+            background: var(--wx-bg);
+            color: var(--mystical-purple);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--wx-text);
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--wx-text-secondary);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 20px 0 12px;
+            padding-left: 12px;
+            border-left: 4px solid var(--mystical-purple);
+        }
+
+        .btn {
+            background: var(--mystical-purple);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            width: 100%;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .tabbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: var(--wx-text-secondary);
+        }
+
+        .tab-item.active {
+            color: var(--mystical-purple);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        /* 简化的动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255,255,255,0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .ripple:active::after {
+            animation: ripple 0.4s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(40, 40);
+                opacity: 0;
+            }
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        玄学命理
+    </div>
+
+    <div class="content">
+        <div class="container">
+            <div class="section-title">中式玄学</div>
+            <div class="grid">
+                <div class="card fade-in">
+                    <div class="card-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="card-title">八字排盘</div>
+                    <div class="card-desc">生辰八字分析，五行生克</div>
+                    <button class="btn ripple">开始分析</button>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="card-title">六十四卦</div>
+                    <div class="card-desc">周易预测，变通有无</div>
+                    <button class="btn ripple">立即占卜</button>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="card-title">神煞分析</div>
+                    <div class="card-desc">趋吉避凶，趋利避害</div>
+                    <button class="btn ripple">查看分析</button>
+                </div>
+            </div>
+
+            <div class="section-title">西式玄学</div>
+            <div class="grid">
+                <div class="card fade-in">
+                    <div class="card-icon">
+                        <i class="fas fa-cards"></i>
+                    </div>
+                    <div class="card-title">塔罗占卜</div>
+                    <div class="card-desc">命运指引，心灵启示</div>
+                    <button class="btn ripple">抽取塔罗</button>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">
+                        <i class="fas fa-star-and-crescent"></i>
+                    </div>
+                    <div class="card-title">星盘解析</div>
+                    <div class="card-desc">星象变化，宫位流转</div>
+                    <button class="btn ripple">生成星盘</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabbar">
+        <div class="tab-item active">
+            <i class="fas fa-home tab-icon"></i>
+            <span>首页</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-compass tab-icon"></i>
+            <span>占卜</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user tab-icon"></i>
+            <span>我的</span>
+        </div>
+    </div>
+</body>
+</html>

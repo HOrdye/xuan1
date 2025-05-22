@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 个人资料</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #6366F1, #EC4899);
+            border-radius: 0 0 30px 30px;
+        }
+
+        .avatar {
+            border: 3px solid white;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white;
+        }
+
+        .menu-item {
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:active {
+            background-color: #F3F4F6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4">
+            <div class="text-lg font-bold text-indigo-600">个人中心</div>
+            <div>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-cog text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人信息头部 -->
+    <div class="profile-header p-6 pb-10 text-white">
+        <div class="flex items-center">
+            <div class="w-20 h-20 rounded-full overflow-hidden avatar bg-white">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="用户头像" class="w-full h-full object-cover">
+            </div>
+            <div class="ml-4">
+                <h2 class="text-xl font-bold">小仙女本仙</h2>
+                <p class="text-sm opacity-90">VIP会员 · 天秤座</p>
+                <div class="flex items-center mt-1">
+                    <span class="text-xs bg-white bg-opacity-20 px-2 py-0.5 rounded-full">命主</span>
+                    <span class="text-xs ml-2">ID: 888888</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 命盘信息卡片 -->
+    <div class="mx-4 -mt-6 bg-white rounded-xl shadow-sm p-4 mb-6">
+        <h3 class="text-gray-700 font-medium mb-3">我的命盘</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <i class="fas fa-calendar-alt text-indigo-500"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="text-xs text-gray-500">出生日期</div>
+                        <div class="text-sm font-medium">1995年10月15日</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                        <i class="fas fa-clock text-pink-500"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="text-xs text-gray-500">出生时辰</div>
+                        <div class="text-sm font-medium">子时 (23:00-01:00)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-map-marker-alt text-purple-500"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="text-xs text-gray-500">出生地点</div>
+                        <div class="text-sm font-medium">北京市</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i class="fas fa-venus-mars text-yellow-500"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="text-xs text-gray-500">性别</div>
+                        <div class="text-sm font-medium">女</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="w-full mt-3 py-2 text-center text-indigo-500 text-sm font-medium">
+            编辑信息
+        </button>
+    </div>
+
+    <!-- 功能菜单 -->
+    <div class="bg-white rounded-xl shadow-sm mx-4 mb-6">
+        <div class="menu-item flex justify-between items-center p-4 border-b">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <i class="fas fa-history text-indigo-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">历史记录</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item flex justify-between items-center p-4 border-b">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-bookmark text-green-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">我的收藏</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item flex justify-between items-center p-4 border-b">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-crown text-blue-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">会员中心</span>
+            </div>
+            <div class="flex items-center">
+                <span class="text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full mr-2">VIP</span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </div>
+        <div class="menu-item flex justify-between items-center p-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-gift text-red-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">我的福利</span>
+            </div>
+            <div class="flex items-center">
+                <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full mr-2">2</span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 其他选项 -->
+    <div class="bg-white rounded-xl shadow-sm mx-4 mb-6">
+        <div class="menu-item flex justify-between items-center p-4 border-b">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-headset text-gray-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">客服中心</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item flex justify-between items-center p-4 border-b">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-share-alt text-gray-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">分享给好友</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item flex justify-between items-center p-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-info-circle text-gray-500"></i>
+                </div>
+                <span class="ml-3 text-gray-700">关于天玄</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- 退出登录按钮 -->
+    <div class="mx-4 mb-6">
+        <button class="w-full py-3 bg-white rounded-xl text-red-500 font-medium shadow-sm">
+            退出登录
+        </button>
+    </div>
+</body>
+</html>

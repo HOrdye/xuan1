@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 玄学画像</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white;
+        }
+
+        .profile-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366F1, #EC4899);
+        }
+
+        .energy-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .ios-button {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px;
+            font-weight: 500;
+            padding: 12px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .ios-button:active {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .ios-segmented-control {
+            display: flex;
+            background-color: #e5e7eb;
+            border-radius: 8px;
+            padding: 2px;
+        }
+
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+        }
+
+        .ios-segment.active {
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .symbol-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin: 0 auto;
+        }
+
+        .symbol-icon {
+            font-size: 48px;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        .chart-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .chart-element {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-line {
+            position: absolute;
+            background-color: rgba(99, 102, 241, 0.2);
+            transform-origin: 0 0;
+        }
+
+        .attribute-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .attribute-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+        }
+
+        .attribute-bar {
+            flex: 1;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .attribute-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <button class="text-indigo-600">
+                <i class="fas fa-chevron-left mr-1"></i> 返回
+            </button>
+            <div class="text-lg font-bold">玄学画像</div>
+            <button class="text-indigo-600">
+                <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <!-- 切换视图 -->
+        <div class="mb-4">
+            <div class="ios-segmented-control">
+                <div class="ios-segment active">基础画像</div>
+                <div class="ios-segment">能量趋势</div>
+                <div class="ios-segment">守护符号</div>
+            </div>
+        </div>
+
+        <!-- 用户基本信息 -->
+        <div class="profile-card bg-white mb-6">
+            <div class="gradient-bg p-4 text-white">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold">玄学画像</h2>
+                    <span class="text-sm opacity-80">2025年4月24日</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-user text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-lg font-bold mb-1">星辰漫游者</div>
+                        <div class="text-sm opacity-80">水象星座 | 木星守护 | 阴阳调和</div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">本命属相</div>
+                        <div class="text-lg font-medium">龙</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">五行属性</div>
+                        <div class="text-lg font-medium">水木组合</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">幸运数字</div>
+                        <div class="text-lg font-medium">3, 7, 9</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-500">当前能量值</span>
+                        <span class="text-indigo-600 font-medium">78%</span>
+                    </div>
+                    <div class="energy-bar">
+                        <div class="energy-fill bg-gradient-to-r from-indigo-500 to-purple-500" style="width: 78%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 守护符号 -->
+        <div class="profile-card bg-white mb-6">
+            <div class="p-4">
+                <h3 class="text-lg font-bold text-center mb-4">你的专属守护符号</h3>
+                <div class="symbol-circle mb-4">
+                    <i class="symbol-icon fas fa-dragon"></i>
+                </div>
+                <div class="text-center mb-4">
+                    <div class="text-xl font-bold text-indigo-600 mb-1">水龙守护</div>
+                    <p class="text-sm text-gray-600">象征智慧与变通，助你在变化中寻找平衡</p>
+                </div>
+                <button class="ios-button w-full">生成专属御守</button>
+            </div>
+        </div>
+
+        <!-- 星盘图 -->
+        <div class="profile-card bg-white mb-6">
+            <div class="p-4">
+                <h3 class="text-lg font-bold text-center mb-4">简化星盘</h3>
+                <div class="chart-container mb-4">
+                    <!-- 同心圆 -->
+                    <div class="chart-circle" style="top: 50px; left: 50px; width: 200px; height: 200px;"></div>
+                    <div class="chart-circle" style="top: 75px; left: 75px; width: 150px; height: 150px;"></div>
+                    <div class="chart-circle" style="top: 100px; left: 100px; width: 100px; height: 100px;"></div>
+                    
+                    <!-- 星象元素 -->
+                    <div class="chart-element bg-indigo-500" style="top: 50px; left: 150px;">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="chart-element bg-pink-500" style="top: 150px; left: 230px;">
+                        <i class="fas fa-venus"></i>
+                    </div>
+                    <div class="chart-element bg-purple-500" style="top: 230px; left: 150px;">
+                        <i class="fas fa-jupiter"></i>
+                    </div>
+                    <div class="chart-element bg-blue-500" style="top: 150px; left: 50px;">
+                        <i class="fas fa-mercury"></i>
+                    </div>
+                    
+                    <!-- 连接线 -->
+                    <div class="chart-line" style="top: 150px; left: 150px; width: 100px; height: 1px; transform: rotate(0deg);"></div>
+                    <div class="chart-line" style="top: 150px; left: 150px; width: 100px; height: 1px; transform: rotate(90deg);"></div>
+                    <div class="chart-line" style="top: 150px; left: 150px; width: 100px; height: 1px; transform: rotate(45deg);"></div>
+                    <div class="chart-line" style="top: 150px; left: 150px; width: 100px; height: 1px; transform: rotate(135deg);"></div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 mb-2">水象星座主导，木星守护，创造力与直觉平衡</p>
+                    <button class="text-indigo-600 text-sm font-medium">查看详细解读 <i class="fas fa-chevron-right text-xs ml-1"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个性特质 -->
+        <div class="profile-card bg-white mb-6">
+            <div class="p-4">
+                <h3 class="text-lg font-bold mb-4">个性特质</h3>
+                
+                <div class="attribute-item">
+                    <div class="attribute-icon bg-indigo-500">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">智慧</span>
+                            <span class="text-sm text-gray-500">85%</span>
+                        </div>
+                        <div class="attribute-bar">
+                            <div class="attribute-fill bg-indigo-500" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attribute-item">
+                    <div class="attribute-icon bg-pink-500">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">情感</span>
+                            <span class="text-sm text-gray-500">70%</span>
+                        </div>
+                        <div class="attribute-bar">
+                            <div class="attribute-fill bg-pink-500" style="width: 70%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attribute-item">
+                    <div class="attribute-icon bg-yellow-500">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">能量</span>
+                            <span class="text-sm text-gray-500">65%</span>
+                        </div>
+                        <div class="attribute-bar">
+                            <div class="attribute-fill bg-yellow-500" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attribute-item">
+                    <div class="attribute-icon bg-green-500">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">成长</span>
+                            <span class="text-sm text-gray-500">80%</span>
+                        </div>
+                        <div class="attribute-bar">
+                            <div class="attribute-fill bg-green-500" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attribute-item">
+                    <div class="attribute-icon bg-purple-500">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">灵性</span>
+                            <span class="text-sm text-gray-500">75%</span>
+                        </div>
+                        <div class="attribute-bar">
+                            <div class="attribute-fill bg-purple-500" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幸运元素 -->
+        <div class="profile-card bg-white mb-6">
+            <div class="p-4">
+                <h3 class="text-lg font-bold mb-4">幸运元素</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm text-gray-500 mb-1">幸运色</div>
+                        <div class="flex space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500"></div>
+                            <div class="w-6 h-6 rounded-full bg-teal-500"></div>
+                            <div class="w-6 h-6 rounded-full bg-amber-500"></div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm text-gray-500 mb-1">幸运方位</div>
+                        <div class="font-medium">东北、西南</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm text-gray-500 mb-1">幸运数字</div>
+                        <div class="font-medium">3, 7, 9</div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="text-sm text-gray-500 mb-1">幸运日</div>
+                        <div class="font-medium">周二、周五</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部按钮 -->
+        <div class="flex space-x-3 mb-4">
+            <button class="ios-button bg-gray-500 flex-1">更新画像</button>
+            <button class="ios-button flex-1">分享画像</button>
+        </div>
+    </div>
+</body>
+</html>

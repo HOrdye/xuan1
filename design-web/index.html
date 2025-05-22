@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天玄Web - 高保真UI原型</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入FontAwesome图标 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 引入中文字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* 自定义样式 */
+    :root {
+      --primary-color: #5D3FD3; /* 主色调：紫色 */
+      --secondary-color: #FF6B6B; /* 次要色调：珊瑚红 */
+      --accent-color: #FFD166; /* 强调色：金黄色 */
+      --bg-color: #F9F7FF; /* 背景色：淡紫色背景 */
+      --text-color: #333333; /* 文本色：深灰色 */
+    }
+    
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    
+    .title-font {
+      font-family: 'Ma Shan Zheng', cursive;
+    }
+    
+    /* 自定义动画 */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    /* 卡片样式 */
+    .card {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    
+    /* 按钮样式 */
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      display: inline-block;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(93, 63, 211, 0.2);
+    }
+    
+    /* 标签样式 */
+    .tag {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    /* DIY编辑器样式 */
+    .diy-canvas {
+      width: 100%;
+      height: 400px;
+      background-color: #f0f0f0;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .diy-toolbar {
+      display: flex;
+      overflow-x: auto;
+      padding: 12px 0;
+      gap: 12px;
+    }
+    
+    .diy-tool {
+      min-width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .diy-tool:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* 玄学画像样式 */
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      margin: 0 auto 20px;
+    }
+    
+    .energy-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #eee;
+      margin-bottom: 24px;
+    }
+    
+    .energy-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    /* 导航样式 */
+    .main-nav {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .nav-link {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      color: var(--text-color);
+      transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary-color);
+      background-color: rgba(93, 63, 211, 0.05);
+    }
+    
+    .nav-link i {
+      margin-right: 10px;
+    }
+    
+    /* 页面切换控制 */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      .main-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        border-radius: 0;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+      }
+      
+      .nav-link {
+        flex-direction: column;
+        padding: 10px;
+        font-size: 12px;
+      }
+      
+      .nav-link i {
+        margin-right: 0;
+        margin-bottom: 5px;
+        font-size: 20px;
+      }
+      
+      .page-container {
+        padding-bottom: 70px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto py-8 px-4">
+    <h1 class="text-3xl font-bold text-center title-font text-purple-800 mb-8">天玄Web - 高保真UI原型</h1>
+    
+    <!-- 主导航 -->
+    <div class="main-nav hidden md:block mb-8">
+      <div class="flex justify-between">
+        <a href="#home" class="nav-link active" onclick="switchTab('home', this)">
+          <i class="fas fa-home"></i> 首页
+        </a>
+        <a href="#mystic-profile" class="nav-link" onclick="switchTab('mystic-profile', this)">
+          <i class="fas fa-user-chart"></i> 玄学画像
+        </a>
+        <a href="#diy-charm" class="nav-link" onclick="switchTab('diy-charm', this)">
+          <i class="fas fa-wand-magic-sparkles"></i> DIY开运潮物
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-compass"></i> 探索
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-book"></i> 学习
+        </a>
+      </div>
+    </div>
+    
+    <!-- 移动端导航 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg md:hidden z-50">
+      <div class="flex justify-around">
+        <a href="#home" class="nav-link active" onclick="switchTab('home', this)">
+          <i class="fas fa-home"></i>
+          <span>首页</span>
+        </a>
+        <a href="#mystic-profile" class="nav-link" onclick="switchTab('mystic-profile', this)">
+          <i class="fas fa-user-chart"></i>
+          <span>画像</span>
+        </a>
+        <a href="#diy-charm" class="nav-link" onclick="switchTab('diy-charm', this)">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <span>DIY</span>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-compass"></i>
+          <span>探索</span>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-user"></i>
+          <span>我的</span>
+        </a>
+      </div>
+    </div>
+    
+    <div class="page-container pb-20 md:pb-0">
+      <!-- 首页 -->
+      <div id="home" class="tab-content active">
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-2xl font-bold title-font">天玄</h1>
+          <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+            <i class="fas fa-user text-purple-600"></i>
+          </div>
+        </div>
+        
+        <div class="card bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-6 mb-6">
+          <div class="flex items-center mb-4">
+            <div class="text-4xl mr-4"><i class="fas fa-moon"></i></div>
+            <div>
+              <h3 class="font-bold">今日运势</h3>
+              <p class="text-sm opacity-80">农历七月初七 · 七夕</p>
+            </div>
+          </div>
+          <p class="mb-4">今日桃花运旺盛，适合表达爱意与感情</p>
+          <div class="flex flex-wrap justify-between text-sm">
+            <span class="tag bg-white/20 mb-2">财运 85%</span>
+            <span class="tag bg-white/20 mb-2">事业 70%</span>
+            <span class="tag bg-white/20 mb-2">健康 90%</span>
+          </div>
+        </div>
+        
+        <h2 class="text-lg font-bold mb-4">探索玄学</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="card bg-amber-50 p-4">
+            <div class="text-amber-500 text-2xl mb-2"><i class="fas fa-coins float-animation"></i></div>
+            <h3 class="font-bold text-amber-800">周易卦象</h3>
+            <p class="text-xs text-amber-700 mt-1">探寻古老智慧</p>
+          </div>
+          
+          <div class="card bg-rose-50 p-4">
+            <div class="text-rose-500 text-2xl mb-2"><i class="fas fa-heart float-animation"></i></div>
+            <h3 class="font-bold text-rose-800">塔罗牌阵</h3>
+            <p class="text-xs text-rose-700 mt-1">揭示命运轨迹</p>
+          </div>
+          
+          <div class="card bg-emerald-50 p-4">
+            <div class="text-emerald-500 text-2xl mb-2"><i class="fas fa-seedling float-animation"></i></div>
+            <h3 class="font-bold text-emerald-800">星盘解析</h3>
+            <p class="text-xs text-emerald-700 mt-1">了解星辰影响</p>
+          </div>
+          
+          <div class="card bg-blue-50 p-4">
+            <div class="text-blue-500 text-2xl mb-2"><i class="fas fa-dice float-animation"></i></div>
+            <h3 class="font-bold text-blue-800">掷筊问卜</h3>
+            <p class="text-xs text-blue-700 mt-1">寻求神明指引</p>
+          </div>
+        </div>
+        
+        <h2 class="text-lg font-bold mb-4">个性化服务</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div class="card bg-purple-50 p-4">
+            <div class="text-purple-500 text-2xl mb-2"><i class="fas fa-user-chart float-animation"></i></div>
+            <h3 class="font-bold text-purple-800">玄学画像</h3>
+            <p class="text-xs text-purple-700 mt-1">探索你的命盘</p>
+          </div>
+          
+          <div class="card bg-pink-50 p-4">
+            <div class="text-pink-500 text-2xl mb-2"><i class="fas fa-wand-magic-sparkles float-animation"></i></div>
+            <h3 class="font-bold text-pink-800">DIY开运潮物</h3>
+            <p class="text-xs text-pink-700 mt-1">创造专属符咒</p>
+          </div>
+          
+          <div class="card bg-cyan-50 p-4">
+            <div class="text-cyan-500 text-2xl mb-2"><i class="fas fa-lightbulb float-animation"></i></div>
+            <h3 class="font-bold text-cyan-800">决策助手</h3>
+            <p class="text-xs text-cyan-700 mt-1">解决生活难题</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 玄学画像页面 -->
+      <div id="mystic-profile" class="tab-content">
+        <div class="flex items-center mb-6">
+          <a href="#home" onclick="switchTab('home', document.querySelector('.nav-link[href=\'#home\']'))" class="text-lg mr-4">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          <h1 class="text-xl font-bold">玄学画像</h1>
+        </div>
+        
+        <div class="profile-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        
+        <h2 class="text-center text-xl font-bold mb-2">李小明</h2>
+        <p class="text-center text-gray-500 mb-6">水瓶座 · 壬寅年 · 阳命</p>
+        
+        <div class="card mb-6">
+          <h3 class="font-bold mb-3">本命能量</h3>
+          
+          <div class="mb-3">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm">木能量</span>
+              <span class="text-sm">78%</span>
+            </div>
+            <div class="energy-bar">
+              <div class="energy-fill" style="width: 78%"></div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm">火能量</span>
+              <span class="text-sm">45%</span>
+            </div>
+            <div class="energy-bar">
+              <div class="energy-fill" style="width: 45%"></div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm">土能量</span>
+              <span class="text-sm">30%</span>
+            </div>
+            <div class="energy-bar">
+              <div class="energy-fill" style="width: 30%"></div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm">金能量</span>
+              <span class="text-sm">60%</span>
+            </div>
+            <div class="energy-bar">
+              <div class="energy-fill" style="width: 60%"></div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm">水能量</span>
+              <span class="text-sm">85%</span>
+            </div>
+            <div class="energy-bar">
+              <div class="energy-fill" style="width: 85%"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card mb-6">
+          <h3 class="font-bold mb-3">守护符号</h3>
+          <div class="flex justify-center">
+            <div class="w-40 h-40 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg viewBox="0 0 100 100" class="w-32 h-32">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#5D3FD3" stroke-width="2"></circle>
+                <path d="M50 5 L50 95 M5 50 L95 50 M26 26 L74 74 M26 74 L74 26" stroke="#5D3FD3" stroke-width="1"></path>
+                <circle cx="50" cy="50" r="20" fill="none" stroke="#FF6B6B" stroke-width="2"></circle>
+                <path d="M50 30 L50 70 M30 50 L70 50" stroke="#FF6B6B" stroke-width="1"></path>
+                <circle cx="50" cy="50" r="5" fill="#FFD166"></circle>
+              </svg>
+            </div>
+          </div>
+          <p class="text-center text-sm mt-4">水瓶座守护符 · 增强创造力与直觉</p>
+        </div>
+        
+        <div class="card">
+          <h3 class="font-bold mb-3">能量趋势</h3>
+          <p class="text-sm mb-4">近期能量波动较大，建议注意以下方面：</p>
+          
+          <div class="flex flex-wrap">
+            <span class="tag bg-green-100 text-green-800">宜：创新思考</span>
+            <span class="tag bg-green-100 text-green-800">宜：社交活动</span>
+            <span class="tag bg-green-100 text-green-800">宜：学习新知</span>
+            <span class="tag bg-red-100 text-red-800">忌：冲动决策</span>
+            <span class="tag bg-red-100 text-red-800">忌：过度劳累</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- DIY开运潮物页面 -->
+      <div id="diy-charm" class="tab-content">
+        <div class="flex items-center mb-6">
+          <a href="#home" onclick="switchTab('home', document.querySelector('.nav-link[href=\'#home\']'))" class="text-lg mr-4">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          <h1 class="text-xl font-bold">DIY开运潮物</h1>
+        </div>
+        
+        <div class="flex justify-between mb-4">
+          <div class="btn-primary text-sm py-2 px-4">
+            <i class="fas fa-mobile-screen mr-1"></i> 手机壁纸
+          </div>
+          <div class="bg-gray-200 text-gray-600 text-sm py-2 px-4 rounded-xl cursor-pointer hover:bg-gray-300 transition-all">
+            <i class="fas fa-shield mr-1"></i> 电子御守
+          </div>
+        </div>
+        
+        <div class="diy-canvas mb-4">
+          <!-- 预览区域 -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="relative w-3/4 h-4/5 bg-gradient-to-br from-purple-200 to-indigo-100 rounded-xl">
+              <!-- 背景元素 -->
+              <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full opacity-20">
+                <circle cx="20" cy="20" r="15" fill="#5D3FD3"></circle>
+                <circle cx="80" cy="80" r="20" fill="#FF6B6B"></circle>
+                <path d="M40 10 L60 90" stroke="#FFD166" stroke-width="2"></path>
+                <path d="M10 40 L90 60" stroke="#FFD166" stroke-width="2"></path>
+              </svg>
+              
+              <!-- 符号元素 -->
+              <div class="absolute top-1/4 left-1/4 w-12 h-12 text-purple-600">
+                <i class="fas fa-moon text-2xl"></i>
+              </div>
+              
+              <div class="absolute bottom-1/4 right-1/4 w-12 h-12 text-pink-600">
+                <i class="fas fa-star text-2xl"></i>
+              </div>
+              
+              <!-- 文字元素 -->
+              <div class="absolute bottom-8 left-0 right-0 text-center">
+                <div class="text-xs text-purple-800 font-bold">开运 · 招财 · 护佑</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h3 class="font-bold mb-3">选择元素</h3>
+        
+        <div class="mb-4">
+          <h4 class="text-sm font-medium mb-2">背景</h4>
+          <div class="diy-toolbar">
+            <div class="diy-tool bg-gradient-to-r from-purple-200 to-indigo-100"></div>
+            <div class="diy-tool bg-gradient-to-r from-amber-100 to-orange-200"></div>
+            <div class="diy-tool bg-gradient-to-r from-emerald-100 to-teal-200"></div>
+            <div class="diy-tool bg-gradient-to-r from-rose-100 to-pink-200"></div>
+            <div class="diy-tool bg-gradient-to-r from-blue-100 to-cyan-200"></div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <h4 class="text-sm font-medium mb-2">符号</h4>
+          <div class="diy-toolbar">
+            <div class="diy-tool text-purple-600"><i class="fas fa-moon text-xl"></i></div>
+            <div class="diy-tool text-amber-600"><i class="fas fa-sun text-xl"></i></div>
+            <div class="diy-tool text-pink-600"><i class="fas fa-star text-xl"></i></div>
+            <div class="diy-tool text-blue-600"><i class="fas fa-cloud text-xl"></i></div>
+            <div class="diy-tool text-emerald-600"><i class="fas fa-seedling text-xl"></i></div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <h4 class="text-sm font-medium mb-2">文字</h4>
+          <div class="diy-toolbar">
+            <div class="diy-tool">开运</div>
+            <div class="diy-tool">招财</div>
+            <div class="diy-tool">护佑</div>
+            <div class="diy-tool">平安</div>
+            <div class="diy-tool">健康</div>
+          </div>
+        </div>
+        
+        <div class="flex justify-center mt-6">
+          <div class="btn-primary">
+            <i class="fas fa-download mr-2"></i> 保存到相册
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 页面切换控制
+    function switchTab(tabId, navLink) {
+      // 隐藏所有标签内容
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // 显示选中的标签内容
+      document.getElementById(tabId).classList.add('active');
+      
+      // 更新导航链接状态
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      // 设置当前导航链接为激活状态
+      if (navLink) {
+        navLink.classList.add('active');
+        
+        // 同步更新移动端和桌面端的导航状态
+        const mobileLink = document.querySelector(`.md\\:hidden .nav-link[href='#${tabId}']`);
+        const desktopLink = document.querySelector(`.hidden.md\\:block .nav-link[href='#${tabId}']`);
+        
+        if (mobileLink && mobileLink !== navLink) {
+          mobileLink.classList.add('active');
+        }
+        
+        if (desktopLink && desktopLink !== navLink) {
+          desktopLink.classList.add('active');
+        }
+      }
+    }
+    
+    // 默认显示首页
+    document.addEventListener('DOMContentLoaded', function() {
+      switchTab('home', document.querySelector('.nav-link[href="#home"]'));
+    });
+  </script>
+</body>
+</html>

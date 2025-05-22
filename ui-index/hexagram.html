@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 易经六十四卦</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white;
+        }
+
+        .hexagram-display {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 16px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .yao {
+            width: 80px;
+            height: 10px;
+            background: var(--primary-color);
+            margin: 12px auto;
+            border-radius: 5px;
+            animation: drawYao 0.5s ease-out forwards;
+            opacity: 0;
+            transform: scaleX(0);
+            transform-origin: center left;
+        }
+
+        .yao.yin {
+            width: 35px;
+            display: inline-block;
+            margin: 12px 4px;
+        }
+
+        .yao:nth-child(1) { animation-delay: 0.1s; }
+        .yao:nth-child(2) { animation-delay: 0.2s; }
+        .yao:nth-child(3) { animation-delay: 0.3s; }
+        .yao:nth-child(4) { animation-delay: 0.4s; }
+        .yao:nth-child(5) { animation-delay: 0.5s; }
+        .yao:nth-child(6) { animation-delay: 0.6s; }
+
+        .interpretation {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+            animation: fadeInRight 0.6s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .coin-animation {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 1.5rem 0;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coin-animation i {
+            display: inline-block;
+            animation: flipCoin 2s ease-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        .coin {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            animation: flipCoin 2s ease-out infinite;
+        }
+
+        .coin:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .coin:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .coin::before {
+            content: '阴';
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .coin::after {
+            content: '阳';
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+        }
+
+        @keyframes flipCoin {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(180deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        @keyframes drawYao {
+            from {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            to {
+                transform: scaleX(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #E5E7EB;
+            color: #4B5563;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background: #F9FAFB;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .yao-check {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .yao-check:hover {
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateX(5px);
+        }
+
+        .yao-check.active {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .hexagram-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .hexagram-number {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div class="text-lg font-bold text-indigo-600">易经六十四卦</div>
+            <div>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-question-circle text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 左侧操作区 -->
+            <div>
+                <!-- 起卦方式卡片 -->
+                <div class="card mb-6">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">起卦方式</h3>
+                        <div class="space-y-3">
+                            <button class="btn-primary w-full flex items-center justify-center">
+                                <i class="fas fa-coins mr-2"></i>银钱起卦
+                            </button>
+                            <button class="btn-secondary w-full flex items-center justify-center">
+                                <i class="fas fa-keyboard mr-2"></i>手动输入
+                            </button>
+                        </div>
+
+                        <div class="coin-animation mt-4">
+                            <div class="coin"></div>
+                            <div class="coin"></div>
+                            <div class="coin"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题输入卡片 -->
+                <div class="card mb-6">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">指定问题</h3>
+                        <div class="mb-4">
+                            <input type="text" placeholder="输入你想占卦的问题，例如：今天要不要请假？" class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">事业发展</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">感情变化</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">财运如何</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">出行吉凶</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 手动爽变卡片 -->
+                <div class="card">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">手动爽变</h3>
+                        <div class="space-y-1">
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao6" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao6" class="text-gray-700">第六爽变（上爽）</label>
+                            </div>
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao5" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao5" class="text-gray-700">第五爽变</label>
+                            </div>
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao4" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao4" class="text-gray-700">第四爽变</label>
+                            </div>
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao3" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao3" class="text-gray-700">第三爽变</label>
+                            </div>
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao2" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao2" class="text-gray-700">第二爽变</label>
+                            </div>
+                            <div class="yao-check">
+                                <input type="checkbox" id="yao1" class="w-5 h-5 text-indigo-600 rounded mr-3">
+                                <label for="yao1" class="text-gray-700">第一爽变（下爽）</label>
+                            </div>
+                        </div>
+                        <button class="btn-primary w-full mt-4 flex items-center justify-center">
+                            <i class="fas fa-magic mr-2"></i>生成卦象
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧卦象解析区 -->
+            <div>
+                <div class="card">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">卦象解析</h3>
+                            <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">本卦 → 互卦</span>
+                        </div>
+                        
+                        <div class="hexagram-display">
+                            <div class="hexagram-name">乾卦</div>
+                            <div class="hexagram-number">第一卦 天天卦</div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                            <div class="yao"></div>
+                        </div>
+
+                        <div class="interpretation">
+                            <div class="mb-4 pb-4 border-b border-gray-100">
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">卦辞</h4>
+                                <p class="text-gray-700">元亮利贪</p>
+                            </div>
+                            
+                            <div class="mb-4 pb-4 border-b border-gray-100">
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">象曰</h4>
+                                <p class="text-gray-700">天行健，君子以自强不息</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">解释</h4>
+                                <p class="text-gray-700">乾卦象征天，天行健全而创生万物，这是一个充满创造力和生命力的卦象。元亮利贪，意味着大吉大利，适合开始新的事业和计划。但要注意坚持正道，不要过于强硬。</p>
+                            </div>
+
+                            <div class="bg-indigo-50 p-3 rounded-lg mb-4">
+                                <div class="flex items-start">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                                        <i class="fas fa-lightbulb text-indigo-500"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-medium text-indigo-800">决策建议</h4>
+                                        <p class="text-sm text-indigo-600 mt-1">现在是行动的好时机，可以大胆开展事业，但要保持正直、充满活力的状态，不要遇到阻力就放弃。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button class="flex-1 py-2 bg-white border border-gray-200 rounded-lg text-indigo-600 font-medium flex justify-center items-center">
+                                    <i class="fas fa-save mr-2"></i> 保存
+                                </button>
+                                <button class="flex-1 py-2 bg-indigo-600 rounded-lg text-white font-medium flex justify-center items-center">
+                                    <i class="fas fa-book mr-2"></i> 详细解析
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 这里可以添加交互逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('易经六十四卦页面已加载');
+        });
+    </script>
+</body>
+</html>

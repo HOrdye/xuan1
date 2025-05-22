@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 玄学辅助决策APP</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+            --bg-color: #F9FAFB; /* Gray-50 */
+            --text-dark: #1F2937; /* Gray-800 */
+            --text-light: #F3F4F6; /* Gray-100 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+        }
+
+        .prototype-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(375px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background-color: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 0 auto;
+            border: 12px solid #1F2937;
+        }
+
+        .status-bar {
+            height: 44px;
+            background-color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 12px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .notch {
+            width: 180px;
+            height: 30px;
+            background-color: #000;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 101;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: calc(100% - 44px - 83px); /* 减去状态栏和底部导航栏的高度 */
+            margin-top: 44px;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .tab-bar {
+            height: 83px;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 20px;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #8E8E93;
+        }
+
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-6 shadow-lg">
+        <h1 class="text-3xl font-bold text-center">天玄 - 玄学辅助决策APP</h1>
+        <p class="text-center mt-2">为90后年轻人设计的玄学决策助手</p>
+    </header>
+
+    <div class="prototype-container">
+        <!-- 首页/仪表盘 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">首页/仪表盘</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="home.html" title="首页"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人资料 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">个人资料</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="profile.html" title="个人资料"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 八字排盘 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">八字排盘</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="bazi.html" title="八字排盘"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 易经六十四卦 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">易经六十四卦</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="hexagram.html" title="易经六十四卦"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 塔罗占卜 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">塔罗占卜</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="tarot.html" title="塔罗占卜"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 星盘解读 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">星盘解读</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="astro.html" title="星盘解读"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 决策建议 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">决策建议</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="decision.html" title="决策建议"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIY开运潮物 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">DIY开运潮物</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="diy-charm.html" title="DIY开运潮物"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 玄学画像 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">玄学画像</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="mystic-profile.html" title="玄学画像"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div class="flex flex-col items-center">
+            <div class="page-title">设置</div>
+            <div class="phone-frame">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div>
+                        <i class="fas fa-signal"></i>
+                        <i class="fas fa-wifi ml-2"></i>
+                        <i class="fas fa-battery-full ml-2"></i>
+                    </div>
+                </div>
+                <div class="screen">
+                    <div class="iframe-container">
+                        <iframe src="settings.html" title="设置"></iframe>
+                    </div>
+                    <div class="tab-bar">
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-home"></i>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-compass"></i>
+                            <span>探索</span>
+                        </div>
+                        <div class="tab-item">
+                            <i class="tab-icon fas fa-lightbulb"></i>
+                            <span>决策</span>
+                        </div>
+                        <div class="tab-item active">
+                            <i class="tab-icon fas fa-user"></i>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 这里可以添加一些交互逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('天玄APP原型已加载');
+        });
+    </script>
+</body>
+</html>

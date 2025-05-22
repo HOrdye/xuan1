@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+        }
+
+        .fortune-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .fortune-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366F1, #EC4899);
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: #FBBF24;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div class="text-lg font-bold text-indigo-600">天玄</div>
+            <div class="flex space-x-2">
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-bell text-gray-500"></i>
+                </button>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-cog text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <!-- 今日运势卡片 -->
+        <div class="fortune-card mb-6">
+            <div class="gradient-bg p-4 text-white">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold">今日运势</h2>
+                    <span class="text-sm opacity-80">2025年4月24日</span>
+                </div>
+                <p class="text-sm opacity-90 mb-3">今日宜：摸鱼、吃火锅、刷剧、网购</p>
+                <p class="text-sm opacity-90 mb-4">今日忌：熬夜、剁手、吃辣、吐槽领导</p>
+                
+                <div class="grid grid-cols-2 gap-4 mt-3">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>财运</span>
+                            <span>85%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>事业</span>
+                            <span>70%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>健康</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>桃花</span>
+                            <span>60%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4">
+                <p class="text-gray-700">今天的你财运亨通，可能会有意外之财～不过别太得意忘形哦，该花的花，该存的存，理财有道才是人生赢家！</p>
+                <div class="flex justify-end mt-2">
+                    <button class="text-indigo-500 text-sm font-medium">查看详情 <i class="fas fa-chevron-right ml-1"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能快捷入口 -->
+        <h3 class="text-lg font-bold text-gray-800 mb-3">玄学工具</h3>
+        <div class="grid grid-cols-4 gap-3 mb-6">
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-1">
+                    <i class="fas fa-calendar-alt text-indigo-500 text-xl"></i>
+                </div>
+                <span class="text-xs text-gray-700">八字排盘</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 rounded-full bg-pink-100 flex items-center justify-center mb-1">
+                    <i class="fas fa-coins text-pink-500 text-xl"></i>
+                </div>
+                <span class="text-xs text-gray-700">六十四卦</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center mb-1">
+                    <i class="fas fa-moon text-purple-500 text-xl"></i>
+                </div>
+                <span class="text-xs text-gray-700">塔罗占卜</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mb-1">
+                    <i class="fas fa-star text-blue-500 text-xl"></i>
+                </div>
+                <span class="text-xs text-gray-700">星盘解读</span>
+            </div>
+        </div>
+
+        <!-- 决策助手 -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-bold text-gray-800">决策助手</h3>
+                <button class="text-indigo-500 text-sm">更多</button>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-lightbulb text-indigo-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-800">今天要不要请假？</h4>
+                        <p class="text-sm text-gray-500 mt-1">根据你的八字和今日运势，建议你今天还是乖乖上班吧，摸鱼就好~</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-shopping-cart text-pink-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-800">要不要买新手机？</h4>
+                        <p class="text-sm text-gray-500 mt-1">塔罗牌显示"节制"，建议再等等，下个月会有更好的折扣哦！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 小贴士 -->
+        <div class="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-4 text-white">
+            <h3 class="font-bold mb-2">今日小贴士</h3>
+            <p class="text-sm opacity-90">别太纠结啦！有时候命运就像网购，不满意可以退货，但先下单才知道合不合适～</p>
+            <div class="mt-3 flex justify-end">
+                <button class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs">朕知道了</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

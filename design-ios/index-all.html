@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 所有UI原型展示</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007AFF; /* iOS蓝色 */
+            --secondary-color: #FF2D55; /* iOS粉色 */
+            --accent-color: #5856D6; /* iOS紫色 */
+            --success-color: #34C759; /* iOS绿色 */
+            --warning-color: #FF9500; /* iOS橙色 */
+            --danger-color: #FF3B30; /* iOS红色 */
+            --bg-color: #F2F2F7; /* iOS浅灰背景 */
+            --text-dark: #000000; /* iOS黑色文本 */
+            --text-light: #FFFFFF; /* iOS白色文本 */
+            --text-secondary: #8E8E93; /* iOS次要文本 */
+            --border-color: #C7C7CC; /* iOS边框颜色 */
+        }
+        
+        body {
+            font-family: "SF Pro Text", "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+        }
+
+        .prototype-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(375px, 1fr));
+            gap: 3rem;
+            padding: 2rem;
+            justify-content: center;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background-color: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 0 auto;
+            border: 12px solid #1F2937;
+        }
+
+        .status-bar {
+            height: 44px;
+            background-color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 12px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .notch {
+            width: 180px;
+            height: 30px;
+            background-color: #000;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 101;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: calc(100% - 44px); /* 减去状态栏的高度 */
+            margin-top: 44px;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        /* 导航菜单样式 */
+        .nav-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-color);
+        }
+
+        /* 内容区域样式 */
+        .content-area {
+            margin-top: 20px;
+            padding: 1rem;
+        }
+        
+        /* 移除页面切换，所有页面同时显示 */
+        .page-container {
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white p-6 shadow-lg">
+        <h1 class="text-3xl font-bold text-center">天玄 - 玄学辅助决策APP</h1>
+        <p class="text-center mt-2">所有UI原型综合展示</p>
+    </header>
+
+    <div class="page-description">
+        <p class="text-center text-lg mb-6">以下展示了天玄APP的所有UI原型，您可以一次性查看所有页面设计</p>
+    </div>
+
+    <div class="content-area">
+        <div class="prototype-container">
+            <!-- 首页 -->
+            <div class="page-container" id="home">
+                <div class="page-title">首页</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="home.html" title="首页"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 决策页面 -->
+            <div class="page-container" id="decision">
+                <div class="page-title">决策</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="decision.html" title="决策"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卦象页面 -->
+            <div class="page-container" id="hexagram">
+                <div class="page-title">卦象</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="hexagram.html" title="卦象"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIY符咒页面 -->
+            <div class="page-container" id="diy-charm">
+                <div class="page-title">DIY符咒</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="diy-charm.html" title="DIY符咒"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 玄学档案页面 -->
+            <div class="page-container" id="mystic-profile">
+                <div class="page-title">玄学档案</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="mystic-profile.html" title="玄学档案"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人资料页面 -->
+            <div class="page-container" id="profile">
+                <div class="page-title">个人资料</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="profile.html" title="个人资料"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置页面 -->
+            <div class="page-container" id="settings">
+                <div class="page-title">设置</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="settings.html" title="设置"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 登录页面 -->
+            <div class="page-container" id="login">
+                <div class="page-title">登录</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="login.html" title="登录"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 引导页 -->
+            <div class="page-container" id="onboarding">
+                <div class="page-title">引导页</div>
+                <div class="phone-frame">
+                    <div class="notch"></div>
+                    <div class="status-bar">
+                        <div>9:41</div>
+                        <div>
+                            <i class="fas fa-signal"></i>
+                            <i class="fas fa-wifi ml-2"></i>
+                            <i class="fas fa-battery-full ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="iframe-container">
+                            <iframe src="onboarding.html" title="引导页"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加页面滚动导航功能
+            const pageContainers = document.querySelectorAll('.page-container');
+            
+            // 创建返回顶部按钮
+            const backToTopBtn = document.createElement('button');
+            backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            backToTopBtn.className = 'fixed bottom-4 right-4 bg-primary-500 text-white p-3 rounded-full shadow-lg z-50';
+            backToTopBtn.style.backgroundColor = 'var(--primary-color)';
+            backToTopBtn.onclick = function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            };
+            document.body.appendChild(backToTopBtn);
+            
+            // 监听滚动事件，显示/隐藏返回顶部按钮
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.style.display = 'block';
+                } else {
+                    backToTopBtn.style.display = 'none';
+                }
+            });
+            
+            // 初始隐藏返回顶部按钮
+            backToTopBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

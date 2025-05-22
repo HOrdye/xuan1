@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄 - 决策建议</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --secondary-color: #EC4899; /* Pink-500 */
+            --accent-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding-bottom: 70px;
+        }
+
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white;
+        }
+
+        .decision-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .decision-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+        }
+
+        .input-field {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .tab-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .advice-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div class="text-lg font-bold text-indigo-600">决策助手</div>
+            <div>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-history text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 标签页 -->
+        <div class="flex justify-around px-4 py-3 bg-white">
+            <button class="tab-button active text-indigo-600 font-medium">
+                快速决策
+            </button>
+            <button class="tab-button text-gray-500">
+                深度分析
+            </button>
+            <button class="tab-button text-gray-500">
+                我的记录
+            </button>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <!-- 决策输入区 -->
+        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+            <h3 class="text-gray-800 font-medium mb-3">输入你的决策问题</h3>
+            <div class="mb-4">
+                <input type="text" placeholder="例如：今天要不要请假？" class="input-field w-full p-3 bg-gray-50 rounded-lg text-gray-700">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">今天要不要请假？</span>
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">要不要换工作？</span>
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">要不要表白？</span>
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition">要不要买新手机？</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                        <span class="ml-2 text-sm text-gray-600">多算法综合分析</span>
+                    </label>
+                </div>
+                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium">
+                    开始分析
+                </button>
+            </div>
+        </div>
+
+        <!-- 热门决策 -->
+        <h3 class="text-lg font-bold text-gray-800 mb-3">热门决策</h3>
+        
+        <div class="decision-card bg-white mb-4">
+            <div class="gradient-bg p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <h4 class="font-medium">今天要不要请假？</h4>
+                    <div class="flex space-x-1">
+                        <span class="advice-tag bg-white bg-opacity-20">八字</span>
+                        <span class="advice-tag bg-white bg-opacity-20">塔罗</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-thumbs-up text-indigo-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-gray-700">建议：<span class="text-indigo-600 font-medium">摸鱼就好</span></p>
+                        <p class="text-xs text-gray-500 mt-1">今日工作运势一般，但请假可能引发更多麻烦，建议上班摸鱼</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <div class="text-gray-500">
+                        <i class="fas fa-eye"></i> 2.3k人看过
+                    </div>
+                    <div>
+                        <button class="text-gray-500 mr-3">
+                            <i class="far fa-heart"></i> 收藏
+                        </button>
+                        <button class="text-indigo-500 font-medium">
+                            查看详情 <i class="fas fa-chevron-right text-xs ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-card bg-white mb-4">
+            <div class="gradient-bg p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <h4 class="font-medium">要不要买新手机？</h4>
+                    <div class="flex space-x-1">
+                        <span class="advice-tag bg-white bg-opacity-20">塔罗</span>
+                        <span class="advice-tag bg-white bg-opacity-20">星盘</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-hourglass-half text-yellow-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-gray-700">建议：<span class="text-yellow-600 font-medium">再等等</span></p>
+                        <p class="text-xs text-gray-500 mt-1">塔罗牌显示"节制"，下个月会有更好的折扣，耐心等待更划算</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <div class="text-gray-500">
+                        <i class="fas fa-eye"></i> 1.8k人看过
+                    </div>
+                    <div>
+                        <button class="text-gray-500 mr-3">
+                            <i class="far fa-heart"></i> 收藏
+                        </button>
+                        <button class="text-indigo-500 font-medium">
+                            查看详情 <i class="fas fa-chevron-right text-xs ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-card bg-white mb-4">
+            <div class="gradient-bg p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <h4 class="font-medium">要不要表白？</h4>
+                    <div class="flex space-x-1">
+                        <span class="advice-tag bg-white bg-opacity-20">神煞</span>
+                        <span class="advice-tag bg-white bg-opacity-20">六爻</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-check text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-gray-700">建议：<span class="text-green-600 font-medium">大胆去吧</span></p>
+                        <p class="text-xs text-gray-500 mt-1">今日桃花运极佳，天时地利人和，表白成功率高达85%</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <div class="text-gray-500">
+                        <i class="fas fa-eye"></i> 3.5k人看过
+                    </div>
+                    <div>
+                        <button class="text-gray-500 mr-3">
+                            <i class="far fa-heart"></i> 收藏
+                        </button>
+                        <button class="text-indigo-500 font-medium">
+                            查看详情 <i class="fas fa-chevron-right text-xs ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 查看更多按钮 -->
+        <div class="text-center mt-4">
+            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                查看更多 <i class="fas fa-chevron-down ml-1"></i>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

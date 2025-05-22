@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星盘解读</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366F1; /* Indigo-500 */
+            --accent-color: #EC4899; /* Pink-500 */
+            --secondary-color: #8B5CF6; /* Violet-500 */
+        }
+        
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: #F9FAFB;
+            color: #1F2937;
+        }
+
+        .nav-header {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .astro-chart {
+            width: 100%;
+            padding-top: 100%;
+            position: relative;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 50%;
+            margin: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+        }
+
+        .house {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            clip-path: polygon(50% 50%, 50% 0%, 60% 0%);
+            transform-origin: center;
+        }
+
+        .planet-info {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .planet-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.15);
+        }
+
+        .aspect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .aspect-cell {
+            background: white;
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .aspect-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+        
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .zodiac-sign {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            margin-right: 0.5rem;
+            font-size: 12px;
+        }
+        
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .float-animation {
+            animation: floatAnimation 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div class="nav-header">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div class="text-lg font-bold text-indigo-600">星盘解读</div>
+            <div>
+                <button class="p-2 rounded-full bg-gray-100">
+                    <i class="fas fa-question-circle text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 左侧信息输入区 -->
+            <div>
+                <div class="card">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">基础信息</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">出生日期</label>
+                            <input type="date" class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="1995-08-15">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">出生时间</label>
+                            <input type="time" class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="18:30">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">出生地点</label>
+                            <div class="relative">
+                                <input type="text" class="w-full p-3 bg-gray-50 rounded-lg text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 pl-10" placeholder="输入城市名称" value="北京">
+                                <i class="fas fa-map-marker-alt absolute left-3 top-3.5 text-indigo-500"></i>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary w-full flex items-center justify-center">
+                            <i class="fas fa-calculator mr-2"></i>生成星盘
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">行星位置</h3>
+                            <span class="text-xs text-gray-500">北京时间</span>
+                        </div>
+                        
+                        <div class="planet-info">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-sun text-yellow-500"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <h4 class="font-medium text-gray-800">太阳</h4>
+                                        <span class="zodiac-sign ml-2">♌</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">狮子座 15°</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="planet-info">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-moon text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <h4 class="font-medium text-gray-800">月亮</h4>
+                                        <span class="zodiac-sign ml-2">♉</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">金牛座 23°</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="planet-info">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-arrow-up text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <h4 class="font-medium text-gray-800">上升</h4>
+                                        <span class="zodiac-sign ml-2">♍</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">处女座 8°</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="planet-info">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-bolt text-red-500"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <h4 class="font-medium text-gray-800">火星</h4>
+                                        <span class="zodiac-sign ml-2">♎</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">天秤座 5°</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full py-2 mt-2 bg-white border border-gray-200 rounded-lg text-indigo-600 font-medium flex justify-center items-center">
+                            <i class="fas fa-plus mr-2"></i> 查看更多行星
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间星盘图区域 -->
+            <div class="md:col-span-2">
+                <div class="card">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">星盘图</h3>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 hover:bg-indigo-100 hover:text-indigo-600 transition">本命盘</button>
+                                <button class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 hover:bg-indigo-100 hover:text-indigo-600 transition">合盘</button>
+                                <button class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 hover:bg-indigo-100 hover:text-indigo-600 transition">推运盘</button>
+                            </div>
+                        </div>
+                        
+                        <div class="astro-chart float-animation">
+                            <div class="chart-overlay">
+                                <!-- 十二宫位将通过JavaScript动态生成 -->
+                                <img src="https://images.unsplash.com/photo-1532968961962-8a0cb3a2d4f5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" class="absolute inset-0 w-full h-full object-cover rounded-full opacity-10">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">相位关系</h4>
+                                <div class="aspect-grid">
+                                    <div class="aspect-cell">
+                                        <i class="fas fa-square text-red-500"></i>
+                                        <p class="text-sm text-gray-600 mt-1">日月冲</p>
+                                    </div>
+                                    <div class="aspect-cell">
+                                        <i class="fas fa-play text-green-500"></i>
+                                        <p class="text-sm text-gray-600 mt-1">日火三合</p>
+                                    </div>
+                                    <div class="aspect-cell">
+                                        <i class="fas fa-plus text-yellow-500"></i>
+                                        <p class="text-sm text-gray-600 mt-1">月土六合</p>
+                                    </div>
+                                    <div class="aspect-cell">
+                                        <i class="fas fa-star text-blue-500"></i>
+                                        <p class="text-sm text-gray-600 mt-1">金木拱</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">运势解读</h4>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-600 mb-3">太阳落在狮子座，显示个性张扬，充满创造力。月亮金牛座带来稳定的情绪基调和物质追求。上升处女座让你注重细节和完美主义。</p>
+                                    <button class="btn-primary w-full flex items-center justify-center">
+                                        <i class="fas fa-book mr-2"></i>详细解读报告
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 性格分析卡片 -->
+                <div class="card">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">性格分析</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">元素分布</h4>
+                                <div class="bg-white p-3 rounded-lg shadow-sm">
+                                    <canvas id="elementChart" height="150"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">品质分布</h4>
+                                <div class="bg-white p-3 rounded-lg shadow-sm">
+                                    <canvas id="qualityChart" height="150"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+                            <h4 class="font-bold mb-2">今日运势提示</h4>
+                            <p class="text-sm opacity-90">今天月亮与火星形成良好相位，是表达情感和采取行动的好时机。尝试新事物会带来意外收获！</p>
+                            <div class="mt-3 flex justify-end">
+                                <button class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs">查看详情</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 元素分布图表
+            const elementCtx = document.getElementById('elementChart').getContext('2d');
+            const elementChart = new Chart(elementCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['火', '土', '风', '水'],
+                    datasets: [{
+                        data: [35, 25, 20, 20],
+                        backgroundColor: [
+                            '#F87171', // 红色 - 火
+                            '#FBBF24', // 黄色 - 土
+                            '#60A5FA', // 蓝色 - 风
+                            '#34D399'  // 绿色 - 水
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+            
+            // 品质分布图表
+            const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+            const qualityChart = new Chart(qualityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['基本', '固定', '变动'],
+                    datasets: [{
+                        data: [40, 35, 25],
+                        backgroundColor: [
+                            '#8B5CF6', // 紫色 - 基本
+                            '#EC4899', // 粉色 - 固定
+                            '#6366F1'  // 靛蓝 - 变动
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        });
+    </script>
+</body>
+</html>
