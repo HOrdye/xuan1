@@ -93,22 +93,50 @@ let dataLoadingPromise: Promise<void> | null = null;
  * 确保数据已加载
  */
 export async function ensureDivinationDataLoaded(): Promise<boolean> {
+  // 如果数据已经加载成功，直接返回true
   if (isDataLoaded && hexagramsData.length > 0) return true;
   
   try {
+    // 如果没有正在进行的加载过程，创建一个新的加载Promise
     if (!dataLoadingPromise) {
-      dataLoadingPromise = loadAllHexagrams()
+      console.log('占卜模块: 开始加载卦象数据...');
+      
+      dataLoadingPromise = new Promise<void>((resolve, reject) => {
+        loadAllHexagrams()
         .then(data => {
+            if (!data || data.length === 0) {
+              console.error('占卜模块: 加载的数据为空');
+              isDataLoaded = false;
+              reject(new Error('加载卦象数据失败: 数据为空'));
+              return;
+            }
+            
           hexagramsData = data;
           isDataLoaded = true;
           console.log(`✅ 占卜模块: 成功加载 ${hexagramsData.length} 个卦象数据`);
+            
+            // 验证数据的有效性
+            const validCount = hexagramsData.filter(h => h && h.lines && h.lines.length === 6).length;
+            console.log(`✅ 占卜模块: ${validCount}/${hexagramsData.length} 个卦象数据有效`);
+            
+            resolve();
+          })
+          .catch(error => {
+            console.error('占卜模块: 加载数据失败', error);
+            isDataLoaded = false;
+            reject(error);
+          });
         });
     }
     
+    // 等待加载完成
     await dataLoadingPromise;
     return isDataLoaded;
   } catch (error) {
-    console.error('占卜模块: 加载数据失败', error);
+    console.error('占卜模块: 加载过程中发生错误', error);
+    // 重置Promise，允许下次尝试
+    dataLoadingPromise = null;
+    isDataLoaded = false;
     return false;
   }
 }
@@ -118,7 +146,15 @@ export async function ensureDivinationDataLoaded(): Promise<boolean> {
  * 掷三枚铜钱，根据正反面确定一爻
  * 一背为阳爻(—)，两背为阴爻(--)，三背为老阳(O)，无背为老阴(X)
  */
-export function coinDivination(): SixCoinsResult {
+export async function coinDivination(): Promise<SixCoinsResult> {
+  // 确保数据已加载
+  try {
+    await ensureDivinationDataLoaded();
+  } catch (error) {
+    console.warn('铜钱占卜: 数据加载出现问题，使用降级方案', error);
+    // 继续执行，使用降级逻辑
+  }
+  
   const coins: CoinResult[] = [];
   const results: number[] = [];
   
@@ -146,18 +182,52 @@ export function coinDivination(): SixCoinsResult {
   // 修正：将6/7/8/9转换为0/1数组
   const lines = results.map(val => (val % 2 === 1 ? 1 : 0));
 
+  try {
+    // 计算卦象
+    const hexagram = calculateHexagram(lines);
+    
+    return {
+      coins,
+      results,
+      hexagram
+    };
+  } catch (error) {
+    console.error('铜钱占卜: 计算卦象失败', error);
+    
+    // 创建一个基础的卦象作为降级方案
+    const fallbackHexagram: Hexagram = {
+      number: 1,
+      sequence: 1,
+      name: lines.join(''),
+      symbol: '?',
+      lines: lines,
+      meaning: '临时卦象，数据加载中...',
+      judgment: '请稍后重试...',
+      yao_texts: ['', '', '', '', '', ''],
+      trigrams: { upper: 'Unknown', lower: 'Unknown' }
+    };
+
   return {
     coins,
     results,
-    hexagram: calculateHexagram(lines)
+      hexagram: fallbackHexagram
   };
+  }
 }
 
 /**
  * 梅花易数法
  * 时间起卦或数字起卦
  */
-export function plumBlossomDivination(params: PlumBlossomParams): PlumBlossomResult {
+export async function plumBlossomDivination(params: PlumBlossomParams): Promise<PlumBlossomResult> {
+  // 确保数据已加载
+  try {
+    await ensureDivinationDataLoaded();
+  } catch (error) {
+    console.warn('梅花易数: 数据加载出现问题，使用降级方案', error);
+    // 继续执行，使用降级逻辑
+  }
+  
   let numbers: number[];
   
   if (params.method === 'time') {
@@ -181,22 +251,57 @@ export function plumBlossomDivination(params: PlumBlossomParams): PlumBlossomRes
     });
   }
   
+  try {
   // 计算卦象
   const upperTrigram = calculateTrigram(numbers[0], true);
   const lowerTrigram = calculateTrigram(numbers[1], false);
+    const hexagram = combineTrigrams(upperTrigram, lowerTrigram);
+    
+    return {
+      numbers,
+      upperTrigram,
+      lowerTrigram,
+      hexagram
+    };
+  } catch (error) {
+    console.error('梅花易数: 计算卦象失败', error);
+    
+    // 创建基础的卦象作为降级方案
+    const upperTrigram: Trigram = TRIGRAMS[0]; // 使用乾卦作为默认
+    const lowerTrigram: Trigram = TRIGRAMS[0];
+    const fallbackHexagram: Hexagram = {
+      number: 1,
+      sequence: 1,
+      name: '临时卦象',
+      symbol: '?',
+      lines: [...lowerTrigram.lines, ...upperTrigram.lines],
+      meaning: '临时卦象，数据加载中...',
+      judgment: '请稍后重试...',
+      yao_texts: ['', '', '', '', '', ''],
+      trigrams: { upper: upperTrigram.name, lower: lowerTrigram.name }
+    };
   
   return {
     numbers,
     upperTrigram,
     lowerTrigram,
-    hexagram: combineTrigrams(upperTrigram, lowerTrigram)
+      hexagram: fallbackHexagram
   };
+  }
 }
 
 /**
  * 随机起卦法（简易现代法）
  */
-export function randomDivination(question: string): AnalysisResult {
+export async function randomDivination(question: string): Promise<AnalysisResult> {
+  // 确保数据已加载
+  try {
+    await ensureDivinationDataLoaded();
+  } catch (error) {
+    console.warn('随机起卦: 数据加载出现问题，使用降级方案', error);
+    // 继续执行，使用降级逻辑
+  }
+  
   // 根据问题内容生成随机种子
   const seed = question.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const random = new Random(seed);
@@ -216,6 +321,7 @@ export function randomDivination(question: string): AnalysisResult {
     }
   }
   
+  try {
   // 计算本卦和变卦
   const hexagram = calculateHexagram(lines);
   const relatedHexagram = changingLines.length > 0 ? 
@@ -225,8 +331,33 @@ export function randomDivination(question: string): AnalysisResult {
     hexagram,
     changingLines,
     relatedHexagram,
-    analysis: generateAnalysis(hexagram, relatedHexagram, question)
+      analysis: generateAnalysis(hexagram, relatedHexagram, question),
+      question
   };
+  } catch (error) {
+    console.error('随机起卦: 计算卦象失败', error);
+    
+    // 创建基础卦象作为降级方案
+    const fallbackHexagram: Hexagram = {
+      number: 1,
+      sequence: 1,
+      name: '临时卦象',
+      symbol: '?',
+      lines: lines,
+      meaning: '临时卦象，数据加载中...',
+      judgment: '请稍后重试...',
+      yao_texts: ['', '', '', '', '', ''],
+      trigrams: { upper: 'Unknown', lower: 'Unknown' }
+    };
+    
+    return {
+      hexagram: fallbackHexagram,
+      changingLines,
+      relatedHexagram: null,
+      analysis: '卦象数据正在加载，请稍后重试...',
+      question
+    };
+  }
 }
 
 /**
@@ -260,19 +391,19 @@ function calculateChangedHexagram(hexagram: Hexagram, changingLines: number[]): 
  * 辅助函数：生成分析结果
  */
 function generateAnalysis(hexagram: Hexagram, relatedHexagram: Hexagram | null, question: string): string {
-  let analysis = hexagram.meaning;
+  let analysis = hexagram.meaning || hexagram.overall || '';
   
   if (relatedHexagram) {
-    analysis += `\n变卦为${relatedHexagram.name}，表示${relatedHexagram.meaning}`;
+    analysis += `\n变卦为${relatedHexagram.name}，表示${relatedHexagram.meaning || relatedHexagram.overall || ''}`;
   }
   
   // 根据问题内容调整分析
   if (question.includes('工作') || question.includes('事业')) {
-    analysis += '\n在事业方面，' + hexagram.careerAdvice;
+    analysis += '\n在事业方面，建议积极进取，把握机会。';
   } else if (question.includes('感情') || question.includes('婚姻')) {
-    analysis += '\n在感情方面，' + hexagram.relationshipAdvice;
+    analysis += '\n在感情方面，保持真诚沟通，明确自己的心意。';
   } else if (question.includes('健康')) {
-    analysis += '\n在健康方面，' + hexagram.healthAdvice;
+    analysis += '\n在健康方面，注意身心平衡，保持良好作息。';
   }
   
   return analysis;
@@ -282,22 +413,91 @@ function generateAnalysis(hexagram: Hexagram, relatedHexagram: Hexagram | null, 
  * 从数据库中查找卦象
  */
 function findHexagramFromDatabase(lines: number[]): Hexagram {
+  // 检查数据是否已加载
   if (!isDataLoaded || hexagramsData.length === 0) {
-    throw new Error('卦象数据尚未加载完成');
+    // 触发数据加载，但仍返回一个基础卦象以避免错误
+    ensureDivinationDataLoaded().catch(err => console.error('占卜模块数据加载失败:', err));
+    
+    // 提供基础卦象作为降级方案
+    console.warn('卦象数据尚未完全加载，使用临时卦象数据');
+    
+    // 根据lines生成一个临时卦象
+    return {
+      number: 1, // 临时序号
+      sequence: 1,
+      name: lines.join(''),
+      symbol: '?',
+      lines: lines,
+      meaning: '卦象数据加载中...',
+      judgment: '卦象数据加载中...',
+      yao_texts: ['', '', '', '', '', ''],
+      trigrams: { upper: 'Unknown', lower: 'Unknown' },
+      nature: lines.join(''),
+      description: '卦象数据加载中...',
+      overall: '正在连接易经数据库...',
+      tuan_text: '',
+      xiang_text: ''
+    };
   }
   
-  // 查找匹配的卦象
+  // 优化卦象查找逻辑，提供更强的错误容忍度
+  // 1. 首先尝试精确匹配
   const hexagram = hexagramsData.find(h => 
-    h.lines.length === lines.length && 
+    h.lines && h.lines.length === lines.length && 
     h.lines.every((line, index) => line === lines[index])
   );
   
-  if (!hexagram) {
-    console.error('未找到匹配的卦象:', lines);
-    throw new Error('未找到匹配的卦象');
+  // 2. 如果找到了，直接返回
+  if (hexagram) {
+    return hexagram;
   }
   
-  return hexagram;
+  // 3. 如果没找到，尝试将lines转换为字符串进行二次查找
+  const binaryString = lines.join('');
+  // 检查是否有卦象的lines转为字符串后等于我们要查找的二进制字符串
+  const hexagramByBinaryString = hexagramsData.find(h => 
+    h.lines && h.lines.join('') === binaryString
+  );
+  
+  if (hexagramByBinaryString) {
+    return hexagramByBinaryString;
+  }
+  
+  // 4. 如果还是没找到，使用sequence查找
+  // 将二进制转换为十进制作为备用查找手段
+  const decimalValue = parseInt(binaryString, 2) + 1; // 加1因为卦序从1开始
+  const hexagramBySequence = hexagramsData.find(h => h.sequence === decimalValue);
+  
+  if (hexagramBySequence) {
+    console.warn(`使用序号匹配卦象: ${decimalValue}`);
+    return hexagramBySequence;
+  }
+  
+  // 5. 最后的备用方案，返回第1卦（乾卦）或任何可用的卦象
+  console.error('未找到匹配的卦象:', lines, '返回默认卦象');
+  return hexagramsData[0] || {
+    number: 1,
+    sequence: 1,
+    name: '乾',
+    symbol: '䷀',
+    lines: [1, 1, 1, 1, 1, 1],
+    meaning: '乾为天，刚健中正',
+    judgment: '元亨利贞。君子自强不息。',
+    yao_texts: [
+      '潜龙勿用。',
+      '见龙在田，利见大人。',
+      '君子终日乾乾，夕惕若厉，无咎。',
+      '或跃在渊，无咎。',
+      '飞龙在天，利见大人。',
+      '亢龙有悔。'
+    ],
+    trigrams: { upper: 'Heaven', lower: 'Heaven' },
+    nature: '乾上乾下',
+    description: '元，亨，利，贞。',
+    overall: '刚健、积极进取',
+    tuan_text: '大哉乾元，万物资始，乃统天。',
+    xiang_text: '天行健，君子以自强不息。'
+  };
 }
 
 // 预加载数据

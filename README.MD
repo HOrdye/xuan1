@@ -395,32 +395,396 @@ node scripts/generateHexagramSvgs.cjs
 **问：如何自定义卦象样式？**  
 答：可以通过传入themeColor参数，或直接修改组件中的CSS变量来自定义样式。
 
-### hexagrams.json 字段说明
+## 最新调试：加载动画显示问题 (2024-12-29)
 
-- sequence：卦序号（1~64）
-- name：卦名
-- nature：卦象（如“乾上乾下”）
-- description：卦辞
-- tuan_text：彖辞（对卦象的哲学解读）
-- xiang_text：象辞（对卦象和爻辞的象征解读）
-- yao_texts：六爻辞
-- lines：阴阳线（1为阳，0为阴）
-- binary_representation：二进制表示
+### 问题现象
+用户反馈加载动画仍然没有显示，即使在进行占卜分析时也看不到动画效果。
 
-#### 示例
-```json
-{
-  "1": {
-    "sequence": 1,
-    "name": "乾",
-    "nature": "乾上乾下",
-    "description": "元，亨，利，贞。",
-    "tuan_text": "...",
-    "xiang_text": "...",
-    "yao_texts": [...],
-    "lines": [1,1,1,1,1,1],
-    "binary_representation": "111111"
-  }
-}
+### 调试步骤
+
+#### 1. 验证LLMLoadingIndicator组件
+创建了独立的动画测试页面 `src/debug/AnimationTest.vue`：
+- 可以通过访问 `/debug/animation` 路径进行测试
+- 独立测试LLMLoadingIndicator组件的显示效果
+- 模拟不同的加载阶段和状态变化
+
+#### 2. 检查LLMService状态订阅机制
+在DilemmaPage中添加了详细的调试日志：
+- 组件挂载时的订阅状态
+- LLM状态变化时的回调执行
+- startAnalysis过程中的状态变化
+
+#### 3. 验证调用链路
+确认占卜流程的完整调用链：
 ```
+DilemmaPage.startAnalysis() 
+  → generateHexagram() 
+  → generateOverallAnalysis() 
+  → LLMService.getHexagramInterpretation()
+  → updateLoadingState()
+  → 订阅回调触发
+  → 更新组件状态
+```
+
+### 测试方法
+
+#### 独立动画测试
+1. 访问 `http://localhost:5173/debug/animation`
+2. 点击"开始测试动画"按钮
+3. 观察是否能看到八卦旋转动画和进度条
+
+#### 集成功能测试
+1. 访问 `http://localhost:5173/dilemma`
+2. 输入两个选择选项
+3. 点击"开始分析"
+4. 检查浏览器控制台的调试信息
+5. 观察是否出现加载动画
+
+### 预期结果
+- 独立测试：应该能看到完整的动画效果
+- 集成测试：在分析过程中应该显示加载动画
+- 控制台日志：应该显示完整的状态变化过程
+
+### 如果动画仍不显示
+
+#### 检查项目
+1. **组件引用**：确认DilemmaPage正确引入了LLMLoadingIndicator
+2. **样式加载**：检查CSS动画是否被正确加载
+3. **z-index层级**：确认loading组件的层级没有被其他元素覆盖
+4. **浏览器兼容性**：测试不同浏览器的兼容性
+
+#### 调试方法
+```javascript
+// 在浏览器控制台中手动测试
+// 1. 检查组件实例
+console.log('Loading component visible:', document.querySelector('.llm-loading-overlay'));
+
+// 2. 手动触发状态变化
+import { LLMService } from './src/services/LLMService.ts';
+LLMService.getConfig(); // 检查服务是否正常
+```
+
+#### 备用方案
+如果问题持续存在，可以：
+1. 使用简化版的loading指示器
+2. 添加基础的CSS loading spinner
+3. 检查Vue3的响应式系统是否正常工作
+
+### 技术细节
+
+#### LLMLoadingIndicator组件特点
+- 全屏遮罩层 (z-index: 9999)
+- 八卦旋转动画和阴阳鱼效果
+- 多阶段进度指示
+- 响应式状态管理
+
+#### 状态管理机制
+- 使用Vue3的响应式系统
+- 基于观察者模式的状态订阅
+- 自动状态同步和清理
+
+# 六十四卦占卜应用
+
+一个基于Vue 3和TypeScript开发的传统易经六十四卦占卜应用，结合现代AI技术提供专业的卦象解读。
+
+## ✨ 主要功能
+
+### 🎯 占卜方法
+- **铜钱占卜法** - 模拟传统蓍草起卦法，最传统的占卜方式
+- **梅花易数法** - 基于时间或数字起卦，数术与易学结合的精妙方法  
+- **随机起卦法** - 简化的现代方法，快速获得指引
+
+### 🧠 AI智能解读
+- **多LLM支持** - 支持通义千问、OpenAI、文心一言、Claude等主流AI模型
+- **专业解读** - 结合传统易学理论与现代生活场景
+- **个性化分析** - 针对用户具体问题提供精准指导
+- **本地备用** - 无API时自动使用本地基础解读
+
+### 📊 数据完整性
+- **完整卦象数据** - 包含六十四卦的彖辞、象辞、爻辞
+- **精美SVG图像** - 传统卦象的现代化展示
+- **数据一致性** - JSON数据与SVG图像完全匹配
+
+## 🚀 快速开始
+
+### 安装依赖
+```bash
+npm install
+```
+
+### 开发运行
+```bash
+npm run dev
+```
+
+### 构建生产版本
+```bash
+npm run build
+```
+
+## 🔧 LLM API配置
+
+### 方式一：界面配置（推荐）
+1. 访问应用主页面
+2. 找到"AI解读配置"面板
+3. 选择LLM提供商（推荐通义千问）
+4. 输入API密钥
+5. 点击"测试连接"验证配置
+6. 保存配置即可使用
+
+### 方式二：环境变量配置
+创建`.env`文件：
+```env
+# LLM服务提供商
+VITE_LLM_PROVIDER=qianwen
+
+# API密钥
+VITE_LLM_API_KEY=your_api_key_here
+
+# 自定义API地址（可选）
+VITE_LLM_BASE_URL=
+
+# 模型名称（可选）
+VITE_LLM_MODEL=qwen-plus
+```
+
+### 支持的LLM提供商
+
+#### 通义千问（推荐）
+- **获取密钥**: [阿里云控制台](https://dashscope.console.aliyun.com/)
+- **性价比**: ⭐⭐⭐⭐⭐
+- **稳定性**: ⭐⭐⭐⭐⭐
+- **默认模型**: qwen-plus
+
+#### OpenAI
+- **获取密钥**: [OpenAI Platform](https://platform.openai.com/)
+- **性价比**: ⭐⭐⭐
+- **稳定性**: ⭐⭐⭐⭐
+- **默认模型**: gpt-3.5-turbo
+
+#### 文心一言
+- **获取密钥**: [百度智能云](https://console.bce.baidu.com/)
+- **性价比**: ⭐⭐⭐⭐
+- **稳定性**: ⭐⭐⭐⭐
+- **默认模型**: ernie-3.5-8k
+
+#### Claude
+- **获取密钥**: [Anthropic Console](https://console.anthropic.com/)
+- **性价比**: ⭐⭐⭐
+- **稳定性**: ⭐⭐⭐⭐
+- **默认模型**: claude-3-sonnet-20240229
+
+## 🔒 隐私安全
+
+- **本地存储**: API密钥仅存储在浏览器本地，不会上传到服务器
+- **安全传输**: 所有API调用均使用HTTPS加密
+- **最小权限**: 仅请求卦象解读所需的最少信息
+
+## 🛠️ 项目结构
+
+```
+src/
+├── public/
+│   ├── hexagrams.json        # 卦象数据
+│   ├── static/
+│   │   └── hexagrams/        # 卦象SVG图像
+│   ├── test-svg.html         # SVG测试页面
+│   └── debug-hexagrams.html  # 调试页面
+├── scripts/
+│   └── generateHexagramSvgs.cjs  # SVG生成脚本
+└── src/
+    └── components/
+        └── hexagram/
+            └── HexagramDisplay.vue  # 卦象展示组件
+```
+
+## 🎨 特色功能
+
+### 水墨风格UI
+- 采用传统水墨画风格设计
+- 动态墨滴效果和渐现动画
+- 响应式布局，支持移动端
+
+### 智能变爻分析
+- 自动计算变爻位置
+- 生成对应变卦
+- 详细解读爻位变化意义
+
+### 多维度解读
+- 卦象基本含义
+- 针对具体问题分析
+- 行动建议和时机把握
+- 变化趋势预测
+
+## 🛠️ 技术栈
+
+- **前端框架**: Vue 3 + TypeScript
+- **构建工具**: Vite
+- **样式**: Tailwind CSS
+- **状态管理**: Vue Composition API
+- **图像**: SVG矢量图形
+- **AI集成**: 多LLM提供商支持
+
+## 📝 开发说明
+
+### 数据流程
+1. `hexagrams.txt` → Python脚本 → `hexagrams.json`
+2. `hexagrams.json` → SVG生成脚本 → `public/static/hexagrams/`
+3. 前端组件读取JSON数据和SVG图像
+4. LLM API提供智能解读
+
+### 核心组件
+- `HexagramDivination.vue` - 主要占卜界面
+- `HexagramDisplay.vue` - 卦象展示组件
+- `LLMConfigPanel.vue` - AI配置面板
+- `LLMService.ts` - AI服务封装
+
+## 🤝 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- 感谢传统易学文化的智慧传承
+- 感谢现代AI技术的赋能支持
+- 感谢开源社区的无私贡献
+
+## 🔄 最新修复 (2024-12-29)
+
+### 玄选两难核心问题修复 (最新)
+- ✅ **修复推荐逻辑错误**: 解决选项B匹配度85%但推荐选项A的问题
+- ✅ **改进得分计算算法**: 
+  - 新增64个卦象的性质修正值（主动性vs被动性）
+  - 优化阴阳爻比例分析逻辑
+  - 增强选项文本关键词分析
+  - 改进变爻影响计算
+- ✅ **修复选项分析混乱**: 基于实际得分生成准确的分析文本
+- ✅ **增强本地回退分析**: LLM调用失败时提供高质量的本地解读
+- ✅ **完善调试系统**: 添加详细的得分计算日志，便于问题排查
+
+### API调用问题修复
+- ✅ **修复通义千问API**: 使用OpenAI兼容接口格式
+- ✅ **修复CORS代理**: 重新配置Vite代理规则
+- ✅ **修复响应解析**: 统一响应数据结构处理
+- ✅ **修复类型错误**: 解决LLMConfigPanel的TypeScript类型问题
+
+### 动画系统修复
+- ✅ **动画测试界面**: 完善`AnimationTest.vue`，支持多种动画效果预览
+- ✅ **LLM调试面板**: 新增`LLMDebugPanel.vue`，实时监控LLM服务状态
+- ✅ **动画集成修复**: 修复DilemmaPage中的LLM状态订阅机制
+- ✅ **测试工具**: 在开发模式下添加动画测试按钮，方便调试
+
+### 卦象数据问题诊断
+- 🔧 **调试工具**: 新增`HexagramDataDebug.vue`专门诊断"卦象未找到"问题
+- 🔧 **增强日志**: 在`hexagramGenerator.ts`中添加详细的调试日志
+- 🔧 **错误追踪**: 改进错误处理机制，提供更准确的问题定位
+- 🔧 **数据验证**: 加强数据加载状态检查和竞态条件处理
+
+### 调试和测试工具
+- 访问 `http://localhost:5173/#/debug/hexagram` 进行卦象数据调试
+- 访问 `http://localhost:5173/#/debug/animation` 进行动画测试  
+- 访问 `http://localhost:5173/test-api.html` 进行API测试验证
+- 在DilemmaPage的开发模式下使用"🎭 测试LLM动画效果"按钮
+
+### 技术改进
+- 代理配置使用官方推荐的OpenAI兼容端点
+- 统一API调用格式，提高稳定性
+- 增强错误处理和用户反馈
+- 完善动画状态管理和订阅机制
+- 优化卦象数据加载和查找算法
+
+## 🎲 使用方法
+
+### 基础占卜
+1. 在首页选择"六十四卦占卜"
+2. 输入你想咨询的问题
+3. 选择起卦方式（时间起卦/手动起卦）
+4. 查看卦象解读
+
+### 玄选两难
+1. 选择"玄选两难"功能
+2. 输入面临的两个选择
+3. 描述当前困境
+4. 获得基于易经智慧的分析和建议
+
+### AI解读配置
+1. 点击"展开AI配置"
+2. 选择AI服务提供商
+3. 输入API密钥
+4. 可选：配置自定义模型和参数
+5. 测试连接并保存
+
+## 📁 项目结构
+
+```
+src/
+├── components/          # 通用组件
+│   ├── hexagram/       # 卦象显示组件
+│   └── layout/         # 布局组件
+├── features/           # 功能模块
+│   └── dilemma/       # 占卜功能
+│       ├── components/ # 占卜相关组件
+│       ├── views/     # 占卜页面
+│       └── types/     # 类型定义
+├── services/          # 服务层
+│   └── LLMService.ts  # AI服务接口
+├── data/             # 数据文件
+│   └── hexagrams.json # 六十四卦数据
+└── shared/           # 共享资源
+    ├── components/   # 共享组件
+    └── utils/       # 工具函数
+```
+
+## 🔒 隐私与安全
+
+- **本地存储**：API密钥仅存储在浏览器本地，不会上传到服务器
+- **安全传输**：所有API调用都通过HTTPS加密传输
+- **数据隔离**：每个用户的配置和历史记录完全独立
+- **开源透明**：所有代码开源，可审计安全性
+
+## 🛠️ 技术栈
+
+- **前端框架**: Vue 3 + TypeScript
+- **构建工具**: Vite
+- **样式方案**: Tailwind CSS
+- **AI集成**: 多LLM提供商 (阿里云通义千问、OpenAI、百度文心一言、Anthropic Claude)
+- **卦象数据**: 完整的六十四卦体系，包含卦辞、爻辞、象辞
+
+## 📚 易经知识
+
+本系统基于《周易》六十四卦体系，包含：
+- **卦象**：六爻组合形成的六十四种基本卦象
+- **卦辞**：对整个卦象的总体判断
+- **爻辞**：对每一爻的具体说明
+- **变爻**：发生变化的爻位，用于推演变卦
+- **象辞**：《象传》中对卦象和爻象的解释
+
+## 🤝 贡献指南
+
+欢迎提交Issue和Pull Request：
+1. Fork本项目
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启Pull Request
+
+## 📄 许可证
+
+本项目基于MIT许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## ⚠️ 免责声明
+
+本系统提供的占卜结果仅供娱乐和参考，不应作为重大决策的唯一依据。易经占卜是中华传统文化的一部分，请以理性态度对待占卜结果。
+
+---
+
+*"天行健，君子以自强不息；地势坤，君子以厚德载物。"*
 ```

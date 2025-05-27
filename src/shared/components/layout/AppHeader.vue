@@ -221,8 +221,7 @@ const closeMobileMenu = () => {
 </script>
 
 <style scoped>
-/* 确保FontAwesome图标正确显示 */
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+/* @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'); */ /* 移除了 FontAwesome */
 
 /* 添加下拉菜单样式 */
 .group:hover .absolute {

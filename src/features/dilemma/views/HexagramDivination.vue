@@ -6,6 +6,9 @@
       <p class="text-sm text-gray-600 mt-2">选择一种传统占卜方法来获取卦象指引</p>
     </div>
 
+    <!-- LLM配置面板 -->
+    <LLMConfigPanel />
+
     <!-- 占卜方法选择 -->
     <div v-if="!divinationStarted" class="bg-white rounded-xl p-4 mb-6 shadow-sm">
       <h3 class="text-gray-800 font-medium mb-4">选择占卜方法</h3>
@@ -142,18 +145,42 @@
         @restart="restartDivination"
       />
     </div>
+
+    <!-- LLM加载指示器 -->
+    <LLMLoadingIndicator
+      :isLoading="isGenerating"
+      :progress="loadingProgress" 
+      :stage="loadingStage"
+    />
+
+    <!-- 动画测试按钮 (仅开发模式) -->
+    <div v-if="isDevelopment" class="dev-controls">
+      <button 
+        @click="testLLMAnimation" 
+        class="test-animation-btn"
+        :disabled="isGenerating"
+      >
+        {{ isGenerating ? '测试进行中...' : '🎭 测试LLM动画效果' }}
+      </button>
+    </div>
+
+    <!-- 调试面板 (仅开发模式) -->
+    <LLMDebugPanel v-if="isDevelopment" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { DivinationMethod, PlumBlossomParams, AnalysisResult, SixCoinsResult, PlumBlossomResult, Hexagram } from '../types';
 import { coinDivination, plumBlossomDivination, randomDivination } from '../utils/divinationMethods';
 import CoinDivinationAnimation from '../components/CoinDivinationAnimation.vue';
 import DivinationResult from '../components/DivinationResult.vue';
+import LLMConfigPanel from '../components/LLMConfigPanel.vue';
 import { generateHexagramFromLines, generateAnalysisAsync } from '../utils/hexagramGenerator';
 import { LLMService } from '../../../services/LLMService';
+import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
+import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';
 
 // 选择的占卜方法
 const selectedMethod = ref<DivinationMethod | null>(null);
@@ -171,6 +198,20 @@ onMounted(() => {
   } else if (methodParam === 'coin') {
     selectMethod('coin');
   }
+  
+  // 订阅LLMService的加载状态变化
+  unsubscribeFromLLM = LLMService.onLoadingStateChange((state) => {
+    console.log('🔄 收到LLM状态变化:', state);
+    isGenerating.value = state.isLoading;
+    loadingProgress.value = state.progress;
+    loadingStage.value = state.stage;
+  });
+});
+
+onUnmounted(() => {
+  if (unsubscribeFromLLM) {
+    unsubscribeFromLLM();
+  }
 });
 
 // 问题输入
@@ -186,6 +227,19 @@ const plumBlossomParams = reactive<PlumBlossomParams>({
 const isLoading = ref(false);
 const divinationStarted = ref(false);
 const showFinalResult = ref(false);
+
+// LLM加载状态
+const isGenerating = ref(false);
+const loadingProgress = ref('');
+const loadingStage = ref<'preparing' | 'calling' | 'processing' | 'completed' | 'error'>('preparing');
+
+// 订阅LLM服务的加载状态
+let unsubscribeFromLLM: (() => void) | null = null;
+
+// 开发模式检测
+const isDevelopment = computed(() => {
+  return process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
+})
 
 // 占卜结果
 const divinationResult = ref<AnalysisResult | null>(null);
@@ -227,25 +281,30 @@ async function startDivination() {
       case 'coin':
         const coinResult = await coinDivination();
         console.log('Coin Divination - coinResult:', JSON.parse(JSON.stringify(coinResult)));
-        if (coinResult && coinResult.hexagram) {
-          console.log('Coin Divination - coinResult.hexagram:', JSON.parse(JSON.stringify(coinResult.hexagram)));
-        } else {
-          console.error('Coin Divination - coinResult or coinResult.hexagram is missing or invalid.');
+        
+        if (!coinResult || !coinResult.hexagram) {
+          throw new Error('铜钱占卜结果无效');
         }
 
         const changingLinesCoin = coinResult.results.map((val, idx) => (val === 6 || val === 9) ? idx : -1).filter(idx => idx !== -1);
+        
         // 计算变卦
         let relatedHexagram: Hexagram | null = null;
         if (changingLinesCoin.length > 0) {
+          try {
           const newLines = [...coinResult.hexagram.lines];
           changingLinesCoin.forEach(line => {
             newLines[line] = newLines[line] === 1 ? 0 : 1;
           });
-          const temp = generateHexagramFromLines(newLines);
+            const temp = await generateHexagramFromLines(newLines);
           if (temp) relatedHexagram = temp;
+          } catch (err) {
+            console.error('计算变卦失败:', err);
+            // 继续执行，不影响主要流程
+          }
         }
         
-        if (coinResult.hexagram) {
+        try {
           // 使用LLM服务获取解读内容
           const analysis = await LLMService.getHexagramInterpretation(
             coinResult.hexagram,
@@ -263,10 +322,20 @@ async function startDivination() {
             method: 'coin',
             results: coinResult.results
           };
-        } else {
-          divinationResult.value = null;
+        } catch (llmError) {
+          console.error('LLM解读失败，使用基本解读:', llmError);
+          // 使用基本解读作为备用
+          divinationResult.value = {
+            hexagram: coinResult.hexagram,
+            changingLines: changingLinesCoin,
+            relatedHexagram,
+            analysis: coinResult.hexagram.meaning || coinResult.hexagram.overall || '占卜结果已生成，详细解读加载中...',
+            question: question.value,
+            method: 'coin',
+            results: coinResult.results
+          };
         }
-        console.log('divinationResult.value:', JSON.parse(JSON.stringify(divinationResult.value)));
+        
         coinResults.value = coinResult;
         showFinalResult.value = true;
         break;
@@ -274,6 +343,11 @@ async function startDivination() {
       case 'plumBlossom':
         const plumResult = await plumBlossomDivination(plumBlossomParams);
         
+        if (!plumResult || !plumResult.hexagram) {
+          throw new Error('梅花易数结果无效');
+        }
+        
+        try {
         // 使用LLM服务获取解读内容
         const plumAnalysis = await LLMService.getHexagramInterpretation(
           plumResult.hexagram,
@@ -290,6 +364,19 @@ async function startDivination() {
           question: question.value,
           method: 'plumBlossom'
         };
+        } catch (llmError) {
+          console.error('LLM解读失败，使用基本解读:', llmError);
+          // 使用基本解读作为备用
+          divinationResult.value = {
+            hexagram: plumResult.hexagram,
+            changingLines: [],
+            relatedHexagram: null,
+            analysis: plumResult.hexagram.meaning || plumResult.hexagram.overall || '占卜结果已生成，详细解读加载中...',
+            question: question.value,
+            method: 'plumBlossom'
+          };
+        }
+        
         plumBlossomResult.value = plumResult;
         // 直接显示结果
         showFinalResult.value = true;
@@ -297,6 +384,11 @@ async function startDivination() {
         
       case 'random':
         const randomResult = await randomDivination(question.value);
+        
+        if (!randomResult || !randomResult.hexagram) {
+          throw new Error('随机起卦结果无效');
+        }
+        
         divinationResult.value = randomResult;
         // 直接显示结果
         showFinalResult.value = true;
@@ -305,7 +397,7 @@ async function startDivination() {
     
   } catch (error) {
     console.error('占卜错误:', error);
-    alert(`占卜失败: ${error.message}`);
+    alert(`占卜失败: ${error instanceof Error ? error.message : String(error)}`);
     restartDivination();
   } finally {
     isLoading.value = false;
@@ -337,8 +429,61 @@ function restartDivination() {
   question.value = '';
   selectedMethod.value = null;
 }
+
+// 测试LLM动画效果
+const testLLMAnimation = async () => {
+  console.log('🎭 开始测试LLM动画效果 (HexagramDivination)');
+  
+  // 手动触发状态更新，模拟LLM调用流程
+  const stages = [
+    { stage: 'preparing' as const, progress: '正在准备AI解读...', duration: 1000 },
+    { stage: 'calling' as const, progress: '正在连接AI服务...', duration: 1500 },
+    { stage: 'processing' as const, progress: 'AI正在思考您的问题...', duration: 2000 },
+    { stage: 'completed' as const, progress: '解读完成', duration: 500 }
+  ];
+  
+  // 开始测试
+  isGenerating.value = true;
+  
+  try {
+    for (const stageInfo of stages) {
+      loadingStage.value = stageInfo.stage;
+      loadingProgress.value = stageInfo.progress;
+      
+      console.log(`🔄 测试阶段: ${stageInfo.stage} - ${stageInfo.progress}`);
+      
+      await new Promise(resolve => setTimeout(resolve, stageInfo.duration));
+    }
+    
+    console.log('✅ LLM动画测试完成');
+  } catch (error) {
+    console.error('❌ LLM动画测试失败:', error);
+    loadingStage.value = 'error';
+    loadingProgress.value = '测试过程中出现错误';
+  } finally {
+    // 结束测试
+    setTimeout(() => {
+      isGenerating.value = false;
+      loadingProgress.value = '';
+      loadingStage.value = 'preparing';
+    }, 1000);
+  }
+};
 </script>
 
 <style scoped>
 /* 可以添加一些与古籍主题相关的样式 */
+.dev-controls {
+  @apply mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600;
+}
+
+.test-animation-btn {
+  @apply px-4 py-2 bg-purple-600 text-white rounded-lg font-medium 
+         hover:bg-purple-700 transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.test-animation-btn:disabled {
+  @apply bg-gray-500;
+}
 </style> 

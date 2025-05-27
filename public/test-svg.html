@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卦象SVG加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .svg-test {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .svg-test img {
+            display: block;
+            margin: 0 auto 10px;
+        }
+        .status {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .loading { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>卦象SVG文件加载测试</h1>
+    
+    <div class="test-container">
+        <h2>测试问题卦象：第9卦和第44卦</h2>
+        <div class="svg-test">
+            <img id="hexagram-9" src="/static/hexagrams/9.svg" alt="第9卦" width="120" height="180">
+            <div>第9卦 - 小畜</div>
+            <div id="status-9" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="svg-test">
+            <img id="hexagram-44" src="/static/hexagrams/44.svg" alt="第44卦" width="120" height="180">
+            <div>第44卦 - 姤</div>
+            <div id="status-44" class="status loading">加载中...</div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>测试几个其他卦象</h2>
+        <div class="svg-test">
+            <img id="hexagram-1" src="/static/hexagrams/1.svg" alt="第1卦" width="120" height="180">
+            <div>第1卦 - 乾</div>
+            <div id="status-1" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="svg-test">
+            <img id="hexagram-2" src="/static/hexagrams/2.svg" alt="第2卦" width="120" height="180">
+            <div>第2卦 - 坤</div>
+            <div id="status-2" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="svg-test">
+            <img id="hexagram-45" src="/static/hexagrams/45.svg" alt="第45卦" width="120" height="180">
+            <div>第45卦 - 萃</div>
+            <div id="status-45" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="svg-test">
+            <img id="hexagram-64" src="/static/hexagrams/64.svg" alt="第64卦" width="120" height="180">
+            <div>第64卦 - 未济</div>
+            <div id="status-64" class="status loading">加载中...</div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>路径测试</h2>
+        <p>测试不同的路径格式：</p>
+        <ul id="path-tests"></ul>
+    </div>
+
+    <script>
+        // 测试特定卦象
+        const testHexagrams = [1, 2, 9, 44, 45, 64];
+        
+        testHexagrams.forEach(num => {
+            const img = document.getElementById(`hexagram-${num}`);
+            const status = document.getElementById(`status-${num}`);
+            
+            img.onload = function() {
+                status.textContent = '✅ 加载成功';
+                status.className = 'status success';
+                console.log(`✅ 第${num}卦 SVG 加载成功`);
+            };
+            
+            img.onerror = function() {
+                status.textContent = '❌ 加载失败';
+                status.className = 'status error';
+                console.error(`❌ 第${num}卦 SVG 加载失败`);
+            };
+        });
+        
+        // 测试不同路径格式
+        const pathTestContainer = document.getElementById('path-tests');
+        const testPaths = [
+            '/static/hexagrams/9.svg',
+            'static/hexagrams/9.svg',
+            './static/hexagrams/9.svg',
+            '../static/hexagrams/9.svg'
+        ];
+        
+        testPaths.forEach(path => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="loading">测试中...</span> ${path}`;
+            pathTestContainer.appendChild(li);
+            
+            const img = new Image();
+            img.onload = function() {
+                li.innerHTML = `<span class="success">✅ 成功</span> ${path}`;
+                console.log(`✅ 路径成功: ${path}`);
+            };
+            img.onerror = function() {
+                li.innerHTML = `<span class="error">❌ 失败</span> ${path}`;
+                console.error(`❌ 路径失败: ${path}`);
+            };
+            img.src = path;
+        });
+        
+        // 打印所有测试结果
+        setTimeout(() => {
+            console.log('=== SVG 加载测试总结 ===');
+            testHexagrams.forEach(num => {
+                const status = document.getElementById(`status-${num}`);
+                console.log(`第${num}卦: ${status.textContent}`);
+            });
+        }, 3000);
+    </script>
+</body>
+</html> 

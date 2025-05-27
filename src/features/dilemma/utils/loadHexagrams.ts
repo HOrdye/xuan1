@@ -9,11 +9,12 @@ interface HexagramRawData {
   name: string;
   sequence: number;
   nature: string;
-  element: string;
   description: string;
-  overall: string;
+  tuan_text: string;
+  xiang_text: string;
   yao_texts: string[];
-  lines?: number[]; // 确保lines字段存在
+  lines: number[]; // 六爻数组 [1,1,1,1,1,1] 等
+  binary_representation: string; // 二进制表示，如"111111"
 }
 
 /**
@@ -46,49 +47,69 @@ export async function loadAllHexagrams(): Promise<Hexagram[]> {
     // 转换数据格式
     const hexagrams: Hexagram[] = [];
     
-    // 遍历所有卦象键（二进制表示）
-    for (const [binary, rawData] of Object.entries(data)) {
-      // 提取二进制码（移除可能的后缀，如"110110_10"中的"_10"）
-      const cleanBinary = binary.split('_')[0];
-      if (cleanBinary.length !== 6) {
-        console.warn(`跳过无效卦象格式: ${binary}`);
+    // 遍历所有卦象键（数字键 "1", "2", "3" ... "64"）
+    for (const [key, rawData] of Object.entries(data)) {
+      try {
+        // 解析原始数据
+        const hexagramData = rawData as HexagramRawData;
+        
+        // 验证必要字段
+        if (!hexagramData.sequence || !hexagramData.name || !hexagramData.lines) {
+          console.warn(`跳过无效卦象数据: ${key}，缺少必要字段`);
+          continue;
+        }
+        
+        // 验证爻组合
+        if (!Array.isArray(hexagramData.lines) || hexagramData.lines.length !== 6) {
+          console.warn(`跳过无效卦象数据: ${key}，爻组合格式错误`);
+          continue;
+        }
+        
+        // 从爻组合确定上下卦
+        const lowerTrigramLines = hexagramData.lines.slice(0, 3); // 下卦（下三爻）
+        const upperTrigramLines = hexagramData.lines.slice(3, 6); // 上卦（上三爻）
+        
+        const lowerTrigram = determineTrigramName(lowerTrigramLines.join(''));
+        const upperTrigram = determineTrigramName(upperTrigramLines.join(''));
+        
+        // 转换为内部格式
+        hexagrams.push({
+          number: hexagramData.sequence,
+          sequence: hexagramData.sequence,
+          name: hexagramData.name,
+          chineseName: hexagramData.name,
+          symbol: getHexagramSymbol(hexagramData.sequence),
+          trigrams: {
+            upper: upperTrigram,
+            lower: lowerTrigram
+          },
+          lines: hexagramData.lines,
+          meaning: hexagramData.description || `${hexagramData.name}卦`, // 使用 description 作为 meaning
+          judgment: hexagramData.description || '', // 卦辞
+          svg_path: `/static/hexagrams/${hexagramData.sequence}.svg`,
+          yao_texts: hexagramData.yao_texts || [],
+          modernInterpretation: `${hexagramData.name}卦的现代解读。${getModernInterpretation(hexagramData.name)}`,
+          attribute: hexagramData.nature ? hexagramData.nature.split('上')[0] : hexagramData.name, // 从 nature 提取属性
+          tuan_text: hexagramData.tuan_text || '',
+          xiang_text: hexagramData.xiang_text || '',
+          nature: hexagramData.nature || '',
+          description: hexagramData.description || '',
+          overall: hexagramData.description || '' // 使用 description 作为 overall
+        });
+        
+        console.log(`✅ 成功解析卦象: ${hexagramData.sequence} - ${hexagramData.name}`);
+        
+      } catch (error) {
+        console.error(`解析卦象 ${key} 时出错:`, error);
         continue;
       }
-      
-      // 解析原始数据
-      const hexagramData = rawData as HexagramRawData;
-      
-      // 确定上下卦
-      const upperTrigram = determineTrigramName(cleanBinary.slice(0, 3));
-      const lowerTrigram = determineTrigramName(cleanBinary.slice(3, 6));
-      
-      // 使用hexagramData中的lines字段或从二进制生成
-      const lines = hexagramData.lines || binaryToLines(cleanBinary);
-      
-      // 转换为内部格式
-      hexagrams.push({
-        number: hexagramData.sequence,
-        name: hexagramData.name,
-        chineseName: hexagramData.name,
-        symbol: getHexagramSymbol(hexagramData.sequence),
-        upperTrigram,
-        lowerTrigram,
-        lines,
-        meaning: hexagramData.overall,
-        judgment: hexagramData.description,
-        image: `${hexagramData.nature}卦象`,
-        lines_meaning: hexagramData.yao_texts,
-        modernInterpretation: `${hexagramData.name}卦代表"${hexagramData.overall}"，${getModernInterpretation(hexagramData.name)}`,
-        attribute: hexagramData.overall.split('，')[0],
-        element: hexagramData.element
-      });
     }
     
     // 检查是否有64个卦象
     if (hexagrams.length < 64) {
       console.warn(`警告：只加载了 ${hexagrams.length} 个卦象，应该有64个`);
     } else {
-      console.log(`成功转换 ${hexagrams.length} 个卦象数据`);
+      console.log(`✅ 成功转换 ${hexagrams.length} 个卦象数据`);
     }
     
     // 按序号排序
@@ -238,16 +259,15 @@ function getBasicHexagrams(): Hexagram[] {
   return [
     {
       number: 1,
+      sequence: 1,
       name: 'Qian (The Creative)',
       chineseName: '乾',
       symbol: '䷀',
-      upperTrigram: 'Heaven',
-      lowerTrigram: 'Heaven',
+      trigrams: { upper: 'Heaven', lower: 'Heaven' },
       lines: [1, 1, 1, 1, 1, 1],
       meaning: '乾为天，刚健中正',
       judgment: '元亨利贞。君子自强不息。',
-      image: '天行健，君子以自强不息。',
-      lines_meaning: [
+      yao_texts: [
         '潜龙勿用。',
         '见龙在田，利见大人。',
         '君子终日乾乾，夕惕若厉，无咎。',
@@ -255,49 +275,35 @@ function getBasicHexagrams(): Hexagram[] {
         '飞龙在天，利见大人。',
         '亢龙有悔。'
       ],
-      modernInterpretation: '乾卦代表纯阳、积极进取的品质。当前形势利于开创新局面，适合主动出击，但需注意量力而行，谨防过度自信。'
+      svg_path: '/static/hexagrams/1.svg',
+      modernInterpretation: '乾卦代表创造、力量和主动。当前形势利于开创新局面，适合主动出击，但需注意量力而行，谨防过度自信。',
+      attribute: '刚健',
+      tuan_text: '大哉乾元，万物资始，乃统天。云行雨施，品物流形。大明终始，六位时成。时乘六龙以御天。乾道变化，各正性命。保合大和，乃利贞。首出庶物，万国咸宁。',
+      xiang_text: '天行健，君子以自强不息。'
     },
     {
       number: 2,
+      sequence: 2,
       name: 'Kun (The Receptive)',
       chineseName: '坤',
       symbol: '䷁',
-      upperTrigram: 'Earth',
-      lowerTrigram: 'Earth',
+      trigrams: { upper: 'Earth', lower: 'Earth' },
       lines: [0, 0, 0, 0, 0, 0],
       meaning: '坤为地，柔顺包容',
-      judgment: '元亨，利牝马之贞。君子有攸往，先迷后得主。',
-      image: '地势坤，君子以厚德载物。',
-      lines_meaning: [
+      judgment: '元亨。利牝马之贞。君子有攸往，先迷后得主，利。西南得朋，东北丧朋。安贞吉。',
+      yao_texts: [
         '履霜，坚冰至。',
-        '直方大，不习无不利。',
-        '含章可贞，或从王事，无成有终。',
+        '直、方、大，不习无不利。',
+        '含章可贞。或从王事，无成有终。',
         '括囊，无咎无誉。',
         '黄裳，元吉。',
         '龙战于野，其血玄黄。'
       ],
-      modernInterpretation: '坤卦代表包容、适应的品质。当前形势需要顺势而为，保持耐心和韧性，静待时机成熟再行动。'
-    },
-    {
-      number: 64,
-      name: 'Wei Ji (Before Completion)',
-      chineseName: '未济',
-      symbol: '䷿',
-      upperTrigram: 'Fire',
-      lowerTrigram: 'Water',
-      lines: [0, 1, 0, 1, 0, 1],
-      meaning: '火在水上，未济待渡',
-      judgment: '亨，小狐汔济，濡其尾，无攸利。',
-      image: '火在水上，未济；君子以慎辨物居方。',
-      lines_meaning: [
-        '濡其尾，吝。',
-        '曳其轮，贞吉。',
-        '未济，征凶，利涉大川。',
-        '贞吉，悔亡，震用伐鬼方，三年有赏于大国。',
-        '贞吉，无悔，君子之光，有孚，吉。',
-        '有孚于饮酒，无咎，濡其首，有孚失是。'
-      ],
-      modernInterpretation: '未济卦代表尚未完成的过渡阶段。当前任务已接近完成但仍有最后的障碍，需要谨慎处理最后的关键步骤，不可掉以轻心。'
+      svg_path: '/static/hexagrams/2.svg',
+      modernInterpretation: '坤卦代表接受、包容和孕育。当前形势需要顺势而为，保持耐心和韧性，静待时机成熟再行动。',
+      attribute: '柔顺',
+      tuan_text: '至哉坤元，万物资生，乃顺承天。坤厚载物，德合无疆。含弘光大，品物咸亨。牝马地类，行地无疆，柔顺利贞。君子攸行，先迷失道，后顺得常。西南得朋，乃与类行；东北丧朋，乃终有庆。安贞之吉，应地无疆。',
+      xiang_text: '地势坤，君子以厚德载物。'
     }
   ];
 } 

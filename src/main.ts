@@ -6,8 +6,6 @@ import router from './router';
 
 // 导入样式
 import './assets/tailwind.css';
-// Font Awesome已在index.html通过CDN方式导入
-// import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // 创建Pinia实例
 const pinia = createPinia();

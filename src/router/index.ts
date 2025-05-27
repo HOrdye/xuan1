@@ -110,6 +110,33 @@ const routes: Array<RouteRecordRaw> = [
       title: '塔罗占卜 - 天玄Web'
     }
   },
+  // LLM调试工具
+  {
+    path: '/debug/llm',
+    name: 'LLMDebug',
+    component: () => import('../views/LLMDebug.vue'),
+    meta: {
+      title: 'LLM连接调试 - 天玄Web'
+    }
+  },
+  // 动画测试工具
+  {
+    path: '/debug/animation',
+    name: 'AnimationTest',
+    component: () => import('../debug/AnimationTest.vue'),
+    meta: {
+      title: '动画测试 - 天玄Web'
+    }
+  },
+  // 卦象数据调试工具
+  {
+    path: '/debug/hexagram',
+    name: 'HexagramDebug',
+    component: () => import('../debug/HexagramDataDebug.vue'),
+    meta: {
+      title: '卦象数据调试 - 天玄Web'
+    }
+  },
   // 通配符路由，重定向到404
   {
     path: '/:catchAll(.*)',

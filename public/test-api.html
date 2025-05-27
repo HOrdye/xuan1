@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面 - 修复后验证</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
+        .error { color: #e74c3c; padding: 10px; background: #fdf2f2; border-radius: 4px; margin: 10px 0; }
+        .success { color: #27ae60; padding: 10px; background: #f2fdf4; border-radius: 4px; margin: 10px 0; }
+        .loading { color: #3498db; padding: 10px; background: #f2f8fd; border-radius: 4px; margin: 10px 0; }
+        .input-group { margin: 10px 0; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #2980b9; }
+        .response-box { background: #f8f9fa; border: 1px solid #e9ecef; padding: 15px; border-radius: 4px; margin: 10px 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 LLM API 修复验证测试</h1>
+        
+        <div class="test-section">
+            <h2>1. 通义千问API测试 (已修复)</h2>
+            <p><strong>修复内容：</strong></p>
+            <ul>
+                <li>✅ 使用OpenAI兼容接口：<code>/compatible-mode/v1/chat/completions</code></li>
+                <li>✅ 修正请求格式为标准OpenAI格式</li>
+                <li>✅ 修正响应解析逻辑</li>
+            </ul>
+            
+            <div class="input-group">
+                <label>API Key (通义千问):</label>
+                <input type="password" id="qianwenApiKey" placeholder="输入你的DashScope API Key">
+            </div>
+            
+            <button class="btn" onclick="testQianwenAPI()">测试通义千问 API</button>
+            <div id="qianwen-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. OpenAI API测试</h2>
+            <div class="input-group">
+                <label>API Key (OpenAI):</label>
+                <input type="password" id="openaiApiKey" placeholder="输入你的OpenAI API Key">
+            </div>
+            
+            <button class="btn" onclick="testOpenAIAPI()">测试OpenAI API</button>
+            <div id="openai-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. 代理状态检查</h2>
+            <button class="btn" onclick="checkProxyStatus()">检查代理状态</button>
+            <div id="proxy-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试通义千问API
+        async function testQianwenAPI() {
+            const apiKey = document.getElementById('qianwenApiKey').value;
+            const resultDiv = document.getElementById('qianwen-result');
+            
+            if (!apiKey.trim()) {
+                resultDiv.innerHTML = '<div class="error">请输入API密钥</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">🔄 正在测试通义千问API...</div>';
+            
+            try {
+                const response = await fetch('/api/qianwen', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'qwen-plus',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一位精通《易经》的国学大师。'
+                            },
+                            {
+                                role: 'user',
+                                content: '请简单介绍易经乾卦的含义。'
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 200
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const content = data.choices?.[0]?.message?.content || '无响应内容';
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ 通义千问API调用成功！</div>
+                        <div class="response-box"><strong>AI回复：</strong>\n${content}</div>
+                        <div class="response-box"><strong>完整响应：</strong>\n${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ API调用失败: ${response.status}</div>
+                        <div class="response-box">错误详情:\n${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ 网络错误: ${error.message}</div>
+                    <p>可能的原因：</p>
+                    <ul>
+                        <li>代理配置未生效（需要重启服务器）</li>
+                        <li>网络连接问题</li>
+                        <li>CORS问题</li>
+                    </ul>
+                `;
+            }
+        }
+        
+        // 测试OpenAI API
+        async function testOpenAIAPI() {
+            const apiKey = document.getElementById('openaiApiKey').value;
+            const resultDiv = document.getElementById('openai-result');
+            
+            if (!apiKey.trim()) {
+                resultDiv.innerHTML = '<div class="error">请输入API密钥</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">🔄 正在测试OpenAI API...</div>';
+            
+            try {
+                const response = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful assistant.'
+                            },
+                            {
+                                role: 'user',
+                                content: 'What is I Ching?'
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 200
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const content = data.choices?.[0]?.message?.content || '无响应内容';
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ OpenAI API调用成功！</div>
+                        <div class="response-box"><strong>AI回复：</strong>\n${content}</div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ API调用失败: ${response.status}</div>
+                        <div class="response-box">错误详情:\n${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 网络错误: ${error.message}</div>`;
+            }
+        }
+        
+        // 检查代理状态
+        async function checkProxyStatus() {
+            const resultDiv = document.getElementById('proxy-result');
+            resultDiv.innerHTML = '<div class="loading">🔄 正在检查代理状态...</div>';
+            
+            const proxyTests = [
+                { name: '通义千问代理', url: '/api/qianwen', expectedStatus: [401, 403, 422] },
+                { name: 'OpenAI代理', url: '/api/openai', expectedStatus: [401, 422] },
+                { name: '文心一言代理', url: '/api/wenxin', expectedStatus: [401, 403] },
+                { name: 'Claude代理', url: '/api/claude', expectedStatus: [401, 422] }
+            ];
+            
+            let results = '<h3>代理状态检查结果：</h3>';
+            
+            for (const test of proxyTests) {
+                try {
+                    const response = await fetch(test.url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ test: true })
+                    });
+                    
+                    if (test.expectedStatus.includes(response.status)) {
+                        results += `<div class="success">✅ ${test.name}: 代理正常 (状态码: ${response.status})</div>`;
+                    } else if (response.status === 404) {
+                        results += `<div class="error">❌ ${test.name}: 代理未配置 (404)</div>`;
+                    } else {
+                        results += `<div class="error">⚠️ ${test.name}: 异常状态码 ${response.status}</div>`;
+                    }
+                } catch (error) {
+                    results += `<div class="error">❌ ${test.name}: 连接失败 - ${error.message}</div>`;
+                }
+            }
+            
+            resultDiv.innerHTML = results;
+        }
+        
+        // 页面加载时自动检查代理状态
+        window.addEventListener('load', () => {
+            setTimeout(checkProxyStatus, 1000);
+        });
+    </script>
+</body>
+</html> 

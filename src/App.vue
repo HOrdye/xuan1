@@ -8,12 +8,14 @@
         <router-view />
       </main>
       <footer class="p-4 text-center text-gray-400 text-xs">© 2024 天玄 Web</footer>
+      <GlobalLLMConfig />
     </div>
   </template>
   
   <script setup>
   import { onMounted } from 'vue';
   import anime from 'animejs';
+  import GlobalLLMConfig from './components/GlobalLLMConfig.vue';
   
   onMounted(() => {
     anime({

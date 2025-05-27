@@ -13,7 +13,11 @@ export interface Hexagram {
   judgment: string; // 卦辞 (彖辞)
   yao_texts: string[]; // 六爻的爻辞
   trigrams: { upper: string; lower: string };
-  element?: string; 
+  svg_path?: string; // 添加 SVG 路径字段
+  attribute?: string; // 添加属性字段
+  element?: string; // 五行属性改为可选
+  tuan_text?: string; // 彖辞
+  xiang_text?: string; // 象辞
   chineseName?: string; // 中文名 (如果name字段可能是其他语言)
   modernInterpretation?: string;
   detailedAnalysis?: {

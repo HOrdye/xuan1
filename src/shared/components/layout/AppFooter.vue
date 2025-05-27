@@ -29,8 +29,7 @@
 </script>
 
 <style scoped>
-/* 可以添加样式相关的代码 */
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+/* @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'); */ /* 移除了 FontAwesome */
 
 /* 为选中的路由项目设置活跃状态 */
 .router-link-active {

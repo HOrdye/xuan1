@@ -1,13 +1,5 @@
 <template>
   <div class="hexagram-display" :class="{ 'is-loading': isLoading, 'is-empty': !hexagram, 'debug-mode': debug }">
-    <!-- 显示调试面板 -->
-    <DebugPanel 
-      v-if="debug"
-      :hexagram="hexagram"
-      :current-image-url="computedImageUrl || ''"
-      :image-loaded="!isLoading && !imageLoadError"
-      :image-error="imageLoadError"
-    />
     <!-- 加载状态 -->
     <div v-if="isLoading" class="hexagram-loading">
       <div class="ink-drop-loading">
@@ -96,7 +88,7 @@
         <h3 class="hexagram-name">{{ formatHexagramName(hexagram.name) }}卦</h3>
         <div class="hexagram-meta">
           <span class="meta-item">{{ hexagram.nature ?? '' }}</span>
-          <span class="meta-item">{{ hexagram.element ?? '' }}属性</span>
+          <span v-if="hexagram.element" class="meta-item">{{ hexagram.element }}属性</span>
           <span class="meta-item">第{{ hexagram.sequence ?? '' }}卦</span>
         </div>
         
@@ -104,6 +96,18 @@
         <div v-if="showDescription" class="hexagram-description">
           <h4 class="description-title">卦辞</h4>
           <p class="description-text">{{ formatDescription(hexagram.judgment || hexagram.description || hexagram.meaning || '无卦辞') }}</p>
+        </div>
+
+        <!-- 彖辞 -->
+        <div v-if="showTuanText && hexagram.tuan_text" class="hexagram-tuan">
+          <h4 class="tuan-title">彖辞</h4>
+          <p class="tuan-text">{{ formatDescription(hexagram.tuan_text) }}</p>
+        </div>
+
+        <!-- 象辞 -->
+        <div v-if="showXiangText && hexagram.xiang_text" class="hexagram-xiang">
+          <h4 class="xiang-title">象辞</h4>
+          <p class="xiang-text">{{ formatDescription(hexagram.xiang_text) }}</p>
         </div>
         
         <!-- 卦象解读 -->
@@ -119,7 +123,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import type { Hexagram } from '../../features/dilemma/types';
-import DebugPanel from '../debug/DebugPanel.vue';
 
 // 定义组件属性
 interface Props {
@@ -128,6 +131,8 @@ interface Props {
   isLoading?: boolean;        // 加载状态
   emptyText?: string;         // 空状态文本
   showDescription?: boolean;  // 是否显示卦辞
+  showTuanText?: boolean;     // 是否显示彖辞
+  showXiangText?: boolean;    // 是否显示象辞
   showOverall?: boolean;      // 是否显示解读
   showYaoTexts?: boolean;     // 是否显示爻辞
   changingLines?: number[];   // 变爻位置
@@ -142,6 +147,8 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   emptyText: '暂无卦象数据',
   showDescription: true,
+  showTuanText: true,
+  showXiangText: true,
   showOverall: true,
   showYaoTexts: true,
   changingLines: () => [],
@@ -199,9 +206,9 @@ const computedImageUrl = computed(() => {
     // 如果路径数组为空，初始化可能的路径
     if (imagePaths.value.length === 0) {
       const sequence = props.hexagram.sequence;
-      // 直接使用最简单的路径，避免多次尝试
+      // 使用正确的路径格式，添加前导斜杠
       imagePaths.value = [
-        `static/hexagrams/${sequence}.svg`
+        `/static/hexagrams/${sequence}.svg`
       ];
       if (props.debug) console.log(`【DEBUG】使用图像路径:`, imagePaths.value[0]);
     }
@@ -1247,5 +1254,47 @@ const formatDescription = (text: string): string => {
   0% { opacity: 0; left: -100%; }
   50% { opacity: 0.5; }
   100% { opacity: 0; left: 100%; }
+}
+
+/* 彖辞样式 */
+.hexagram-tuan {
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.tuan-title {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.tuan-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #555;
+  text-align: justify;
+}
+
+/* 象辞样式 */
+.hexagram-xiang {
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.xiang-title {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.xiang-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #555;
+  text-align: justify;
 }
 </style> 

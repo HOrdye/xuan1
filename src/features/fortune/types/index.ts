@@ -29,5 +29,6 @@ export interface FortuneRequest {
   birthDate: string;
   gender: 'male' | 'female';
   zodiacSign?: string;
+  constellation?: string;  // 新增星座字段
   question?: string;
-} 
+}

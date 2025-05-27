@@ -12,7 +12,7 @@
       <!-- 主卦象展示 -->
       <div v-if="result.hexagram" class="mb-6 p-4 border rounded-lg bg-gray-50 animate-reveal">
         <h4 class="font-bold text-gray-800 text-2xl text-center mb-3">本卦: {{ result.hexagram.name }}</h4>
-        <HexagramDisplay :hexagram="result.hexagram" :debug="true" />
+        <HexagramDisplay :hexagram="result.hexagram" :debug="false" />
         <div v-if="result.hexagram.judgment || result.hexagram.meaning" class="mt-3 text-gray-700 text-center">
           <strong class="text-primary">卦辞:</strong> {{ result.hexagram.judgment || result.hexagram.meaning }}
         </div>
@@ -36,7 +36,7 @@
       <div v-if="result.changingLines && result.changingLines.length > 0">
         <div v-if="result.relatedHexagram" class="mb-6 p-4 border rounded-lg bg-gray-50 animate-reveal" style="animation-delay: 0.2s;">
           <h4 class="font-bold text-gray-800 text-2xl text-center mb-3">变卦: {{ result.relatedHexagram.name }}</h4>
-          <HexagramDisplay :hexagram="result.relatedHexagram" :debug="true" />
+          <HexagramDisplay :hexagram="result.relatedHexagram" :debug="false" />
           <div v-if="result.relatedHexagram.judgment || result.relatedHexagram.meaning" class="mt-3 text-gray-700 text-center">
             <strong class="text-primary">卦辞:</strong> {{ result.relatedHexagram.judgment || result.relatedHexagram.meaning }}
           </div>

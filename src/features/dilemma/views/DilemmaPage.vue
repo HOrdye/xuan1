@@ -327,13 +327,37 @@
         </div>
       </div>
     </div>
+
+    <!-- LLM加载指示器 -->
+    <LLMLoadingIndicator
+      :isLoading="isGenerating"
+      :progress="loadingProgress" 
+      :stage="loadingStage"
+    />
+
+    <!-- 动画测试按钮 (仅开发模式) -->
+    <div v-if="isDevelopment" class="dev-controls">
+      <button 
+        @click="testLLMAnimation" 
+        class="test-animation-btn"
+        :disabled="isGenerating"
+      >
+        {{ isGenerating ? '测试进行中...' : '🎭 测试LLM动画效果' }}
+      </button>
+    </div>
+
+    <!-- 调试面板 (仅开发模式) -->
+    <LLMDebugPanel v-if="isDevelopment" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { generateHexagram, AnalysisResult } from '../utils/hexagramGenerator';
 import { generateFortuneSeed } from '../utils/fortuneSeed';
+import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
+import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';
+import { LLMService } from '../../../services/LLMService';
 
 // 表单数据
 const optionA = ref('');
@@ -343,6 +367,45 @@ const showError = ref(false);
 const showResult = ref(false);
 const analysisResult = ref<AnalysisResult | null>(null);
 const showDropdown = ref(false);
+
+// LLM加载状态
+const isGenerating = ref(false);
+const loadingProgress = ref('');
+const loadingStage = ref<'preparing' | 'calling' | 'processing' | 'completed' | 'error'>('preparing');
+
+// 订阅LLM服务的加载状态
+let unsubscribeFromLLM: (() => void) | null = null;
+
+// 开发模式检测
+const isDevelopment = computed(() => {
+  return process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
+})
+
+onMounted(() => {
+  console.log('🔧 DilemmaPage mounted，开始订阅LLM状态...');
+  
+  // 订阅LLMService的加载状态变化
+  unsubscribeFromLLM = LLMService.onLoadingStateChange((state) => {
+    console.log('🔄 收到LLM状态变化:', state);
+    console.log('🔧 更新前isGenerating:', isGenerating.value);
+    
+    isGenerating.value = state.isLoading;
+    loadingProgress.value = state.progress;
+    loadingStage.value = state.stage;
+    
+    console.log('🔧 更新后isGenerating:', isGenerating.value);
+    console.log('🔧 更新后loadingProgress:', loadingProgress.value);
+    console.log('🔧 更新后loadingStage:', loadingStage.value);
+  });
+  
+  console.log('🔧 LLM订阅设置完成，unsubscribeFromLLM:', !!unsubscribeFromLLM);
+});
+
+onUnmounted(() => {
+  if (unsubscribeFromLLM) {
+    unsubscribeFromLLM();
+  }
+});
 
 // 历史记录数据
 const historyItems = [
@@ -380,6 +443,10 @@ const startAnalysis = async () => {
   }
   showError.value = false;
 
+  console.log('🎯 开始分析，检查LLM状态订阅...');
+  console.log('🔧 当前isGenerating:', isGenerating.value);
+  console.log('🔧 LLM订阅函数数量:', unsubscribeFromLLM ? '已订阅' : '未订阅');
+
   // 记录点击时间戳
   clickTimestamp.value = Date.now();
 
@@ -390,10 +457,13 @@ const startAnalysis = async () => {
     optionB: optionB.value,
     clickTimestamp: clickTimestamp.value || undefined
   };
+  
+  try {
   const seed = generateFortuneSeed(seedInput);
 
-  setTimeout(async () => {
-    try {
+    console.log('🎲 生成种子:', seed);
+    console.log('🔮 开始调用generateHexagram...');
+    
       // 生成卦象并分析，传入种子
       const result = await generateHexagram(
         optionA.value,
@@ -401,6 +471,9 @@ const startAnalysis = async () => {
         seed,
         useMultipleAlgorithms.value
       );
+    
+    console.log('✅ generateHexagram完成');
+    console.log('🔧 完成后isGenerating:', isGenerating.value);
       
       // 转换结果格式以适配现有界面
       analysisResult.value = {
@@ -417,7 +490,7 @@ const startAnalysis = async () => {
       // 显示结果(带动画)
       setTimeout(() => {
         showResult.value = true;
-      }, 100);
+    }, 500);
 
       console.log('传给DivinationResult的analysisResult:', analysisResult.value);
       if (analysisResult.value && analysisResult.value.hexagram) {
@@ -425,9 +498,12 @@ const startAnalysis = async () => {
       }
     } catch (error) {
       console.error('卦象生成错误:', error);
+    console.log('🔧 错误后isGenerating:', isGenerating.value);
+    
+    setTimeout(() => {
       fallbackToMockResult();
+    }, 500);
     }
-  }, 1500);
 };
 
 // 如果算法出错，使用模拟数据作为后备
@@ -741,8 +817,61 @@ const getFinalWisdom = (result: any): string => {
   // 没有找到特定卦象的智慧，提供通用智慧
   return `${hexagramName}卦提示我们：${hexagram.modernInterpretation || hexagram.judgment || '万事万物皆有其时，顺应天时地利人和，方能获得成功'}。`;
 };
+
+// 测试LLM动画效果
+const testLLMAnimation = async () => {
+  console.log('🎭 开始测试LLM动画效果');
+  
+  // 手动触发状态更新，模拟LLM调用流程
+  const stages = [
+    { stage: 'preparing' as const, progress: '正在准备AI解读...', duration: 1000 },
+    { stage: 'calling' as const, progress: '正在连接AI服务...', duration: 1500 },
+    { stage: 'processing' as const, progress: 'AI正在思考您的问题...', duration: 2000 },
+    { stage: 'completed' as const, progress: '解读完成', duration: 500 }
+  ];
+  
+  // 开始测试
+  isGenerating.value = true;
+  
+  try {
+    for (const stageInfo of stages) {
+      loadingStage.value = stageInfo.stage;
+      loadingProgress.value = stageInfo.progress;
+      
+      console.log(`🔄 测试阶段: ${stageInfo.stage} - ${stageInfo.progress}`);
+      
+      await new Promise(resolve => setTimeout(resolve, stageInfo.duration));
+    }
+    
+    console.log('✅ LLM动画测试完成');
+  } catch (error) {
+    console.error('❌ LLM动画测试失败:', error);
+    loadingStage.value = 'error';
+    loadingProgress.value = '测试过程中出现错误';
+  } finally {
+    // 结束测试
+    setTimeout(() => {
+      isGenerating.value = false;
+      loadingProgress.value = '';
+      loadingStage.value = 'preparing';
+    }, 1000);
+  }
+};
 </script>
 
 <style scoped>
 /* 添加任何需要的样式 */
+.dev-controls {
+  @apply mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600;
+}
+
+.test-animation-btn {
+  @apply px-4 py-2 bg-purple-600 text-white rounded-lg font-medium 
+         hover:bg-purple-700 transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.test-animation-btn:disabled {
+  @apply bg-gray-500;
+}
 </style> 

@@ -15,6 +15,14 @@
         <span class="debug-value">{{ hexagram.lines ? hexagram.lines.join('') : '未知' }}</span>
       </div>
       <div class="debug-row">
+        <span class="debug-label">彖辞:</span>
+        <span class="debug-value">{{ hexagram.tuan_text ? '已加载' : '未加载' }}</span>
+      </div>
+      <div class="debug-row">
+        <span class="debug-label">象辞:</span>
+        <span class="debug-value">{{ hexagram.xiang_text ? '已加载' : '未加载' }}</span>
+      </div>
+      <div class="debug-row">
         <span class="debug-label">图像状态:</span>
         <span class="debug-value" :class="{ 'debug-error': imageError }">
           {{ imageLoaded ? '加载成功' : (imageError ? '加载失败' : '加载中') }}

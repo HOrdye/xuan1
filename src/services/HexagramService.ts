@@ -11,8 +11,9 @@ export interface Hexagram {
   name: string;            // 卦名
   sequence: number;        // 序号
   nature: string;          // 卦性质
-  element: string;         // 五行属性
   description: string;     // 卦辞
+  tuan_text: string;       // 彖辞 
+  xiang_text: string;      // 象辞
   overall: string;         // 整体解读
   yao_texts: string[];     // 爻辞
   lines: number[];         // 爻线数组 (0表示阴爻，1表示阳爻)
