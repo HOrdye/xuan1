@@ -88,123 +88,183 @@ export interface FortuneResult {
   goodActivities?: string[];
   badActivities?: string[];
   actionSuggestions?: ActionSuggestion[];
+  aspects?: { [key: string]: { score: number; description: string } };
+  lucky?: {
+    numbers?: number[];
+    colors?: string[];
+    directions?: string[];
+  };
+  advice?: string[];
+  aiAnalysis?: string;
+  personalizedTips?: string[];
 }
 
 <template>
-  <div class="fortune-card bg-white rounded-xl shadow-lg p-6 flex flex-col items-center">
-    <div class="text-2xl font-bold mb-4">{{ title }}</div>
-    <div v-if="fortune" class="w-full">
-      <!-- 能量分数和描述 -->
-      <div class="text-lg font-semibold mb-2 flex items-center justify-between">
-        <span>能量分：</span>
-        <span class="text-primary text-xl">{{ fortune.energyScore || getScoreFromLevel(fortune.level) }}</span>
-      </div>
-      <div class="text-base text-gray-600 mb-4">{{ fortune.energyDescription || fortune.description }}</div>
-      
-      <!-- 星座信息 -->
-      <div v-if="fortune.zodiac" class="flex flex-wrap items-center gap-4 mb-4">
-        <div class="px-3 py-1 bg-gray-100 rounded-lg">
-          <span class="font-semibold">星座：</span>
-          <span>{{ fortune.zodiac.sign }}</span>
-          <span class="ml-2 text-xs text-gray-400">({{ fortune.zodiac.element }}象)</span>
+  <div class="fortune-card bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- 头部标题 -->
+    <div class="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-6">
+      <h2 class="text-2xl font-bold text-center">{{ title }}</h2>
+      <p class="text-center opacity-90 mt-1">{{ formattedDate }}</p>
+    </div>
+    
+    <div v-if="fortune" class="p-6 space-y-6">
+      <!-- 整体运势 -->
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-2xl font-bold mb-3">
+          {{ fortune.overall?.score || 0 }}
         </div>
-        <div class="px-3 py-1 bg-gray-100 rounded-lg">
-          <span class="font-semibold">幸运色：</span>
-          <span :style="{ color: fortune.zodiac.luckyColor }">{{ fortune.zodiac.luckyColor }}</span>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">整体运势</h3>
+        <p class="text-gray-600">{{ fortune.overall?.description || '运势良好' }}</p>
+        <div class="mt-2 text-sm text-blue-600 bg-blue-50 rounded-lg p-2">
+          {{ fortune.overall?.suggestion || '保持积极心态' }}
         </div>
       </div>
-      
+
+      <!-- 分项运势 -->
+      <div v-if="fortune.aspects" class="grid grid-cols-2 gap-4">
+        <div v-for="(aspect, key) in fortune.aspects" :key="key" 
+             class="bg-gray-50 rounded-lg p-4 text-center">
+          <div class="text-2xl mb-2">{{ getAspectIcon(key) }}</div>
+          <h4 class="font-semibold text-gray-800 mb-1">{{ getAspectName(key) }}</h4>
+          <div class="flex items-center justify-center mb-2">
+            <div class="flex space-x-1">
+              <span v-for="i in 5" :key="i" class="text-lg"
+                    :class="i <= getStarRating(aspect.score) ? 'text-yellow-400' : 'text-gray-300'">
+                ★
+              </span>
+            </div>
+            <span class="ml-2 text-sm font-medium text-gray-600">{{ aspect.score }}</span>
+          </div>
+          <p class="text-xs text-gray-600">{{ aspect.description }}</p>
+        </div>
+      </div>
+
       <!-- 幸运元素 -->
-      <div class="mb-4" v-if="hasLuckyElements">
-        <div class="text-sm font-semibold mb-2">今日幸运</div>
-        <div class="flex flex-wrap gap-2">
-          <div v-if="fortune.luckyNumber" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-            <span class="font-semibold">数字：</span>{{ fortune.luckyNumber }}
+      <div v-if="fortune.lucky" class="bg-yellow-50 rounded-lg p-4">
+        <h4 class="font-semibold text-gray-800 mb-3 text-center">🍀 今日幸运</h4>
+        <div class="space-y-2">
+          <div v-if="fortune.lucky.numbers?.length" class="flex items-center">
+            <span class="text-sm font-medium text-gray-700 w-16">数字:</span>
+            <div class="flex flex-wrap gap-1">
+              <span v-for="num in fortune.lucky.numbers" :key="num" 
+                    class="inline-block bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-sm">
+                {{ num }}
+              </span>
+            </div>
           </div>
-          <div v-if="fortune.luckyColor?.name" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-            <span class="font-semibold">颜色：</span>
-            <span :style="{ color: fortune.luckyColor.hex }">{{ fortune.luckyColor.name }}</span>
+          <div v-if="fortune.lucky.colors?.length" class="flex items-center">
+            <span class="text-sm font-medium text-gray-700 w-16">颜色:</span>
+            <div class="flex flex-wrap gap-1">
+              <span v-for="color in fortune.lucky.colors" :key="color" 
+                    class="inline-block bg-purple-200 text-purple-800 px-2 py-1 rounded text-sm">
+                {{ color }}
+              </span>
+            </div>
           </div>
-          <div v-if="fortune.luckyDirection" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-            <span class="font-semibold">方位：</span>{{ fortune.luckyDirection }}
+          <div v-if="fortune.lucky.directions?.length" class="flex items-center">
+            <span class="text-sm font-medium text-gray-700 w-16">方位:</span>
+            <div class="flex flex-wrap gap-1">
+              <span v-for="direction in fortune.lucky.directions" :key="direction" 
+                    class="inline-block bg-blue-200 text-blue-800 px-2 py-1 rounded text-sm">
+                {{ direction }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      
-      <!-- 建议和提示 -->
-      <div v-if="fortune.goodActivities && fortune.goodActivities.length" class="mb-4">
-        <div class="text-sm font-semibold mb-1 text-green-600">宜</div>
-        <div class="text-sm text-gray-600">
-          {{ fortune.goodActivities.join('、') }}
+
+      <!-- 今日建议 -->
+      <div v-if="fortune.advice?.length" class="bg-green-50 rounded-lg p-4">
+        <h4 class="font-semibold text-gray-800 mb-3 text-center">💡 今日建议</h4>
+        <ul class="space-y-2">
+          <li v-for="(advice, index) in fortune.advice.slice(0, 3)" :key="index" 
+              class="text-sm text-gray-700 flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span>{{ advice }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- AI分析（如果有） -->
+      <div v-if="fortune.aiAnalysis" class="bg-blue-50 rounded-lg p-4">
+        <h4 class="font-semibold text-gray-800 mb-3 text-center">🤖 AI个性化分析</h4>
+        <div class="text-sm text-gray-700 whitespace-pre-line max-h-40 overflow-y-auto">
+          {{ fortune.aiAnalysis }}
         </div>
       </div>
-      <div v-if="fortune.badActivities && fortune.badActivities.length" class="mb-4">
-        <div class="text-sm font-semibold mb-1 text-red-600">忌</div>
-        <div class="text-sm text-gray-600">
-          {{ fortune.badActivities.join('、') }}
-        </div>
-      </div>
-      
-      <!-- 日期信息 -->
-      <div class="text-sm text-gray-400 mt-4 border-t pt-2">
-        <div v-if="fortune.birthday" class="mb-1">
-          <span>生日：{{ fortune.birthday }}</span>
-        </div>
-        <div>
-          <span>日期：{{ fortune.date }}</span>
-        </div>
+
+      <!-- 个性化建议 -->
+      <div v-if="fortune.personalizedTips?.length" class="bg-pink-50 rounded-lg p-4">
+        <h4 class="font-semibold text-gray-800 mb-3 text-center">✨ 个性化建议</h4>
+        <ul class="space-y-2">
+          <li v-for="(tip, index) in fortune.personalizedTips.slice(0, 3)" :key="index" 
+              class="text-sm text-gray-700 flex items-start">
+            <span class="text-pink-500 mr-2">•</span>
+            <span>{{ tip }}</span>
+          </li>
+        </ul>
       </div>
     </div>
-    <div v-else class="text-gray-400">暂无运势数据</div>
+    
+    <div v-else class="p-6 text-center text-gray-400">
+      暂无运势数据
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-
-// 内联定义 FortuneItem 类型，避免导入问题
-interface FortuneItem {
-  level: string;
-  description: string;
-  energyScore?: number;
-  energyDescription?: string;
-  zodiac?: {
-    sign: string;
-    element: string;
-    luckyColor: string;
-  };
-  birthday?: string;
-  date?: string;
-  luckyNumber?: number;
-  luckyColor?: {
-    name: string;
-    hex: string;
-  };
-  luckyDirection?: string;
-  goodActivities?: string[];
-  badActivities?: string[];
-}
+import type { FortuneResult } from '../types/fortune';
 
 const props = defineProps<{
   title: string
-  fortune: FortuneItem
+  fortune: FortuneResult | null
 }>();
 
-// 根据运势等级计算分数
-const getScoreFromLevel = (level: string): number => {
-  switch (level) {
-    case 'excellent': return Math.floor(Math.random() * 10) + 90; // 90-99
-    case 'good': return Math.floor(Math.random() * 20) + 70; // 70-89
-    case 'normal': return Math.floor(Math.random() * 30) + 40; // 40-69
-    case 'bad': return Math.floor(Math.random() * 20) + 20; // 20-39
-    case 'terrible': return Math.floor(Math.random() * 19) + 1; // 1-19
-    default: return 50;
+// 格式化日期
+const formattedDate = computed(() => {
+  if (!props.fortune?.date) return '';
+  try {
+    return new Date(props.fortune.date).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    });
+  } catch (err) {
+    console.error('日期格式化错误:', err);
+    return '';
   }
+});
+
+// 获取运势方面的图标
+const getAspectIcon = (aspect: string): string => {
+  const icons: { [key: string]: string } = {
+    career: '💼',
+    wealth: '💰',
+    love: '❤️',
+    health: '🏃‍♂️'
+  };
+  return icons[aspect] || '⭐';
 };
 
-// 检查是否有幸运元素可以显示
-const hasLuckyElements = computed(() => {
-  const { fortune } = props;
-  return fortune.luckyNumber || (fortune.luckyColor && fortune.luckyColor.name) || fortune.luckyDirection;
-});
+// 获取运势方面的中文名称
+const getAspectName = (aspect: string): string => {
+  const names: { [key: string]: string } = {
+    career: '事业运',
+    wealth: '财运',
+    love: '感情运',
+    health: '健康运'
+  };
+  return names[aspect] || aspect;
+};
+
+// 根据分数计算星级评分（1-5星）
+const getStarRating = (score: number): number => {
+  if (score >= 90) return 5;
+  if (score >= 75) return 4;
+  if (score >= 60) return 3;
+  if (score >= 45) return 2;
+  return 1;
+};
 </script>

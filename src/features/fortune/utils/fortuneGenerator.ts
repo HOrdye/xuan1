@@ -1,4 +1,5 @@
-import type { FortuneResult, FortuneRequest } from '../types';
+import type { FortuneResult, FortuneRequest, FortuneAspect, LuckyElements } from '../types/fortune';
+import { LLMService } from '../../../services/LLMService';
 
 // 丰富的运势等级描述，增加多样性
 const LEVEL_DESCRIPTIONS = {
@@ -265,6 +266,140 @@ const DAILY_ADVICE = [
   ]
 ];
 
+export function generateFortune(birthDate?: Date, birthdayString?: string): FortuneResult {
+  try {
+    console.log('🔮 开始生成运势...', { birthDate, birthdayString });
+    
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0];
+    
+    // 构建运势请求参数
+    const request: FortuneRequest = {
+      birthDate: birthdayString || birthDate?.toISOString().split('T')[0],
+      gender: undefined, // 可以从用户设置中获取
+      zodiacSign: birthdayString ? getZodiacFromDate(birthdayString) : undefined,
+      constellation: birthdayString ? getConstellationFromDate(birthdayString) : undefined
+    };
+    
+    console.log('📝 运势请求参数:', request);
+    
+    // 使用新的FortuneGenerator类生成运势，并添加日期
+    const result = FortuneGenerator.generateFortune(request);
+    console.log('✅ 运势生成完成:', result);
+    
+    return {
+      date: dateString,
+      ...result
+    };
+  } catch (error) {
+    console.error('❌ 生成运势失败:', error);
+    // 返回默认运势
+    return getDefaultFortune();
+  }
+}
+
+/**
+ * 从日期获取生肖
+ */
+function getZodiacFromDate(dateString: string): string {
+  const year = new Date(dateString).getFullYear();
+  const zodiacSigns = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+  const zodiacIndex = (year - 4) % 12;
+  return zodiacSigns[zodiacIndex];
+}
+
+/**
+ * 从日期获取星座
+ */
+function getConstellationFromDate(dateString: string): string {
+  const date = new Date(dateString);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  const constellations = [
+    { name: '水瓶座', start: [1, 20], end: [2, 18] },
+    { name: '双鱼座', start: [2, 19], end: [3, 20] },
+    { name: '白羊座', start: [3, 21], end: [4, 19] },
+    { name: '金牛座', start: [4, 20], end: [5, 20] },
+    { name: '双子座', start: [5, 21], end: [6, 21] },
+    { name: '巨蟹座', start: [6, 22], end: [7, 22] },
+    { name: '狮子座', start: [7, 23], end: [8, 22] },
+    { name: '处女座', start: [8, 23], end: [9, 22] },
+    { name: '天秤座', start: [9, 23], end: [10, 23] },
+    { name: '天蝎座', start: [10, 24], end: [11, 22] },
+    { name: '射手座', start: [11, 23], end: [12, 21] },
+    { name: '摩羯座', start: [12, 22], end: [1, 19] }
+  ];
+  
+  for (const constellation of constellations) {
+    const [startMonth, startDay] = constellation.start;
+    const [endMonth, endDay] = constellation.end;
+    
+    if (
+      (month === startMonth && day >= startDay) ||
+      (month === endMonth && day <= endDay) ||
+      (startMonth > endMonth && (month === startMonth || month === endMonth))
+    ) {
+      return constellation.name;
+    }
+  }
+  
+  return '摩羯座'; // 默认
+}
+
+/**
+ * 获取默认运势（当生成失败时使用）
+ */
+function getDefaultFortune(): FortuneResult {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return {
+    date: today,
+    overall: {
+      score: 75,
+      level: 'good',
+      description: '运势良好',
+      suggestion: '保持积极心态，把握今日机会'
+    },
+    aspects: {
+      career: {
+        score: 70,
+        level: 'good',
+        description: '工作顺利',
+        suggestion: '专注当前任务，稳步前进'
+      },
+      wealth: {
+        score: 65,
+        level: 'normal',
+        description: '财运平稳',
+        suggestion: '理性消费，稳健理财'
+      },
+      love: {
+        score: 80,
+        level: 'good',
+        description: '感情和谐',
+        suggestion: '多关心身边的人'
+      },
+      health: {
+        score: 85,
+        level: 'excellent',
+        description: '身体健康',
+        suggestion: '保持良好作息'
+      }
+    },
+    lucky: {
+      numbers: [3, 7, 21],
+      colors: ['蓝色', '绿色'],
+      directions: ['东', '南']
+    },
+    advice: [
+      '保持积极乐观的心态',
+      '适当休息，劳逸结合',
+      '关注身边人的需要'
+    ]
+  };
+}
+
 export class FortuneGenerator {
   private static getRandomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -357,9 +492,88 @@ export class FortuneGenerator {
     return result;
   }
 
-  public static generateFortune(request: FortuneRequest): FortuneResult {
+  /**
+   * 生成运势，集成LLM分析
+   */
+  public static async generateFortuneWithAI(request: FortuneRequest): Promise<FortuneResult> {
+    try {
+      console.log('🤖 开始生成AI增强运势...', request);
+      
+      // 先生成基础运势
+      const baseFortune = this.generateFortune(request);
+      
+      // 如果有生日等个人信息，尝试获取AI分析
+      if (request.birthDate && request.zodiacSign && request.constellation) {
+        try {
+          console.log('🧠 调用LLM进行个性化分析...');
+          
+          const aiAnalysis = await LLMService.getFortuneAnalysis(
+            request.birthDate,
+            request.gender || 'male',
+            request.zodiacSign,
+            request.constellation,
+            request.question || ''
+          );
+          
+          console.log('✅ AI分析完成');
+          
+          // 将AI分析结果整合到运势中
+          return {
+            ...baseFortune,
+            aiAnalysis,
+            personalizedTips: this.extractTipsFromAIAnalysis(aiAnalysis)
+          };
+        } catch (error) {
+          console.warn('⚠️ AI分析失败，使用基础运势:', error);
+        }
+      }
+      
+      return baseFortune;
+    } catch (error) {
+      console.error('❌ 运势生成失败:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 从AI分析中提取个性化建议
+   */
+  private static extractTipsFromAIAnalysis(aiAnalysis: string): string[] {
+    const tips: string[] = [];
+    
+    // 简单的文本处理，提取建议类内容
+    const lines = aiAnalysis.split('\n');
+    
+    for (const line of lines) {
+      const cleanLine = line.trim();
+      
+      // 查找包含建议性词汇的句子
+      if (
+        cleanLine.length > 10 &&
+        (cleanLine.includes('建议') ||
+         cleanLine.includes('适合') ||
+         cleanLine.includes('宜') ||
+         cleanLine.includes('应该') ||
+         cleanLine.includes('可以') ||
+         cleanLine.includes('注意'))
+      ) {
+        // 清理格式字符
+        const cleanTip = cleanLine
+          .replace(/^[•\-\*\d\.]+\s*/, '')
+          .replace(/【.*?】/g, '')
+          .trim();
+        
+        if (cleanTip.length > 5) {
+          tips.push(cleanTip);
+        }
+      }
+    }
+    
+    return tips.slice(0, 5); // 最多返回5条建议
+  }
+
+  public static generateFortune(request: FortuneRequest): Omit<FortuneResult, 'date'> {
     // 基于request中的信息进行个性化调整
-    // 例如可以根据生日、生肖、性别等因素微调运势
     const birthDateFactor = request.birthDate ? 0.1 : 0;
     const questionFactor = request.question ? 0.05 : 0;
     const zodiacFactor = request.zodiacSign ? 0.08 : 0;
@@ -382,7 +596,7 @@ export class FortuneGenerator {
     };
 
     // 生成幸运信息
-    const lucky = {
+    const lucky: LuckyElements = {
       numbers: this.generateLuckyNumbers(),
       colors: this.generateLuckyColors(),
       directions: this.generateLuckyDirections()
@@ -411,7 +625,8 @@ export class FortuneGenerator {
       overall: {
         score: overallScore,
         level: overallLevel,
-        description: overallDescription
+        description: overallDescription,
+        suggestion: this.getRandomElement(FORTUNE_ADVICE.career[overallLevel]) // 可以优化为更通用的建议
       },
       aspects,
       lucky,

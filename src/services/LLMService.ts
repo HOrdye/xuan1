@@ -208,7 +208,7 @@ export class LLMService {
       return this.getLocalFortuneAnalysis(birthDate, gender, zodiacSign, constellation, question);
     }
   }
-
+  
   /**
    * 获取卦象解读 - 主要接口
    * @param hexagram 主卦
@@ -403,32 +403,32 @@ export class LLMService {
       console.log('📍 API路径: /api/qianwen');
       console.log('🔑 API密钥长度:', this.config.apiKey?.length || 0);
 
-      const response = await fetch('/api/qianwen', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.config.model || 'qwen-plus',
-          messages: [
-            {
-              role: 'system',
-              content: '你是一位精通《易经》的国学大师，擅长解读六十四卦。请用专业而通俗的语言为用户解读卦象，给出实用的人生指导。'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000
-        })
-      });
+    const response = await fetch('/api/qianwen', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`
+      },
+      body: JSON.stringify({
+        model: this.config.model || 'qwen-plus',
+        messages: [
+          {
+            role: 'system',
+            content: '你是一位精通《易经》的国学大师，擅长解读六十四卦。请用专业而通俗的语言为用户解读卦象，给出实用的人生指导。'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
 
       console.log('📡 API响应状态:', response.status, response.statusText);
-
-      if (!response.ok) {
+    
+    if (!response.ok) {
         // 详细的错误处理
         if (response.status === 404) {
           console.error('❌ 404错误：API代理未配置或代理目标不可达');
@@ -445,17 +445,17 @@ export class LLMService {
           console.error('❌ 403错误：API密钥权限不足或配额已用完');
           throw new Error(`API访问被拒绝 - 请检查密钥权限或配额。状态：${response.status}`);
         } else {
-          throw new Error(`通义千问API错误: ${response.status} ${response.statusText}`);
+      throw new Error(`通义千问API错误: ${response.status} ${response.statusText}`);
         }
-      }
-      
-      const data = await response.json();
+    }
+    
+    const data = await response.json();
       console.log('✅ API调用成功，返回数据结构:', Object.keys(data));
-      
-      return {
-        content: data.choices?.[0]?.message?.content || '',
-        usage: data.usage
-      };
+    
+    return {
+      content: data.choices?.[0]?.message?.content || '',
+      usage: data.usage
+    };
     } catch (error) {
       console.error('💥 通义千问API调用异常:', error);
       
@@ -475,40 +475,72 @@ export class LLMService {
     try {
       console.log('🌐 开始调用DeepSeek API...');
       
+      // 详细调试信息
+      console.log('🔧 DeepSeek 调试信息:');
+      console.log('  - Provider:', this.config.provider);
+      console.log('  - API Key (前10位):', this.config.apiKey?.substring(0, 10) + '...' || '未设置');
+      console.log('  - API Key (后4位):', '...' + this.config.apiKey?.substring(-4) || '未设置');
+      console.log('  - Model:', this.config.model || 'deepseek-chat');
+      console.log('  - 完整config对象:', JSON.stringify({
+        provider: this.config.provider,
+        hasApiKey: !!this.config.apiKey,
+        apiKeyLength: this.config.apiKey?.length || 0,
+        model: this.config.model,
+        baseURL: this.config.baseURL
+      }, null, 2));
+    
+      const requestBody = {
+        model: this.config.model || 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: '你是一位精通《易经》的国学大师，擅长解读六十四卦。请用专业而通俗的语言为用户解读卦象，给出实用的人生指导。'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      };
+      
+      console.log('📤 DeepSeek 请求体:', JSON.stringify(requestBody, null, 2));
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`
+      };
+      
+      console.log('📤 DeepSeek 请求头:', {
+        'Content-Type': headers['Content-Type'],
+        'Authorization': `Bearer ${this.config.apiKey?.substring(0, 10)}...${this.config.apiKey?.substring(-4)}`
+      });
+
       const response = await fetch('/api/deepseek', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.config.model || 'deepseek-chat',
-          messages: [
-            {
-              role: 'system',
-              content: '你是一位精通《易经》的国学大师，擅长解读六十四卦。请用专业而通俗的语言为用户解读卦象，给出实用的人生指导。'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000
-        })
+        headers: headers,
+        body: JSON.stringify(requestBody)
       });
 
       console.log('📡 DeepSeek API响应状态:', response.status, response.statusText);
-
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ DeepSeek API错误响应:', errorText);
+        
         if (response.status === 404) {
           throw new Error(`DeepSeek API代理404错误 - 请检查Vite代理配置。状态：${response.status}`);
         } else if (response.status === 401) {
-          throw new Error(`DeepSeek API密钥验证失败 - 请检查密钥是否正确。状态：${response.status}`);
+          console.error('🔑 API密钥验证失败详情:');
+          console.error('  - 当前使用的API密钥长度:', this.config.apiKey?.length);
+          console.error('  - API密钥格式检查:', this.config.apiKey?.startsWith('sk-') ? '✅ 格式正确' : '❌ 格式错误');
+          console.error('  - 错误响应内容:', errorText);
+          throw new Error(`DeepSeek API密钥验证失败 - 请检查密钥是否正确。状态：${response.status}。错误详情：${errorText}`);
         } else if (response.status === 403) {
           throw new Error(`DeepSeek API访问被拒绝 - 请检查密钥权限或配额。状态：${response.status}`);
         } else {
-          throw new Error(`DeepSeek API错误: ${response.status} ${response.statusText}`);
+          throw new Error(`DeepSeek API错误: ${response.status} ${response.statusText}。错误详情：${errorText}`);
         }
       }
       
@@ -576,8 +608,8 @@ export class LLMService {
       const apiKey = this.config.customApiKey || this.config.apiKey;
       if (!apiKey) {
         throw new Error('自定义API需要配置API密钥');
-      }
-      
+    }
+    
       const response = await fetch(this.config.baseURL, {
         method: 'POST',
         headers: {
@@ -602,7 +634,7 @@ export class LLMService {
       });
 
       console.log('📡 自定义API响应状态:', response.status, response.statusText);
-
+      
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error(`自定义API 404错误 - 请检查API地址是否正确。状态：${response.status}`);

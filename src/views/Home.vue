@@ -6,12 +6,20 @@
         <div class="md:w-1/2 py-10 px-8">
           <h1 class="text-3xl md:text-4xl font-bold mb-4">欢迎来到天玄 Web</h1>
           <p class="text-lg mb-6">告别刻板，拥抱"玄"妙乐趣，让每一次选择都有迹可循！</p>
-          <router-link 
-            to="/dilemma" 
-            class="inline-block bg-white text-primary font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-          >
-            开始体验
-          </router-link>
+          <div class="flex gap-4 flex-wrap">
+            <router-link 
+              to="/dilemma" 
+              class="inline-block bg-white text-primary font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
+            >
+              开始体验
+            </router-link>
+            <button 
+              @click="showConfigModal = true"
+              class="inline-block bg-white bg-opacity-20 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-1 border border-white border-opacity-30"
+            >
+              🤖 配置AI
+            </button>
+          </div>
         </div>
         <div class="md:w-1/2 p-6 md:p-0 flex justify-center items-center">
           <div class="w-48 h-48 relative">
@@ -154,10 +162,18 @@
       </div>
     </div>
   </div>
+  
+  <!-- LLM配置模态框 -->
+  <LLMConfigModal 
+    :show="showConfigModal" 
+    @close="showConfigModal = false"
+    @saved="onLLMConfigSaved"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import LLMConfigModal from '../components/LLMConfigModal.vue';
 
 // 用户评价数据
 const userReviews = ref([
@@ -179,6 +195,12 @@ const userReviews = ref([
 ]);
 
 const showDropdown = ref(false);
+const showConfigModal = ref(false);
+
+function onLLMConfigSaved() {
+  console.log('✅ LLM配置已保存');
+  // 可以在这里添加一些成功提示或重新加载数据的逻辑
+}
 </script>
 
 <style scoped>

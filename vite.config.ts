@@ -35,6 +35,15 @@ export default defineConfig({
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             console.log('🔄 代理请求到通义千问:', proxyReq.path);
+            if (req.headers['content-type']) {
+              proxyReq.setHeader('Content-Type', req.headers['content-type']);
+            }
+            if (req.headers['authorization']) {
+              proxyReq.setHeader('Authorization', req.headers['authorization']);
+            }
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ 通义千问代理错误:', err);
           });
         }
       },
@@ -42,16 +51,59 @@ export default defineConfig({
         target: 'https://api.openai.com/v1/chat/completions',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/openai/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('🔄 代理请求到OpenAI:', proxyReq.path);
+            if (req.headers['content-type']) {
+              proxyReq.setHeader('Content-Type', req.headers['content-type']);
+            }
+            if (req.headers['authorization']) {
+              proxyReq.setHeader('Authorization', req.headers['authorization']);
+            }
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ OpenAI代理错误:', err);
+          });
+        }
       },
       '/api/deepseek': {
         target: 'https://api.deepseek.com/v1/chat/completions',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/deepseek/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('🔄 代理请求到DeepSeek:', proxyReq.path);
+            if (req.headers['content-type']) {
+              proxyReq.setHeader('Content-Type', req.headers['content-type']);
+            }
+            if (req.headers['authorization']) {
+              proxyReq.setHeader('Authorization', req.headers['authorization']);
+            }
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ DeepSeek代理错误:', err);
+          });
+        }
       },
       '/api/claude': {
         target: 'https://api.anthropic.com/v1/messages',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/claude/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('🔄 代理请求到Claude:', proxyReq.path);
+            if (req.headers['content-type']) {
+              proxyReq.setHeader('Content-Type', req.headers['content-type']);
+            }
+            if (req.headers['authorization']) {
+              proxyReq.setHeader('Authorization', req.headers['authorization']);
+            }
+            proxyReq.setHeader('anthropic-version', '2023-06-01');
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ Claude代理错误:', err);
+          });
+        }
       }
     }
   },

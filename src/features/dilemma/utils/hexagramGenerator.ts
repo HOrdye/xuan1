@@ -392,7 +392,7 @@ async function analyzeOptions(
       recommendation = 'A';
       console.log('✅ 强烈推荐选项A，得分差异:', scoreDiff);
     } else if (scoreDiff >= 8) {
-      recommendation = 'A';
+    recommendation = 'A';
       console.log('✅ 推荐选项A，得分差异:', scoreDiff);
     } else {
       recommendation = '两者都可以考虑，建议根据个人直觉选择';
@@ -403,7 +403,7 @@ async function analyzeOptions(
       recommendation = 'B';
       console.log('✅ 强烈推荐选项B，得分差异:', scoreDiff);
     } else if (scoreDiff >= 8) {
-      recommendation = 'B';
+    recommendation = 'B';
       console.log('✅ 推荐选项B，得分差异:', scoreDiff);
     } else {
       recommendation = '两者都可以考虑，建议根据个人直觉选择';
@@ -462,7 +462,7 @@ function calculateOptionScore(
   console.log(`📊 卦象性质调整后得分(${optionType}):`, score);
   
   // 2. 基于阴阳爻比例的调整（更合理的逻辑）
-  const yangCount = hexagram.lines.filter(line => line === 1).length;
+    const yangCount = hexagram.lines.filter(line => line === 1).length;
   const yinCount = hexagram.lines.filter(line => line === 0).length;
   const yangRatio = yangCount / 6;
   
@@ -713,7 +713,7 @@ async function generateOverallAnalysis(
       : '';
       
     console.log('🤖 尝试调用LLM服务...');
-    
+      
     // 使用LLM服务生成解读
     const analysis = await LLMService.getHexagramInterpretation(
       hexagram,
@@ -724,7 +724,7 @@ async function generateOverallAnalysis(
     
     if (analysis && analysis.trim().length > 50) {
       console.log('✅ LLM分析成功，内容长度:', analysis.length);
-      return analysis;
+    return analysis;
     } else {
       console.warn('⚠️ LLM返回内容过短，使用本地分析');
       throw new Error('LLM返回内容不足');
@@ -794,7 +794,7 @@ function generateEnhancedLocalAnalysis(
   }
   
   // 4. 变爻指导
-  if (changingLines.length > 0) {
+    if (changingLines.length > 0) {
     analysis += ` 特别注意`;
     if (changingLines.length === 1) {
       const linePosition = changingLines[0] + 1;
@@ -842,7 +842,7 @@ function getHexagramWisdom(hexagramName: string): string {
   for (const key in wisdomMap) {
     if (hexagramName.includes(key)) {
       return wisdomMap[key];
-    }
+  }
   }
   
   return '顺应自然规律，在变化中寻找不变的智慧。';
