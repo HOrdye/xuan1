@@ -11,7 +11,8 @@ export interface StoryTarotCard {
   category: 'major' | 'minor';
   suit?: 'wands' | 'cups' | 'swords' | 'pentacles';
   number?: number;
-  keywords: string[];
+  uprightKeywords: string[];
+  reversedKeywords: string[];
   element: 'fire' | 'water' | 'air' | 'earth';
   storyInterpretation: string;
   imageUrl: string;
@@ -25,13 +26,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "air",
     "storyInterpretation": "年轻的旅人背起行囊，站在悬崖边，脚下是未知的世界，心中满是对未来的憧憬与勇气。",
-    "keywords": [
-      "新开始",
-      "冒险精神",
-      "纯真",
-      "自由",
-      "无限可能"
-    ],
+    "uprightKeywords": ["新的开始", "冒险", "自由"],
+    "reversedKeywords": ["冲动", "逃避责任", "依赖他人"],
     "imageUrl": "/static/tarot/- 00_fool_jpg (愚者).png"
   },
   {
@@ -41,13 +37,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "air",
     "storyInterpretation": "桌上四元素齐聚，魔术师挥动权杖，将想象变为现实，万物皆有可能。",
-    "keywords": [
-      "创造力",
-      "意志力",
-      "技能",
-      "实现",
-      "沟通"
-    ],
+    "uprightKeywords": ["创造力", "自信", "实现目标"],
+    "reversedKeywords": ["欺骗", "能量散失", "不切实际"],
     "imageUrl": "/static/tarot/- 01_magician_jpg (魔术师).png"
   },
   {
@@ -57,13 +48,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "water",
     "storyInterpretation": "月光下的神庙静谧无声，女祭司守护着秘密，直觉引领你走向内心深处。",
-    "keywords": [
-      "直觉",
-      "潜意识",
-      "神秘",
-      "内在智慧",
-      "精神"
-    ],
+    "uprightKeywords": ["直觉", "神秘", "内在智慧"],
+    "reversedKeywords": ["迷失", "不信任", "忽略直觉"],
     "imageUrl": "/static/tarot/- 02_high_priestess_jpg (女祭司).png"
   },
   {
@@ -73,13 +59,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "earth",
     "storyInterpretation": "花园中繁花盛开，皇后温柔地守护着生命的成长，丰饶与爱意在她的怀抱中流淌。",
-    "keywords": [
-      "丰饶",
-      "母性",
-      "创造",
-      "自然",
-      "丰收"
-    ],
+    "uprightKeywords": ["丰饶", "母爱", "创造力"],
+    "reversedKeywords": ["控制", "过度保护", "情感压抑"],
     "imageUrl": "/static/tarot/- 03_empress_jpg (皇后).png"
   },
   {
@@ -89,13 +70,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "坚实的王座上，皇帝目光坚定，权杖在手，他用秩序与规则守护着自己的疆土。",
-    "keywords": [
-      "权威",
-      "稳定",
-      "领导",
-      "结构",
-      "父权"
-    ],
+    "uprightKeywords": ["权威", "稳定", "自律"],
+    "reversedKeywords": ["专制", "混乱", "缺乏自律"],
     "imageUrl": "/static/tarot/- 04_emperor_jpg (皇帝).png"
   },
   {
@@ -105,13 +81,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "earth",
     "storyInterpretation": "古老的神殿里，教皇传递着智慧与信仰，传统的力量在仪式中延续。",
-    "keywords": [
-      "传统",
-      "信仰",
-      "教导",
-      "精神导师",
-      "智慧"
-    ],
+    "uprightKeywords": ["传统", "信仰", "指导"],
+    "reversedKeywords": ["叛逆", "打破规则", "迷失方向"],
     "imageUrl": "/static/tarot/- 05_hierophant_jpg (教皇).png"
   },
   {
@@ -121,13 +92,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "air",
     "storyInterpretation": "两颗心在花园中相遇，面对选择，爱与责任交织，命运的分岔路口等待你的决定。",
-    "keywords": [
-      "爱情",
-      "关系",
-      "选择",
-      "和谐",
-      "结合"
-    ],
+    "uprightKeywords": ["爱情", "选择", "和谐"],
+    "reversedKeywords": ["冲突", "分离", "不稳定"],
     "imageUrl": "/static/tarot/- 06_lovers_jpg (恋人).png"
   },
   {
@@ -137,13 +103,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "water",
     "storyInterpretation": "驾驭黑白双马，穿越风暴，唯有坚定的意志能抵达胜利的彼岸。",
-    "keywords": [
-      "胜利",
-      "意志力",
-      "控制",
-      "前进",
-      "决心"
-    ],
+    "uprightKeywords": ["决心", "胜利", "掌控"],
+    "reversedKeywords": ["失控", "冲动", "失败"],
     "imageUrl": "/static/tarot/- 07_chariot_jpg (战车).png"
   },
   {
@@ -153,13 +114,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "少女温柔地抚摸着狮子的鬃毛，柔和的力量胜过一切蛮力，勇气源自内心的平静。",
-    "keywords": [
-      "内在力量",
-      "勇气",
-      "耐心",
-      "自控",
-      "温柔"
-    ],
+    "uprightKeywords": ["勇气", "耐心", "内在力量"],
+    "reversedKeywords": ["软弱", "恐惧", "消极抵抗"],
     "imageUrl": "/static/tarot/- 08_strength_jpg (力量).png"
   },
   {
@@ -169,13 +125,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "earth",
     "storyInterpretation": "夜色中，隐者举起灯笼，独自踏上寻找真理的旅途，智慧在孤独中闪闪发光。",
-    "keywords": [
-      "内省",
-      "寻找",
-      "指导",
-      "智慧",
-      "孤独"
-    ],
+    "uprightKeywords": ["内省", "寻求智慧", "孤独"],
+    "reversedKeywords": ["孤立", "逃避现实", "迷失"],
     "imageUrl": "/static/tarot/- 09_hermit_jpg (隐者).png"
   },
   {
@@ -185,13 +136,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "巨大的轮盘在天空中转动，命运的齿轮咔嚓作响，变化即将到来，机遇与挑战并存。",
-    "keywords": [
-      "变化",
-      "循环",
-      "命运",
-      "机会",
-      "转折"
-    ],
+    "uprightKeywords": ["命运转折", "好运", "机会"],
+    "reversedKeywords": ["逆境", "坏运", "错失机会"],
     "imageUrl": "/static/tarot/- 10_wheel_of_fortune_jpg (命运之轮).png"
   },
   {
@@ -201,13 +147,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "air",
     "storyInterpretation": "天平在正义女神手中保持平衡，真相的利剑划破迷雾，公正将得到伸张。",
-    "keywords": [
-      "公正",
-      "平衡",
-      "真相",
-      "法律",
-      "道德"
-    ],
+    "uprightKeywords": ["公正", "平衡", "决断"],
+    "reversedKeywords": ["偏见", "不公", "优柔寡断"],
     "imageUrl": "/static/tarot/- 11_justice_jpg (正义).png"
   },
   {
@@ -217,13 +158,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "water",
     "storyInterpretation": "倒悬的智者在树上沉思，换个角度看世界，牺牲与等待中蕴含着深刻的领悟。",
-    "keywords": [
-      "牺牲",
-      "等待",
-      "换位思考",
-      "暂停",
-      "领悟"
-    ],
+    "uprightKeywords": ["牺牲", "等待", "新视角"],
+    "reversedKeywords": ["抗拒", "固执", "无意义的牺牲"],
     "imageUrl": "/static/tarot/- 12_hanged_man_jpg (倒吊人).png"
   },
   {
@@ -233,13 +169,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "water",
     "storyInterpretation": "死神骑着白马缓缓走来，不是终结而是转化，旧的消逝为新的诞生让路。",
-    "keywords": [
-      "转化",
-      "结束",
-      "重生",
-      "释放",
-      "变革"
-    ],
+    "uprightKeywords": ["结束", "转变", "重生"],
+    "reversedKeywords": ["抗拒改变", "停滞", "恐惧"],
     "imageUrl": "/static/tarot/- 13_death_jpg (死神).png"
   },
   {
@@ -249,13 +180,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "天使在溪水边调和两壶清泉，平衡与耐心让你在纷扰中找到内心的安宁。",
-    "keywords": [
-      "平衡",
-      "调和",
-      "耐心",
-      "治愈",
-      "节制"
-    ],
+    "uprightKeywords": ["平衡", "调和", "适应"],
+    "reversedKeywords": ["极端", "冲突", "失衡"],
     "imageUrl": "/static/tarot/- 14_temperance_jpg (节制).png"
   },
   {
@@ -265,13 +191,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "earth",
     "storyInterpretation": "恶魔的锁链看似牢固，实则虚幻，束缚你的往往是内心的恐惧与欲望。",
-    "keywords": [
-      "束缚",
-      "诱惑",
-      "物质主义",
-      "恐惧",
-      "依赖"
-    ],
+    "uprightKeywords": ["束缚", "欲望", "物质沉溺"],
+    "reversedKeywords": ["解脱", "觉醒", "摆脱控制"],
     "imageUrl": "/static/tarot/- 15_devil_jpg (恶魔).png"
   },
   {
@@ -281,13 +202,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "高塔在雷电中轰然倒塌，虚假的根基被摧毁，真相在废墟中重新建立。",
-    "keywords": [
-      "突然变化",
-      "觉醒",
-      "解放",
-      "启示",
-      "破坏"
-    ],
+    "uprightKeywords": ["突变", "解放", "震撼"],
+    "reversedKeywords": ["抗拒改变", "拖延", "崩溃"],
     "imageUrl": "/static/tarot/- 16_tower_jpg (塔).png"
   },
   {
@@ -297,13 +213,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "air",
     "storyInterpretation": "星光洒向大地，少女在池边倒水，希望如甘露般滋润着干涸的心田。",
-    "keywords": [
-      "希望",
-      "灵感",
-      "指引",
-      "平静",
-      "信仰"
-    ],
+    "uprightKeywords": ["希望", "灵感", "疗愈"],
+    "reversedKeywords": ["失望", "迷失", "信心丧失"],
     "imageUrl": "/static/tarot/- 17_star_jpg (星星).png"
   },
   {
@@ -313,13 +224,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "water",
     "storyInterpretation": "月亮高悬，狼嚎声起，幻象与真实交织，直觉在迷雾中指引方向。",
-    "keywords": [
-      "幻象",
-      "直觉",
-      "潜意识",
-      "恐惧",
-      "迷惑"
-    ],
+    "uprightKeywords": ["潜意识", "幻想", "直觉"],
+    "reversedKeywords": ["恐惧", "欺骗", "混乱"],
     "imageUrl": "/static/tarot/- 18_moon_jpg (月亮).png"
   },
   {
@@ -329,13 +235,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "太阳升起，孩童在花园中欢笑，纯真的喜悦照亮一切，成功与幸福触手可及。",
-    "keywords": [
-      "成功",
-      "喜悦",
-      "活力",
-      "乐观",
-      "成就"
-    ],
+    "uprightKeywords": ["快乐", "成功", "光明"],
+    "reversedKeywords": ["自负", "骄傲", "不安"],
     "imageUrl": "/static/tarot/- 19_sun_jpg (太阳).png"
   },
   {
@@ -345,13 +246,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "fire",
     "storyInterpretation": "号角响起，沉睡的灵魂苏醒，过往的经历化为觉醒的力量，迎接新生。",
-    "keywords": [
-      "觉醒",
-      "重生",
-      "宽恕",
-      "内在呼唤",
-      "判断"
-    ],
+    "uprightKeywords": ["觉醒", "重生", "清晰判断"],
+    "reversedKeywords": ["逃避", "消极", "不愿面对"],
     "imageUrl": "/static/tarot/- 20_judgement_jpg (审判).png"
   },
   {
@@ -361,13 +257,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "category": "major",
     "element": "earth",
     "storyInterpretation": "你在宇宙的舞台上旋转，旅程圆满，收获属于自己的荣耀与自由。",
-    "keywords": [
-      "完成",
-      "成就",
-      "旅程结束",
-      "圆满",
-      "成功"
-    ],
+    "uprightKeywords": ["完成", "圆满", "成功"],
+    "reversedKeywords": ["未完成", "错失机会", "不满足"],
     "imageUrl": "/static/tarot/- 21_world_jpg (世界).png"
   },
   {
@@ -379,13 +270,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 1,
     "element": "fire",
     "storyInterpretation": "权杖从云中伸出，新的创意如火花般迸发，行动的时刻已经到来。",
-    "keywords": [
-      "新开始",
-      "创意",
-      "灵感",
-      "潜力",
-      "机会"
-    ],
+    "uprightKeywords": ["新机会", "激情", "行动"],
+    "reversedKeywords": ["挫折", "延迟", "缺乏动力"],
     "imageUrl": "/static/tarot/- 22_wands_ace_jpg (权杖王牌 Ace of Wands).png"
   },
   {
@@ -397,13 +283,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 2,
     "element": "fire",
     "storyInterpretation": "站在城堡上眺望远方，手握权杖，世界在你的掌控之中，计划正在酝酿。",
-    "keywords": [
-      "计划",
-      "远见",
-      "控制",
-      "个人力量",
-      "未来"
-    ],
+    "uprightKeywords": ["计划", "未来展望", "决策"],
+    "reversedKeywords": ["犹豫", "恐惧改变", "错失机会"],
     "imageUrl": "/static/tarot/- 23_wands_2_jpg (权杖二 Two of Wands).png"
   },
   {
@@ -415,13 +296,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 3,
     "element": "fire",
     "storyInterpretation": "商人望向海港，船只即将启航，合作与扩展带来新的机遇。",
-    "keywords": [
-      "扩展",
-      "远见",
-      "领导",
-      "合作",
-      "贸易"
-    ],
+    "uprightKeywords": ["远见", "合作", "成功在望"],
+    "reversedKeywords": ["延迟", "孤立", "计划受阻"],
     "imageUrl": "/static/tarot/- 24_wands_3_jpg (权杖三 Three of Wands).png"
   },
   {
@@ -433,13 +309,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 4,
     "element": "fire",
     "storyInterpretation": "四根权杖搭建起庆祝的拱门，家庭和睦，成就值得庆贺。",
-    "keywords": [
-      "庆祝",
-      "和谐",
-      "稳定",
-      "家庭",
-      "成就"
-    ],
+    "uprightKeywords": ["庆祝", "稳定", "归属感"],
+    "reversedKeywords": ["不稳定", "家庭冲突", "短暂快乐"],
     "imageUrl": "/static/tarot/- 25_wands_4_jpg (权杖四 Four of Wands).png"
   },
   {
@@ -451,13 +322,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 5,
     "element": "fire",
     "storyInterpretation": "五个年轻人挥舞权杖，竞争激烈但充满活力，冲突中孕育着成长。",
-    "keywords": [
-      "竞争",
-      "冲突",
-      "挑战",
-      "分歧",
-      "混乱"
-    ],
+    "uprightKeywords": ["竞争", "冲突", "挑战"],
+    "reversedKeywords": ["逃避冲突", "内耗", "不公平竞争"],
     "imageUrl": "/static/tarot/- 26_wands_5_jpg (权杖五 Five of Wands).png"
   },
   {
@@ -469,13 +335,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 6,
     "element": "fire",
     "storyInterpretation": "骑士高举权杖凯旋归来，胜利的桂冠戴在头上，努力终有回报。",
-    "keywords": [
-      "胜利",
-      "成功",
-      "认可",
-      "进步",
-      "自信"
-    ],
+    "uprightKeywords": ["胜利", "认可", "自信"],
+    "reversedKeywords": ["骄傲", "失败", "不被认可"],
     "imageUrl": "/static/tarot/- 27_wands_6_jpg (权杖六 Six of Wands).png"
   },
   {
@@ -487,13 +348,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 7,
     "element": "fire",
     "storyInterpretation": "山顶上的勇士手持权杖，面对挑战毫不退缩，坚持就是胜利。",
-    "keywords": [
-      "挑战",
-      "竞争",
-      "坚持",
-      "勇气",
-      "防御"
-    ],
+    "uprightKeywords": ["坚持", "防御", "勇气"],
+    "reversedKeywords": ["退缩", "自我怀疑", "被压制"],
     "imageUrl": "/static/tarot/- 28_wands_7_jpg (权杖七 Seven of Wands).png"
   },
   {
@@ -505,13 +361,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 8,
     "element": "fire",
     "storyInterpretation": "八根权杖如箭矢般飞向目标，快速的行动带来迅猛的进展。",
-    "keywords": [
-      "快速行动",
-      "进展",
-      "消息",
-      "旅行",
-      "急速"
-    ],
+    "uprightKeywords": ["快速进展", "消息", "行动力"],
+    "reversedKeywords": ["延迟", "混乱", "冲动"],
     "imageUrl": "/static/tarot/- 29_wands_8_jpg (权杖八 Eight of Wands).png"
   },
   {
@@ -523,13 +374,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 9,
     "element": "fire",
     "storyInterpretation": "伤痕累累的战士依然坚守，最后的防线考验着你的意志。",
-    "keywords": [
-      "坚持",
-      "韧性",
-      "防御",
-      "毅力",
-      "边界"
-    ],
+    "uprightKeywords": ["毅力", "防御", "警惕"],
+    "reversedKeywords": ["疲惫", "放弃", "过度防御"],
     "imageUrl": "/static/tarot/- 30_wands_9_jpg (权杖九 Nine of Wands).png"
   },
   {
@@ -541,13 +387,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 10,
     "element": "fire",
     "storyInterpretation": "重担压身但目标在望，承担责任虽然辛苦，成功就在前方。",
-    "keywords": [
-      "负担",
-      "责任",
-      "压力",
-      "成功",
-      "目标"
-    ],
+    "uprightKeywords": ["负担", "责任", "压力"],
+    "reversedKeywords": ["解脱", "放弃责任", "过度劳累"],
     "imageUrl": "/static/tarot/- 31_wands_10_jpg (权杖十 Ten of Wands).png"
   },
   {
@@ -558,14 +399,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "wands",
     "number": 11,
     "element": "fire",
-    "storyInterpretation": "权杖骑士策马奔腾，冲动与热情驱使着前进的步伐。",
-    "keywords": [
-      "冲动",
-      "冒险",
-      "热情",
-      "鲁莽",
-      "行动"
-    ],
+    "storyInterpretation": "权杖侍从手持嫩绿的权杖，新的想法如春芽般破土而出。",
+    "uprightKeywords": ["新想法", "热情", "探索"],
+    "reversedKeywords": ["冲动", "不成熟", "半途而废"],
     "imageUrl": "/static/tarot/- 32_wands_page_jpg (权杖侍从 Page of Wands).png"
   },
   {
@@ -576,14 +412,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "wands",
     "number": 12,
     "element": "fire",
-    "storyInterpretation": "权杖王后手持向日葵，温暖的能量感染着周围的一切。",
-    "keywords": [
-      "创造力",
-      "热情",
-      "自信",
-      "慷慨",
-      "温暖"
-    ],
+    "storyInterpretation": "权杖骑士策马奔腾，冲动与热情驱使着前进的步伐。",
+    "uprightKeywords": ["冒险", "行动", "激情"],
+    "reversedKeywords": ["鲁莽", "急躁", "冲突"],
     "imageUrl": "/static/tarot/- 33_wands_knight_jpg (权杖骑士 Knight of Wands).png"
   },
   {
@@ -594,14 +425,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "wands",
     "number": 13,
     "element": "fire",
-    "storyInterpretation": "权杖国王坐在火焰王座上，领导力与远见指引着团队前进。",
-    "keywords": [
-      "领导",
-      "远见",
-      "成熟",
-      "控制",
-      "企业家精神"
-    ],
+    "storyInterpretation": "权杖王后手持向日葵，温暖的能量感染着周围的一切。",
+    "uprightKeywords": ["自信", "领导力", "魅力"],
+    "reversedKeywords": ["嫉妒", "控制欲", "缺乏自信"],
     "imageUrl": "/static/tarot/- 34_wands_queen_jpg (权杖皇后 Queen of Wands).png"
   },
   {
@@ -612,14 +438,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "wands",
     "number": 14,
     "element": "fire",
-    "storyInterpretation": "权杖侍从手持嫩绿的权杖，新的想法如春芽般破土而出。",
-    "keywords": [
-      "热情",
-      "冲动",
-      "学习",
-      "消息",
-      "新想法"
-    ],
+    "storyInterpretation": "权杖国王坐在火焰王座上，领导力与远见指引着团队前进。",
+    "uprightKeywords": ["权威", "远见", "魄力"],
+    "reversedKeywords": ["专制", "冲动", "滥用权力"],
     "imageUrl": "/static/tarot/- 35_wands_king_jpg (权杖国王 King of Wands).png"
   },
   {
@@ -631,13 +452,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 1,
     "element": "water",
     "storyInterpretation": "圣杯从云中降下，爱与灵感如甘露般注入心田，情感的新篇章开启。",
-    "keywords": [
-      "新爱情",
-      "情感开始",
-      "直觉",
-      "灵性",
-      "创造力"
-    ],
+    "uprightKeywords": ["新感情", "爱", "直觉"],
+    "reversedKeywords": ["情感封闭", "空虚", "拒绝爱"],
     "imageUrl": "/static/tarot/- 36_cups_ace_jpg (圣杯王牌 Ace of Cups).png"
   },
   {
@@ -649,13 +465,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 2,
     "element": "water",
     "storyInterpretation": "两人举杯相对，心灵的交流超越言语，真挚的情感在此刻绽放。",
-    "keywords": [
-      "伙伴关系",
-      "爱情",
-      "友谊",
-      "合作",
-      "平衡"
-    ],
+    "uprightKeywords": ["和谐", "合作", "爱情"],
+    "reversedKeywords": ["分离", "误解", "不平衡"],
     "imageUrl": "/static/tarot/- 37_cups_2_jpg (圣杯二 Two of Cups).png"
   },
   {
@@ -667,13 +478,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 3,
     "element": "water",
     "storyInterpretation": "三个朋友举杯庆祝，友谊的温暖如阳光般洒向大地。",
-    "keywords": [
-      "友谊",
-      "庆祝",
-      "创造力",
-      "合作",
-      "社区"
-    ],
+    "uprightKeywords": ["庆祝", "友谊", "欢乐"],
+    "reversedKeywords": ["过度享乐", "冲突", "背叛"],
     "imageUrl": "/static/tarot/- 38_cups_3_jpg (圣杯三 Three of Cups).png"
   },
   {
@@ -685,13 +491,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 4,
     "element": "water",
     "storyInterpretation": "树下沉思的人对眼前的圣杯视而不见，内心的不满需要新的视角。",
-    "keywords": [
-      "冷漠",
-      "沉思",
-      "重新评估",
-      "内省",
-      "不满"
-    ],
+    "uprightKeywords": ["沉思", "不满", "新机会"],
+    "reversedKeywords": ["错失机会", "冷漠", "拒绝成长"],
     "imageUrl": "/static/tarot/- 39_cups_4_jpg (圣杯四 Four of Cups).png"
   },
   {
@@ -703,13 +504,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 5,
     "element": "water",
     "storyInterpretation": "三杯倾倒，两杯依然挺立，失去中蕴含着希望，悲伤终将过去。",
-    "keywords": [
-      "失望",
-      "悲伤",
-      "后悔",
-      "失落",
-      "专注剩余"
-    ],
+    "uprightKeywords": ["失落", "悲伤", "遗憾"],
+    "reversedKeywords": ["释怀", "接受", "新希望"],
     "imageUrl": "/static/tarot/- 40_cups_5_jpg (圣杯五 Five of Cups).png"
   },
   {
@@ -721,13 +517,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 6,
     "element": "water",
     "storyInterpretation": "孩童在花园中嬉戏，纯真的快乐唤起心中最美好的回忆。",
-    "keywords": [
-      "怀旧",
-      "童年",
-      "纯真",
-      "快乐回忆",
-      "给予"
-    ],
+    "uprightKeywords": ["回忆", "童年", "单纯"],
+    "reversedKeywords": ["沉溺过去", "拒绝成长"],
     "imageUrl": "/static/tarot/- 41_cups_6_jpg (圣杯六 Six of Cups).png"
   },
   {
@@ -739,13 +530,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 7,
     "element": "water",
     "storyInterpretation": "云中浮现七个圣杯，幻想与现实交织，选择需要清醒的头脑。",
-    "keywords": [
-      "幻想",
-      "选择",
-      "愿望",
-      "想象",
-      "机会"
-    ],
+    "uprightKeywords": ["幻想", "选择", "可能性"],
+    "reversedKeywords": ["混乱", "不切实际", "错误决定"],
     "imageUrl": "/static/tarot/- 42_cups_7_jpg (圣杯七 Seven of Cups).png"
   },
   {
@@ -757,13 +543,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 8,
     "element": "water",
     "storyInterpretation": "背影渐行渐远，八个圣杯被抛在身后，寻找更高层次的满足。",
-    "keywords": [
-      "放弃",
-      "寻找",
-      "失望",
-      "撤退",
-      "内心召唤"
-    ],
+    "uprightKeywords": ["离开", "寻求更高意义"],
+    "reversedKeywords": ["逃避", "犹豫", "无法放手"],
     "imageUrl": "/static/tarot/- 43_cups_8_jpg (圣杯八 Eight of Cups).png"
   },
   {
@@ -775,13 +556,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 9,
     "element": "water",
     "storyInterpretation": "满足的商人坐在九个圣杯前，愿望成真，内心充满感恩。",
-    "keywords": [
-      "满足",
-      "幸福",
-      "愿望成真",
-      "感恩",
-      "奢华"
-    ],
+    "uprightKeywords": ["满足", "愿望实现"],
+    "reversedKeywords": ["过度放纵", "虚假快乐"],
     "imageUrl": "/static/tarot/- 44_cups_9_jpg (圣杯九 Nine of Cups).png"
   },
   {
@@ -793,13 +569,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 10,
     "element": "water",
     "storyInterpretation": "彩虹下的家庭其乐融融，十个圣杯象征着情感的圆满与幸福。",
-    "keywords": [
-      "幸福",
-      "和谐",
-      "情感满足",
-      "家庭",
-      "关系"
-    ],
+    "uprightKeywords": ["幸福", "家庭和谐"],
+    "reversedKeywords": ["家庭冲突", "虚假幸福"],
     "imageUrl": "/static/tarot/- 45_cups_10_jpg (圣杯十 Ten of Cups).png"
   },
   {
@@ -810,14 +581,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "cups",
     "number": 11,
     "element": "water",
-    "storyInterpretation": "圣杯骑士手持圣杯，浪漫的理想主义驱使着追求完美的爱。",
-    "keywords": [
-      "浪漫",
-      "理想主义",
-      "敏感",
-      "创造力",
-      "直觉"
-    ],
+    "storyInterpretation": "圣杯侍从手捧圣杯，纯真的心灵如清泉般透明无瑕。",
+    "uprightKeywords": ["直觉", "创意", "纯真"],
+    "reversedKeywords": ["情绪化", "不成熟", "幻想破灭"],
     "imageUrl": "/static/tarot/- 46_cups_page_jpg (圣杯侍从 Page of Cups).png"
   },
   {
@@ -828,14 +594,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "cups",
     "number": 12,
     "element": "water",
-    "storyInterpretation": "圣杯王后坐在海边，直觉如潮水般涌来，情感的智慧指引方向。",
-    "keywords": [
-      "直觉",
-      "情感成熟",
-      "同情",
-      "平静",
-      "内在知识"
-    ],
+    "storyInterpretation": "圣杯骑士手持圣杯，浪漫的理想主义驱使着追求完美的爱。",
+    "uprightKeywords": ["浪漫", "理想主义", "追求"],
+    "reversedKeywords": ["不切实际", "情绪化", "欺骗"],
     "imageUrl": "/static/tarot/- 47_cups_knight_jpg (圣杯骑士 Knight of Cups).png"
   },
   {
@@ -846,14 +607,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "cups",
     "number": 13,
     "element": "water",
-    "storyInterpretation": "圣杯国王在波涛中保持平静，情感的成熟带来内心的安宁。",
-    "keywords": [
-      "情感平衡",
-      "同情",
-      "外交",
-      "冷静",
-      "慷慨"
-    ],
+    "storyInterpretation": "圣杯王后坐在海边，直觉如潮水般涌来，情感的智慧指引方向。",
+    "uprightKeywords": ["同理心", "直觉", "滋养"],
+    "reversedKeywords": ["情绪失控", "依赖", "过度敏感"],
     "imageUrl": "/static/tarot/- 48_cups_queen_jpg (圣杯皇后 Queen of Cups).png"
   },
   {
@@ -864,14 +620,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "cups",
     "number": 14,
     "element": "water",
-    "storyInterpretation": "圣杯侍从手捧圣杯，纯真的心灵如清泉般透明无瑕。",
-    "keywords": [
-      "情感新开始",
-      "创造力",
-      "直觉",
-      "艺术",
-      "敏感"
-    ],
+    "storyInterpretation": "圣杯国王在波涛中保持平静，情感的成熟带来内心的安宁。",
+    "uprightKeywords": ["智慧", "情感平衡"],
+    "reversedKeywords": ["情绪压抑", "冷漠", "操纵"],
     "imageUrl": "/static/tarot/- 49_cups_king_jpg (圣杯国王 King of Cups).png"
   },
   {
@@ -883,13 +634,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 1,
     "element": "air",
     "storyInterpretation": "利剑刺破云层，真相如闪电般划破黑暗，清晰的思维带来突破。",
-    "keywords": [
-      "新想法",
-      "心理清晰",
-      "突破",
-      "沟通",
-      "真相"
-    ],
+    "uprightKeywords": ["突破", "清晰", "胜利"],
+    "reversedKeywords": ["混乱", "错误判断", "冲突"],
     "imageUrl": "/static/tarot/- 50_swords_ace_jpg (宝剑王牌 Ace of Swords).png"
   },
   {
@@ -901,13 +647,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 2,
     "element": "air",
     "storyInterpretation": "蒙眼的女子手持双剑，在迷茫中寻找平衡，决定需要内心的声音。",
-    "keywords": [
-      "困难决定",
-      "平衡",
-      "僵局",
-      "选择",
-      "和平"
-    ],
+    "uprightKeywords": ["抉择", "僵局", "平衡"],
+    "reversedKeywords": ["逃避决定", "矛盾", "焦虑"],
     "imageUrl": "/static/tarot/- 51_swords_2_jpg (宝剑二 Two of Swords).png"
   },
   {
@@ -919,13 +660,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 3,
     "element": "air",
     "storyInterpretation": "心脏被三剑刺穿，痛苦虽然深刻，但治愈的过程已经开始。",
-    "keywords": [
-      "心碎",
-      "悲伤",
-      "痛苦",
-      "分离",
-      "悲伤"
-    ],
+    "uprightKeywords": ["心碎", "痛苦", "分离"],
+    "reversedKeywords": ["疗愈", "释怀", "接受现实"],
     "imageUrl": "/static/tarot/- 52_swords_3_jpg (宝剑三 Three of Swords).png"
   },
   {
@@ -937,13 +673,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 4,
     "element": "air",
     "storyInterpretation": "骑士在石棺上安息，暂时的休息为下一次战斗积蓄力量。",
-    "keywords": [
-      "休息",
-      "沉思",
-      "恢复",
-      "和平",
-      "静止"
-    ],
+    "uprightKeywords": ["休息", "恢复", "沉思"],
+    "reversedKeywords": ["逃避", "停滞", "过度疲劳"],
     "imageUrl": "/static/tarot/- 53_swords_4_jpg (宝剑四 Four of Swords).png"
   },
   {
@@ -955,13 +686,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 5,
     "element": "air",
     "storyInterpretation": "胜利者收集败者的剑，冲突的代价沉重，反思比胜利更重要。",
-    "keywords": [
-      "冲突",
-      "失败",
-      "不和谐",
-      "失败",
-      "羞耻"
-    ],
+    "uprightKeywords": ["冲突", "胜利但孤独"],
+    "reversedKeywords": ["和解", "避免冲突", "道德胜利"],
     "imageUrl": "/static/tarot/- 54_swords_5_jpg (宝剑五 Five of Swords).png"
   },
   {
@@ -973,13 +699,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 6,
     "element": "air",
     "storyInterpretation": "船夫载着乘客渡过平静的水面，困境正在远去，平静即将到来。",
-    "keywords": [
-      "过渡",
-      "改变",
-      "旅行",
-      "搬家",
-      "恢复"
-    ],
+    "uprightKeywords": ["过渡", "疗愈", "离开痛苦"],
+    "reversedKeywords": ["停滞", "无法前进", "逃避问题"],
     "imageUrl": "/static/tarot/- 55_swords_6_jpg (宝剑六 Six of Swords).png"
   },
   {
@@ -991,13 +712,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 7,
     "element": "air",
     "storyInterpretation": "小偷在夜色中潜行，策略与技巧有时比正面对抗更有效。",
-    "keywords": [
-      "欺骗",
-      "策略",
-      "偷窃",
-      "逃避",
-      "单独行动"
-    ],
+    "uprightKeywords": ["欺骗", "策略", "秘密行动"],
+    "reversedKeywords": ["自我欺骗", "揭露真相", "失败计划"],
     "imageUrl": "/static/tarot/- 56_swords_7_jpg (宝剑七 Seven of Swords).png"
   },
   {
@@ -1009,13 +725,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 8,
     "element": "air",
     "storyInterpretation": "被剑围困的女子，束缚往往来自内心的恐惧，解脱需要勇气。",
-    "keywords": [
-      "限制",
-      "束缚",
-      "受害者心态",
-      "无力",
-      "困境"
-    ],
+    "uprightKeywords": ["限制", "自我束缚"],
+    "reversedKeywords": ["解脱", "看清困境", "新视角"],
     "imageUrl": "/static/tarot/- 57_swords_8_jpg (宝剑八 Eight of Swords).png"
   },
   {
@@ -1027,13 +738,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 9,
     "element": "air",
     "storyInterpretation": "噩梦中惊醒的人，焦虑如影随形，但黎明总会到来。",
-    "keywords": [
-      "焦虑",
-      "担忧",
-      "恐惧",
-      "噩梦",
-      "内疚"
-    ],
+    "uprightKeywords": ["焦虑", "担忧", "恐惧"],
+    "reversedKeywords": ["释怀", "面对恐惧", "寻求帮助"],
     "imageUrl": "/static/tarot/- 58_swords_9_jpg (宝剑九 Nine of Swords).png"
   },
   {
@@ -1045,13 +751,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 10,
     "element": "air",
     "storyInterpretation": "背部插满利剑的身影，背叛的痛苦深入骨髓，但这也是结束。",
-    "keywords": [
-      "背叛",
-      "痛苦",
-      "失败",
-      "结束",
-      "底部"
-    ],
+    "uprightKeywords": ["终结", "痛苦", "新开始"],
+    "reversedKeywords": ["缓慢恢复", "抗拒结束"],
     "imageUrl": "/static/tarot/- 59_swords_10_jpg (宝剑十 Ten of Swords).png"
   },
   {
@@ -1062,14 +763,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "swords",
     "number": 11,
     "element": "air",
-    "storyInterpretation": "宝剑骑士策马冲锋，理智与冲动并存，行动需要智慧的指引。",
-    "keywords": [
-      "冲动",
-      "鲁莽",
-      "不耐烦",
-      "缺乏方向",
-      "行动"
-    ],
+    "storyInterpretation": "宝剑侍从举剑向天，年轻的心灵渴望真理与正义。",
+    "uprightKeywords": ["好奇心", "新想法"],
+    "reversedKeywords": ["轻率", "言语伤人", "不成熟"],
     "imageUrl": "/static/tarot/- 60_swords_page_jpg (宝剑侍从 Page of Swords).png"
   },
   {
@@ -1080,14 +776,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "swords",
     "number": 12,
     "element": "air",
-    "storyInterpretation": "宝剑王后高举利剑，独立与坚强是她最美的装饰。",
-    "keywords": [
-      "独立",
-      "坚强",
-      "直接",
-      "公正",
-      "清晰"
-    ],
+    "storyInterpretation": "宝剑骑士策马冲锋，理智与冲动并存，行动需要智慧的指引。",
+    "uprightKeywords": ["行动力", "果断"],
+    "reversedKeywords": ["鲁莽", "冲突", "言语攻击"],
     "imageUrl": "/static/tarot/- 61_swords_knight_jpg (宝剑骑士 Knight of Swords).png"
   },
   {
@@ -1098,14 +789,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "swords",
     "number": 13,
     "element": "air",
-    "storyInterpretation": "宝剑国王端坐王座，公正与智慧是他统治的基石。",
-    "keywords": [
-      "权威",
-      "清晰思维",
-      "智力力量",
-      "真相",
-      "公正"
-    ],
+    "storyInterpretation": "宝剑王后高举利剑，独立与坚强是她最美的装饰。",
+    "uprightKeywords": ["理性", "独立", "清晰"],
+    "reversedKeywords": ["冷酷", "苛刻", "情感封闭"],
     "imageUrl": "/static/tarot/- 62_swords_queen_jpg (宝剑皇后 Queen of Swords).png"
   },
   {
@@ -1116,14 +802,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "swords",
     "number": 14,
     "element": "air",
-    "storyInterpretation": "宝剑侍从举剑向天，年轻的心灵渴望真理与正义。",
-    "keywords": [
-      "好奇",
-      "渴望学习",
-      "新想法",
-      "沟通",
-      "警觉"
-    ],
+    "storyInterpretation": "宝剑国王端坐王座，公正与智慧是他统治的基石。",
+    "uprightKeywords": ["权威", "公正", "智慧"],
+    "reversedKeywords": ["专制", "冷酷", "滥用权力"],
     "imageUrl": "/static/tarot/- 63_swords_king_jpg (宝剑国王 King of Swords).png"
   },
   {
@@ -1135,13 +816,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 1,
     "element": "earth",
     "storyInterpretation": "金币从云中显现，新的机会如种子般落地，物质的丰收即将开始。",
-    "keywords": [
-      "新机会",
-      "表现",
-      "新工作",
-      "金钱",
-      "健康"
-    ],
+    "uprightKeywords": ["新机会", "财富", "稳定"],
+    "reversedKeywords": ["错失机会", "财务损失"],
     "imageUrl": "/static/tarot/- 64_pentacles_ace_jpg (星币王牌 Ace of Pentacles).png"
   },
   {
@@ -1153,13 +829,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 2,
     "element": "earth",
     "storyInterpretation": "杂耍者抛接两枚金币，平衡各种责任需要灵活的技巧。",
-    "keywords": [
-      "平衡",
-      "适应性",
-      "时间管理",
-      "优先级",
-      "灵活性"
-    ],
+    "uprightKeywords": ["平衡", "适应", "灵活"],
+    "reversedKeywords": ["失衡", "财务压力", "混乱"],
     "imageUrl": "/static/tarot/- 65_pentacles_2_jpg (星币二 Two of Pentacles).png"
   },
   {
@@ -1171,13 +842,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 3,
     "element": "earth",
     "storyInterpretation": "工匠在教堂中雕刻，专业的技能得到认可，合作带来成功。",
-    "keywords": [
-      "团队合作",
-      "学习",
-      "实施",
-      "建设",
-      "合作"
-    ],
+    "uprightKeywords": ["合作", "技能", "成长"],
+    "reversedKeywords": ["缺乏合作", "技能不足"],
     "imageUrl": "/static/tarot/- 66_pentacles_3_jpg (星币三 Three of Pentacles).png"
   },
   {
@@ -1189,13 +855,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 4,
     "element": "earth",
     "storyInterpretation": "守财奴紧抱金币，过度的保守可能错失成长的机会。",
-    "keywords": [
-      "安全",
-      "控制",
-      "保守",
-      "占有",
-      "稳定"
-    ],
+    "uprightKeywords": ["稳定", "储蓄", "控制"],
+    "reversedKeywords": ["吝啬", "恐惧失去", "固执"],
     "imageUrl": "/static/tarot/- 67_pentacles_4_jpg (星币四 Four of Pentacles).png"
   },
   {
@@ -1207,13 +868,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 5,
     "element": "earth",
     "storyInterpretation": "雪夜中的乞丐路过教堂，困难是暂时的，帮助就在身边。",
-    "keywords": [
-      "经济困难",
-      "不安全",
-      "担忧",
-      "孤立",
-      "失业"
-    ],
+    "uprightKeywords": ["贫困", "孤立", "困难"],
+    "reversedKeywords": ["互助", "希望", "改善"],
     "imageUrl": "/static/tarot/- 68_pentacles_5_jpg (星币五 Five of Pentacles).png"
   },
   {
@@ -1225,13 +881,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 6,
     "element": "earth",
     "storyInterpretation": "商人用天平称量金币，公平的交易建立信任的基础。",
-    "keywords": [
-      "慷慨",
-      "分享",
-      "公平",
-      "社区",
-      "感恩"
-    ],
+    "uprightKeywords": ["慷慨", "分享", "公平"],
+    "reversedKeywords": ["不平等", "自私", "财务依赖"],
     "imageUrl": "/static/tarot/- 69_pentacles_6_jpg (星币六 Six of Pentacles).png"
   },
   {
@@ -1243,13 +894,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 7,
     "element": "earth",
     "storyInterpretation": "农夫望着茂盛的葡萄藤，耐心的等待即将迎来丰收的季节。",
-    "keywords": [
-      "长期视野",
-      "毅力",
-      "投资",
-      "努力工作",
-      "进展"
-    ],
+    "uprightKeywords": ["耐心", "投资", "等待"],
+    "reversedKeywords": ["失望", "放弃", "缺乏回报"],
     "imageUrl": "/static/tarot/- 70_pentacles_7_jpg (星币七 Seven of Pentacles).png"
   },
   {
@@ -1261,13 +907,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 8,
     "element": "earth",
     "storyInterpretation": "工匠专心雕刻星币，精益求精的态度是成功的关键。",
-    "keywords": [
-      "技能发展",
-      "勤奋",
-      "熟练",
-      "质量",
-      "细节"
-    ],
+    "uprightKeywords": ["努力", "专注", "技能提升"],
+    "reversedKeywords": ["倦怠", "缺乏进步", "机械工作"],
     "imageUrl": "/static/tarot/- 71_pentacles_8_jpg (星币八 Eight of Pentacles).png"
   },
   {
@@ -1279,13 +920,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 9,
     "element": "earth",
     "storyInterpretation": "贵妇在花园中享受成果，独立与优雅是努力的回报。",
-    "keywords": [
-      "独立",
-      "自给自足",
-      "奢华",
-      "成功",
-      "成就"
-    ],
+    "uprightKeywords": ["独立", "富足", "享受"],
+    "reversedKeywords": ["过度依赖", "财务风险"],
     "imageUrl": "/static/tarot/- 72_pentacles_9_jpg (星币九 Nine of Pentacles).png"
   },
   {
@@ -1297,13 +933,8 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "number": 10,
     "element": "earth",
     "storyInterpretation": "三代同堂的富裕家庭，财富的传承需要智慧的管理。",
-    "keywords": [
-      "财富",
-      "遗产",
-      "家庭",
-      "建立",
-      "长期成功"
-    ],
+    "uprightKeywords": ["家族财富", "传承", "稳定"],
+    "reversedKeywords": ["家庭冲突", "财务不稳定"],
     "imageUrl": "/static/tarot/- 73_pentacles_10_jpg (星币十 Ten of Pentacles).png"
   },
   {
@@ -1314,14 +945,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "pentacles",
     "number": 11,
     "element": "earth",
-    "storyInterpretation": "星币骑士手持金币，稳重与可靠是他最大的优势。",
-    "keywords": [
-      "实用",
-      "可靠",
-      "努力工作",
-      "承诺",
-      "常识"
-    ],
+    "storyInterpretation": "星币侍从专注地研究金币，学习与实践是成长的阶梯。",
+    "uprightKeywords": ["学习", "务实", "新机会"],
+    "reversedKeywords": ["懒惰", "短视", "错失机会"],
     "imageUrl": "/static/tarot/- 74_pentacles_page_jpg (星币侍从 Page of Pentacles).png"
   },
   {
@@ -1332,14 +958,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "pentacles",
     "number": 12,
     "element": "earth",
-    "storyInterpretation": "星币王后手捧金币，慷慨与实用的智慧指引着生活。",
-    "keywords": [
-      "实用",
-      "慷慨",
-      "安全",
-      "独立",
-      "资源丰富"
-    ],
+    "storyInterpretation": "星币骑士手持金币，稳重与可靠是他最大的优势。",
+    "uprightKeywords": ["稳定", "耐心", "责任感"],
+    "reversedKeywords": ["停滞", "保守", "缺乏激情"],
     "imageUrl": "/static/tarot/- 75_pentacles_knight_jpg (星币骑士 Knight of Pentacles).png"
   },
   {
@@ -1350,14 +971,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "pentacles",
     "number": 13,
     "element": "earth",
-    "storyInterpretation": "星币国王坐在丰饶的花园中，成功与慷慨是他的标志。",
-    "keywords": [
-      "成功",
-      "领导",
-      "安全",
-      "纪律",
-      "控制"
-    ],
+    "storyInterpretation": "星币王后手捧金币，慷慨与实用的智慧指引着生活。",
+    "uprightKeywords": ["滋养", "富足", "务实"],
+    "reversedKeywords": ["物质主义", "忽视情感"],
     "imageUrl": "/static/tarot/- 76_pentacles_queen_jpg (星币皇后 Queen of Pentacles).png"
   },
   {
@@ -1368,14 +984,9 @@ export const storyTarotDeck: StoryTarotCard[] = [
     "suit": "pentacles",
     "number": 14,
     "element": "earth",
-    "storyInterpretation": "星币侍从专注地研究金币，学习与实践是成长的阶梯。",
-    "keywords": [
-      "雄心",
-      "渴望",
-      "勤奋",
-      "目标",
-      "表现"
-    ],
+    "storyInterpretation": "星币国王坐在丰饶的花园中，成功与慷慨是他的标志。",
+    "uprightKeywords": ["财富", "成功", "领导"],
+    "reversedKeywords": ["贪婪", "吝啬", "滥用权力"],
     "imageUrl": "/static/tarot/- 77_pentacles_king_jpg (星币国王 King of Pentacles).png"
   }
 ];

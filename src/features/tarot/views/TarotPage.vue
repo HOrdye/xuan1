@@ -134,7 +134,7 @@
           <div class="relative z-10">
             <div class="text-6xl mb-6 animate-pulse">🌀</div>
             <h2 class="text-3xl font-bold text-white mb-4">正在洗牌...</h2>
-            <p class="text-lg text-purple-200 mb-8">请专注于您的问题，让宇宙的能量流入牌中</p>
+          <p class="text-lg text-purple-200 mb-8">请专注于您的问题，让宇宙的能量流入牌中</p>
             <div class="mystical-progress-container mb-8">
               <div class="mystical-progress-bar"></div>
             </div>
@@ -229,11 +229,13 @@
                     <span class="text-white font-bold text-sm">{{ card.position }}</span>
                   </div>
                 </div>
-                <div class="tarot-card-container relative" :class="[ card.category === 'major' ? 'major-arcana' : 'minor-arcana' ]">
+                <div class="tarot-card-container relative transition-transform duration-500" :class="{ 'is-reversed': card.orientation === 'reversed' }">
                   <img :src="card.imageUrl" :alt="card.name" class="tarot-card-image w-full object-cover rounded-lg" @error="handleImageError"/>
                   <div class="card-info p-2 text-center">
                     <div class="text-purple-200 mb-1 font-semibold">{{ card.name }}</div>
-                    <div class="text-xs text-purple-300 cursor-help hover:text-purple-100 transition-colors duration-200">📖 详细解读</div>
+                    <div class="text-xs font-bold" :class="card.orientation === 'upright' ? 'text-green-300' : 'text-amber-300'">
+                      {{ card.orientation === 'upright' ? '正位' : '逆位' }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -243,25 +245,30 @@
           <div class="mt-12 space-y-6" v-if="mainInterpretation.length > 0">
             <div 
               v-for="(section, index) in mainInterpretation" 
-              :key="index"
+                     :key="index" 
               class="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 backdrop-blur-sm rounded-2xl p-6 border border-indigo-400/30 shadow-xl"
             >
               <h3 class="text-2xl font-bold text-yellow-300 mb-4 font-serif flex items-center gap-3">
                 <span class="text-3xl">{{ section.icon }}</span>
                 <span>{{ section.title }}</span>
-              </h3>
+                </h3>
+              <div class="mb-4 p-4 bg-black/20 rounded-xl border border-yellow-400/30">
+                <p class="text-lg font-semibold text-yellow-200 leading-relaxed">
+                  <strong class="font-bold">核心洞见：</strong>{{ section.summary }}
+                </p>
+              </div>
               <p
                 class="text-lg text-gray-200 leading-relaxed"
                 style="white-space: pre-wrap;"
               >
                 {{ section.content }}
-              </p>
-            </div>
-          </div>
+                  </p>
+                </div>
+              </div>
         </div>
-      </div>
-    </div>
-    
+                </div>
+              </div>
+
     <div
       ref="tooltipRef"
       class="fixed top-0 left-0 z-50 p-4 bg-gray-900 bg-opacity-90 border border-yellow-400/50 text-white rounded-lg shadow-lg max-w-sm transition-opacity duration-200"
@@ -270,7 +277,7 @@
       style="white-space: pre-wrap;"
     >
       <p class="text-base leading-relaxed">{{ tooltipContent }}</p>
-    </div>
+              </div>
 
   </div>
 </template>
@@ -284,9 +291,12 @@ import kabeiImage from '../../../assets/kabei.jpg';
 
 const cardBackStyle = { backgroundImage: `url(${kabeiImage})` };
 
+type Orientation = 'upright' | 'reversed';
+
 interface RevealedCard extends StoryTarotCard {
   position: string;
   interpretation?: string;
+  orientation: Orientation;
 }
 
 type Stage = 'intro' | 'spreadSelection' | 'shuffling' | 'drawing' | 'reveal';
@@ -324,7 +334,7 @@ function getSpreadIcon(spreadName: string): string {
 function startReading() {
   if (!selectedSpread.value) return;
   currentStage.value = 'shuffling';
-  setTimeout(() => {
+        setTimeout(() => {
     currentStage.value = 'drawing';
     setupDeckForDrawing();
   }, 2500);
@@ -356,16 +366,20 @@ async function revealCards() {
   mainInterpretation.value = [];
   revealedCards.value = [];
 
+  const cardsToInterpret = drawnCards.value.map(card => ({
+    ...card,
+    orientation: Math.random() < 0.5 ? 'reversed' : 'upright' as Orientation,
+  }));
+
   try {
     const { mainInterpretation: sections, cards: cardsWithInterpretations } = await LLMService.getTarotInterpretation(
-      drawnCards.value,
+      cardsToInterpret,
       selectedSpread.value,
       userQuestion.value
     );
 
     mainInterpretation.value = sections;
     
-    // The cards from the service now have all the data we need
     revealedCards.value = cardsWithInterpretations;
 
   } catch (error) {
@@ -373,6 +387,7 @@ async function revealCards() {
     mainInterpretation.value = [{
       icon: '⚠️',
       title: '解读生成失败',
+      summary: '服务或网络出现异常，请稍后重试。',
       content: `抱歉，在为您生成解读时遇到问题。请检查您的网络连接或稍后再试。\n\n错误信息: ${(error as Error).message}`
     }];
   } finally {
@@ -416,8 +431,8 @@ const getDeckCardStyle = (index: number, total: number) => {
   
   const x = radius * Math.sin(angleRad);
   const y = radius * Math.cos(angleRad) - radius + 50; // Adjust to pull the arc up
-
-  return {
+    
+    return {
     transform: `translateX(${x}px) translateY(${y}px) rotate(${angleRad * 180 / Math.PI}deg)`,
     transformOrigin: '50% 100%',
   };
@@ -522,7 +537,7 @@ function animateBarrage() {
       if (item.x + item.width < 0) {
         item.el.remove();
         barrageItems.value.splice(i, 1);
-      } else {
+  } else {
         const scale = item.paused ? 1.05 : 1;
         item.el.style.transform = `translateX(${item.x}px) scale(${scale})`;
       }
@@ -533,7 +548,7 @@ function animateBarrage() {
 }
 
 onMounted(() => {
-  initBarrage();
+    initBarrage();
   shuffleAndDeal();
 });
 
@@ -622,4 +637,7 @@ onUnmounted(() => {
 .barrage-item:hover {
   background-color: rgba(0,0,0,0.5);
 }
-</style>
+.tarot-card-container.is-reversed .tarot-card-image {
+  transform: rotate(180deg);
+}
+</style> 
