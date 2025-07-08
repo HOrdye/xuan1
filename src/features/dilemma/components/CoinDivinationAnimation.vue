@@ -59,7 +59,7 @@ async function onLottieComplete() {
   lottiePlaying.value = false;
   try {
     // 调用真实铜钱占卜逻辑
-    const { result } = await coinDivination(question);
+    const result = await coinDivination();
     divinationResult.value = result;
   } catch (e) {
     divinationResult.value = null;

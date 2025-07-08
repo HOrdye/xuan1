@@ -238,7 +238,7 @@ function getCurrentConfig() {
 }
 
 // 开始编辑配置
-function startEditConfig() {
+function _startEditConfig() {
   const runtimeConfig = EnvConfigManager.getConfig()
   editConfig.value = {
     VITE_LLM_PROVIDER: runtimeConfig.VITE_LLM_PROVIDER || 'qianwen',
@@ -250,7 +250,7 @@ function startEditConfig() {
 }
 
 // 保存配置
-function saveConfig() {
+function _saveConfig() {
   EnvConfigManager.setConfig(editConfig.value)
   
   // 更新LLMService配置
@@ -268,13 +268,13 @@ function saveConfig() {
 }
 
 // 取消编辑
-function cancelEdit() {
+function _cancelEdit() {
   showConfigEdit.value = false
   editConfig.value = {}
 }
 
 // 清除配置
-function clearConfig() {
+function _clearConfig() {
   if (confirm('确定要清除所有配置吗？')) {
     EnvConfigManager.clearConfig()
     getCurrentConfig()

@@ -193,7 +193,10 @@ watch(() => props.show, (newVal) => {
 
 function loadCurrentConfig() {
   const currentConfig = LLMService.getConfig()
-  config.provider = (currentConfig.provider === 'local' ? 'qianwen' : currentConfig.provider) || 'qianwen'
+  // 确保provider类型安全
+  const validProviders = ['qianwen', 'openai', 'deepseek', 'claude', 'custom'] as const
+  const provider = currentConfig.provider === 'local' ? 'qianwen' : currentConfig.provider
+  config.provider = validProviders.includes(provider as any) ? provider as any : 'qianwen'
   config.apiKey = currentConfig.apiKey || ''
   config.model = currentConfig.model || ''
   config.baseURL = currentConfig.baseURL || ''

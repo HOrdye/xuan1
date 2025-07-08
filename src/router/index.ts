@@ -105,7 +105,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/tarot',
     name: 'Tarot',
-    component: () => import('../features/tarot/views/TarotPage.vue'),
+    component: () => import('@/features/tarot/views/TarotPage.vue'),
     meta: {
       title: '塔罗占卜 - 天玄Web'
     }
@@ -148,7 +148,7 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
     } else {
@@ -158,7 +158,7 @@ const router = createRouter({
 });
 
 // 全局前置守卫 - 设置页面标题
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   // 设置页面标题
   document.title = to.meta.title as string || '天玄Web - 玄学决策助手';
   next();

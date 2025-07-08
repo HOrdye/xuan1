@@ -4,18 +4,18 @@
     <button
       @click="showModal = true"
       class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 z-50 flex items-center justify-center"
-      :class="{ 'animate-pulse': !isConfigured }"
+      :class="{ 'animate-pulse': !store.isConfigured }"
     >
-      <span v-if="isConfigured" class="text-2xl">🤖</span>
+      <span v-if="store.isConfigured" class="text-2xl">🤖</span>
       <span v-else class="text-2xl">⚙️</span>
     </button>
 
-    <!-- 配置状态指示器 -->
+    <!-- 全局状态提示 -->
     <div 
-      v-if="!isConfigured"
+      v-if="!store.isConfigured"
       class="fixed bottom-24 right-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 py-2 rounded-lg shadow-lg text-sm z-40 max-w-xs"
     >
-      点击配置AI服务，获得更智能的分析
+      配置AI服务，解锁全站智能分析
     </div>
 
     <!-- 配置模态框 -->
@@ -45,12 +45,12 @@
           <!-- 内容 -->
           <div class="p-6 space-y-6">
             <!-- 配置状态 -->
-            <div class="p-4 rounded-xl border-2" :class="statusStyle.bg + ' ' + statusStyle.border">
+            <div class="p-4 rounded-xl border-2" :class="statusStyle">
               <div class="flex items-center">
-                <div class="w-4 h-4 rounded-full mr-3" :class="statusStyle.dot"></div>
+                <div class="w-4 h-4 rounded-full mr-3" :class="statusDotClass"></div>
                 <div>
-                  <div class="font-semibold" :class="statusStyle.text">{{ statusText }}</div>
-                  <div class="text-sm opacity-75" :class="statusStyle.text">{{ statusDesc }}</div>
+                  <div class="font-semibold">{{ statusText }}</div>
+                  <div class="text-sm opacity-75">{{ statusDesc }}</div>
                 </div>
               </div>
             </div>
@@ -99,36 +99,6 @@
                   <span v-else class="text-2xl">👁️‍🗨️</span>
                 </button>
               </div>
-              
-              <!-- 特殊说明 -->
-              <div v-if="localConfig.provider === 'custom'" class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <div class="text-amber-800 text-sm">
-                  <strong>自定义API说明：</strong>
-                  <br>支持任意兼容OpenAI格式的API接口，请在高级配置中设置API地址和密钥
-                </div>
-              </div>
-            </div>
-
-            <!-- 获取密钥指引 -->
-            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 class="font-semibold text-blue-800 mb-2">如何获取API密钥？</h4>
-              <div class="text-sm text-blue-700 space-y-1">
-                <div v-if="localConfig.provider === 'qianwen'">
-                  <strong>通义千问：</strong>访问 <a href="https://dashscope.aliyun.com/" target="_blank" class="underline">阿里云DashScope</a> 获取API Key
-                </div>
-                <div v-else-if="localConfig.provider === 'openai'">
-                  <strong>OpenAI：</strong>访问 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline">OpenAI平台</a> 获取API Key
-                </div>
-                <div v-else-if="localConfig.provider === 'deepseek'">
-                  <strong>DeepSeek：</strong>访问 <a href="https://platform.deepseek.com/" target="_blank" class="underline">DeepSeek平台</a> 获取API Key
-                </div>
-                <div v-else-if="localConfig.provider === 'claude'">
-                  <strong>Claude：</strong>访问 <a href="https://console.anthropic.com/" target="_blank" class="underline">Anthropic控制台</a> 获取API Key
-                </div>
-                <div v-else-if="localConfig.provider === 'custom'">
-                  <strong>自定义API：</strong>请联系您的API提供商获取密钥，并在高级配置中设置API地址
-                </div>
-              </div>
             </div>
 
             <!-- 高级配置 -->
@@ -142,36 +112,9 @@
                   <input
                     v-model="localConfig.baseURL"
                     type="url"
-                    :placeholder="localConfig.provider === 'custom' ? '必填：输入API完整地址' : '留空使用默认官方地址'"
+                    placeholder="留空使用默认官方地址"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
-                    :class="{'border-red-300 ring-red-200': localConfig.provider === 'custom' && !localConfig.baseURL}"
                   />
-                  <p v-if="localConfig.provider === 'custom'" class="text-xs text-gray-500 mt-1">
-                    例如：https://api.openai.com/v1/chat/completions
-                  </p>
-                </div>
-                
-                <div v-if="localConfig.provider === 'custom'">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">自定义API密钥</label>
-                  <div class="relative">
-                    <input
-                      v-model="localConfig.customApiKey"
-                      :type="showCustomApiKey ? 'text' : 'password'"
-                      placeholder="输入自定义API的密钥..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-200 pr-10"
-                      :class="{'border-red-300 ring-red-200': localConfig.provider === 'custom' && !localConfig.customApiKey && !localConfig.apiKey}"
-                    />
-                    <button
-                      @click="showCustomApiKey = !showCustomApiKey"
-                      class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <span v-if="showCustomApiKey" class="text-lg">👁️</span>
-                      <span v-else class="text-lg">👁️‍🗨️</span>
-                    </button>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-1">
-                    如果留空，将使用上方的主API密钥
-                  </p>
                 </div>
                 
                 <div>
@@ -187,22 +130,14 @@
             </details>
 
             <!-- 操作按钮 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <button
-                @click="testConfig"
-                :disabled="!canTest || isTesting"
-                class="px-6 py-3 border-2 border-purple-500 text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span v-if="isTesting">🔄 测试中...</span>
-                <span v-else>🔍 测试连接</span>
-              </button>
-              
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 @click="saveConfig"
-                :disabled="!canSave"
+                :disabled="!canSave || store.isLoading"
                 class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                💾 保存配置
+                <span v-if="store.isLoading">🔄 保存中...</span>
+                <span v-else>💾 保存配置</span>
               </button>
               
               <button
@@ -213,27 +148,27 @@
               </button>
             </div>
 
-            <!-- 测试结果 -->
-            <div v-if="testResult" class="p-4 rounded-xl border-2" :class="testResult.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'">
+            <!-- 错误信息 -->
+            <div v-if="store.error" class="p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-800">
               <div class="flex items-start">
-                <span class="text-2xl mr-3">{{ testResult.success ? '✅' : '❌' }}</span>
+                <span class="text-2xl mr-3">❌</span>
                 <div>
-                  <div class="font-semibold">{{ testResult.success ? '连接成功！' : '连接失败' }}</div>
-                  <div class="text-sm mt-1 opacity-90">{{ testResult.message }}</div>
+                  <div class="font-semibold">配置错误</div>
+                  <div class="text-sm mt-1 opacity-90">{{ store.error }}</div>
                 </div>
               </div>
             </div>
 
-            <!-- 说明信息 -->
+            <!-- 使用说明 -->
             <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
-              <h4 class="font-semibold text-gray-800 mb-2">💡 使用说明</h4>
+              <h4 class="font-semibold text-gray-800 mb-2">💡 全站AI功能</h4>
               <ul class="text-sm text-gray-700 space-y-1">
-                <li>• 配置后将在所有功能中生效：运势分析、卦象解读等</li>
-                <li>• 密钥仅存储在本地浏览器，绝不上传到服务器</li>
-                <li>• 推荐通义千问：国内访问稳定，价格实惠</li>
-                <li>• DeepSeek：国产新星，性价比极高，推理能力强</li>
-                <li>• 自定义API：支持任意兼容OpenAI格式的API服务</li>
-                <li>• 不配置时使用本地算法，功能相对简单</li>
+                <li>• <strong>塔罗占卜</strong>：个性化卡牌解读和人生指引</li>
+                <li>• <strong>易经卦象</strong>：深度分析卦象含义和建议</li>
+                <li>• <strong>今日运势</strong>：结合生辰和当日能量的运势分析</li>
+                <li>• <strong>笅杯占卜</strong>：解读神明回应和指引方向</li>
+                <li>• 密钥仅存储在本地，绝不上传服务器</li>
+                <li>• 推荐DeepSeek：国产AI，性价比高，推理能力强</li>
               </ul>
             </div>
           </div>
@@ -244,38 +179,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
-import { LLMService } from '../services/LLMService';
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useLLMConfigStore } from '../store/llmConfig'
+import type { LLMConfig } from '../services/LLMService'
+
+// 使用全局Store
+const store = useLLMConfigStore()
 
 // 组件状态
-const showModal = ref(false);
-const showApiKey = ref(false);
-const showCustomApiKey = ref(false);
-const isTesting = ref(false);
+const showModal = ref(false)
+const showApiKey = ref(false)
 
 // 本地配置
-const localConfig = reactive<{
-  provider: 'qianwen' | 'openai' | 'deepseek' | 'claude' | 'custom';
-  apiKey: string;
-  baseURL: string;
-  model: string;
-  customApiKey: string;
-}>({
-  provider: 'qianwen',
+const localConfig = reactive<LLMConfig>({
+  provider: 'deepseek',
   apiKey: '',
   baseURL: '',
   model: '',
-  customApiKey: ''
-});
-
-// 测试结果
-const testResult = ref<{
-  success: boolean;
-  message: string;
-} | null>(null);
+  temperature: 0.7,
+  maxTokens: 4000
+})
 
 // 提供商列表
 const providers = [
+  {
+    value: 'deepseek' as const,
+    name: 'DeepSeek',
+    desc: '深度求索，国产新星',
+    features: '性价比高 • 推理能力强',
+    icon: '🚀'
+  },
   {
     value: 'qianwen' as const,
     name: '通义千问',
@@ -291,13 +224,6 @@ const providers = [
     icon: '🧠'
   },
   {
-    value: 'deepseek' as const,
-    name: 'DeepSeek',
-    desc: '深度求索，国产新星',
-    features: '性价比高 • 推理能力强',
-    icon: '🚀'
-  },
-  {
     value: 'claude' as const,
     name: 'Claude',
     desc: 'Anthropic出品',
@@ -307,241 +233,112 @@ const providers = [
   {
     value: 'custom' as const,
     name: '自定义API',
-    desc: '支持任意兼容OpenAI格式的API',
+    desc: '支持兼容OpenAI格式的API',
     features: '灵活配置 • 自由选择',
     icon: '⚙️'
   }
-];
+]
 
-// 是否已配置
-const isConfigured = computed(() => {
-  if (localConfig.provider === 'custom') {
-    return !!(localConfig.baseURL && (localConfig.customApiKey || localConfig.apiKey));
-  }
-  return localConfig.apiKey.trim().length > 0;
-});
-
-// 是否可以测试
-const canTest = computed(() => {
-  if (localConfig.provider === 'custom') {
-    return !!(localConfig.baseURL && (localConfig.customApiKey || localConfig.apiKey));
-  }
-  return localConfig.apiKey.trim().length > 0;
-});
-
-// 是否可以保存
+// 计算属性
 const canSave = computed(() => {
-  if (localConfig.provider === 'custom') {
-    return !!(localConfig.baseURL && (localConfig.customApiKey || localConfig.apiKey));
-  }
-  return localConfig.apiKey.trim().length > 0;
-});
+  return localConfig.apiKey.trim().length > 0
+})
 
-// 配置状态样式
 const statusStyle = computed(() => {
-  if (isConfigured.value) {
-    return {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      dot: 'bg-green-500',
-      text: 'text-green-800'
-    };
+  if (store.isConfigured) {
+    return 'bg-green-50 border-green-200 text-green-800'
   } else {
-    return {
-      bg: 'bg-yellow-50',
-      border: 'border-yellow-200',
-      dot: 'bg-yellow-500',
-      text: 'text-yellow-800'
-    };
+    return 'bg-yellow-50 border-yellow-200 text-yellow-800'
   }
-});
+})
 
-// 状态文字
+const statusDotClass = computed(() => {
+  if (store.isConfigured) {
+    return 'bg-green-500'
+  } else {
+    return 'bg-yellow-500'
+  }
+})
+
 const statusText = computed(() => {
-  return isConfigured.value ? 'AI服务已配置' : '未配置AI服务';
-});
+  return store.isConfigured ? 'AI服务已配置' : '未配置AI服务'
+})
 
 const statusDesc = computed(() => {
-  if (isConfigured.value) {
-    return `使用${getProviderName()}提供智能分析`;
+  if (store.isConfigured) {
+    return `使用${getProviderName()}提供智能分析`
   } else {
-    return '当前使用基础本地算法';
+    return '当前使用基础本地算法'
   }
-});
+})
 
-// 获取提供商名称
+// 工具函数
 function getProviderName(): string {
   const names = {
+    deepseek: 'DeepSeek',
     qianwen: '通义千问',
     openai: 'OpenAI',
-    deepseek: 'DeepSeek',
     claude: 'Claude',
     custom: '自定义API'
-  };
-  return names[localConfig.provider] || '未知';
+  }
+  return names[store.config.provider] || '未知'
 }
 
-// 获取API密钥占位符
 function getApiKeyPlaceholder(): string {
   const placeholders = {
+    deepseek: '输入DeepSeek API Key...',
     qianwen: '输入通义千问API Key...',
     openai: '输入OpenAI API Key (sk-开头)...',
-    deepseek: '输入DeepSeek API Key...',
     claude: '输入Claude API Key...',
-    custom: '输入主API密钥（可在高级配置中单独设置）...'
-  };
-  return placeholders[localConfig.provider] || '输入API Key...';
+    custom: '输入自定义API密钥...'
+  }
+  return placeholders[localConfig.provider] || '输入API Key...'
 }
 
-// 获取模型占位符
 function getModelPlaceholder(): string {
   const placeholders = {
+    deepseek: 'deepseek-chat (默认)',
     qianwen: 'qwen-plus (默认)',
     openai: 'gpt-3.5-turbo (默认)',
-    deepseek: 'deepseek-chat (默认)',
     claude: 'claude-3-sonnet-20240229 (默认)',
-    custom: '根据API提供商要求填写模型名称'
-  };
-  return placeholders[localConfig.provider] || '';
+    custom: '根据API提供商要求填写'
+  }
+  return placeholders[localConfig.provider] || ''
 }
 
-// 保存配置
-function saveConfig(): void {
+// 操作函数
+async function saveConfig() {
   try {
-    // 验证自定义API配置
-    if (localConfig.provider === 'custom') {
-      if (!localConfig.baseURL) {
-        alert('❌ 自定义API需要配置API地址');
-        return;
-      }
-      if (!localConfig.customApiKey && !localConfig.apiKey) {
-        alert('❌ 自定义API需要配置API密钥');
-        return;
-      }
-    }
-    
-    // 保存到localStorage
-    const config = {
-      provider: localConfig.provider,
-      apiKey: localConfig.apiKey,
-      baseURL: localConfig.baseURL,
-      model: localConfig.model,
-      customApiKey: localConfig.customApiKey
-    };
-    localStorage.setItem('llm-config', JSON.stringify(config));
-    
-    // 更新LLMService配置
-    LLMService.setConfig(config);
-    
-    // 显示成功消息
-    alert('🎉 配置保存成功！AI服务现在可以在所有功能中使用了。');
-    showModal.value = false;
+    await store.updateConfig(localConfig)
+    showModal.value = false
+    console.log('✅ 全局AI配置保存成功')
   } catch (error) {
-    console.error('保存配置失败:', error);
-    alert('❌ 保存配置失败，请重试。');
+    console.error('❌ 保存配置失败:', error)
   }
 }
 
-// 测试配置
-async function testConfig(): Promise<void> {
-  if (!canTest.value) {
-    return;
-  }
-  
-  isTesting.value = true;
-  testResult.value = null;
-  
-  try {
-    // 临时应用配置
-    LLMService.setConfig(localConfig);
-    
-    // 进行测试调用
-    const testPrompt = '你好，请简单回复"连接成功"以确认API工作正常。';
-    const response = await LLMService.getHexagramInterpretation(
-      // 模拟一个简单的测试卦象
-      { 
-        name: '测试', 
-        chineseName: '测试', 
-        number: 1,
-        sequence: 1, 
-        symbol: '☰',
-        lines: [1, 1, 1, 1, 1, 1],
-        meaning: '测试连接',
-        judgment: '测试卦辞',
-        yao_texts: ['初九', '九二', '九三', '九四', '九五', '上九'],
-        trigrams: { upper: '乾', lower: '乾' }
-      },
-      [],
-      null,
-      testPrompt
-    );
-    
-    testResult.value = {
-      success: true,
-      message: `${getProviderName()}连接正常，返回内容长度：${response.length}字符`
-    };
-  } catch (error) {
-    console.error('测试连接失败:', error);
-    testResult.value = {
-      success: false,
-      message: error instanceof Error ? error.message : '未知错误'
-    };
-  } finally {
-    isTesting.value = false;
-  }
-}
-
-// 清除配置
-function clearConfig(): void {
+function clearConfig() {
   if (confirm('确定要清除所有AI配置吗？清除后将使用本地基础算法。')) {
-    localStorage.removeItem('llm-config');
-    localConfig.provider = 'qianwen';
-    localConfig.apiKey = '';
-    localConfig.baseURL = '';
-    localConfig.model = '';
-    localConfig.customApiKey = '';
-    
-    // 重置LLMService配置
-    LLMService.setConfig({
-      provider: 'qianwen',
-      apiKey: '',
-      baseURL: '',
-      model: '',
-      customApiKey: ''
-    });
-    
-    testResult.value = null;
-    alert('✅ 配置已清除');
+    store.resetConfig()
+    // 重置本地配置
+    localConfig.provider = 'deepseek'
+    localConfig.apiKey = ''
+    localConfig.baseURL = ''
+    localConfig.model = ''
+    console.log('✅ 配置已清除')
   }
 }
 
-// 加载保存的配置
-function loadConfig(): void {
-  try {
-    const saved = localStorage.getItem('llm-config');
-    if (saved) {
-      const config = JSON.parse(saved);
-      // 确保provider的类型正确
-      if (config.provider && ['qianwen', 'openai', 'deepseek', 'claude', 'custom'].includes(config.provider)) {
-        localConfig.provider = config.provider;
-      }
-      if (config.apiKey) localConfig.apiKey = config.apiKey;
-      if (config.baseURL) localConfig.baseURL = config.baseURL;
-      if (config.model) localConfig.model = config.model;
-      if (config.customApiKey) localConfig.customApiKey = config.customApiKey;
-      
-      // 同步到LLMService
-      LLMService.setConfig(localConfig);
-    }
-  } catch (error) {
-    console.error('加载配置失败:', error);
-  }
+function loadConfig() {
+  // 从store同步到本地配置
+  Object.assign(localConfig, store.config)
 }
 
-// 组件挂载时加载配置
-onMounted(() => {
-  loadConfig();
-});
+// 生命周期
+onMounted(async () => {
+  await store.initializeFromStorage()
+  loadConfig()
+})
 </script>
 
 <style scoped>
@@ -562,15 +359,5 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-}
-
-/* 链接样式 */
-a {
-  color: inherit;
-  text-decoration: underline;
-}
-
-a:hover {
-  color: #7c3aed;
 }
 </style> 

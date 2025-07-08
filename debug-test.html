@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄项目 - Debug测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>天玄项目 - Debug测试页面</h1>
+    
+    <div class="test-section">
+        <h2>🔍 解析失败问题诊断</h2>
+        <p>这个页面将帮助我们找到解析失败的具体原因</p>
+        
+        <button onclick="testBasicFunctionality()">测试基本功能</button>
+        <button onclick="testFortuneGeneration()">测试运势生成</button>
+        <button onclick="testHexagramParsing()">测试卦象解析</button>
+        <button onclick="testLLMService()">测试LLM服务</button>
+        <button onclick="clearResults()">清除结果</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // 测试结果显示区域
+        const resultsDiv = document.getElementById('test-results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            resultsDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        // 测试基本功能
+        async function testBasicFunctionality() {
+            log('开始测试基本功能...', 'info');
+            
+            try {
+                // 测试本地存储
+                localStorage.setItem('test_key', 'test_value');
+                const retrieved = localStorage.getItem('test_key');
+                if (retrieved === 'test_value') {
+                    log('✅ 本地存储功能正常', 'success');
+                } else {
+                    log('❌ 本地存储功能异常', 'error');
+                }
+                localStorage.removeItem('test_key');
+                
+                // 测试JSON解析
+                const testObj = { test: '测试数据', number: 123 };
+                const jsonStr = JSON.stringify(testObj);
+                const parsed = JSON.parse(jsonStr);
+                if (parsed.test === '测试数据' && parsed.number === 123) {
+                    log('✅ JSON解析功能正常', 'success');
+                } else {
+                    log('❌ JSON解析功能异常', 'error');
+                }
+                
+                // 测试日期处理
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                log(`✅ 日期处理正常: ${dateStr}`, 'success');
+                
+            } catch (error) {
+                log(`❌ 基本功能测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试运势生成
+        async function testFortuneGeneration() {
+            log('开始测试运势生成...', 'info');
+            
+            try {
+                // 模拟运势数据结构
+                const fortuneData = {
+                    date: new Date().toISOString().split('T')[0],
+                    energyScore: 75,
+                    description: '今日运势不错',
+                    aspects: {
+                        love: { score: 80, description: '感情运势良好' },
+                        career: { score: 70, description: '事业稳步发展' },
+                        health: { score: 85, description: '身体健康' },
+                        wealth: { score: 65, description: '财运一般' }
+                    }
+                };
+                
+                // 测试数据序列化
+                const serialized = JSON.stringify(fortuneData);
+                const deserialized = JSON.parse(serialized);
+                
+                if (deserialized.energyScore === 75) {
+                    log('✅ 运势数据序列化正常', 'success');
+                } else {
+                    log('❌ 运势数据序列化异常', 'error');
+                }
+                
+                // 测试本地存储运势数据
+                const storageKey = `fortune_${fortuneData.date}`;
+                localStorage.setItem(storageKey, serialized);
+                const storedData = localStorage.getItem(storageKey);
+                
+                if (storedData) {
+                    const parsedStored = JSON.parse(storedData);
+                    if (parsedStored.energyScore === 75) {
+                        log('✅ 运势数据存储和读取正常', 'success');
+                    } else {
+                        log('❌ 运势数据存储后读取异常', 'error');
+                    }
+                } else {
+                    log('❌ 运势数据存储失败', 'error');
+                }
+                
+                localStorage.removeItem(storageKey);
+                
+            } catch (error) {
+                log(`❌ 运势生成测试失败: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 测试卦象解析
+        async function testHexagramParsing() {
+            log('开始测试卦象解析...', 'info');
+            
+            try {
+                // 模拟卦象数据结构
+                const hexagramData = {
+                    number: 1,
+                    sequence: 1,
+                    name: '乾',
+                    symbol: '䷀',
+                    lines: [1, 1, 1, 1, 1, 1],
+                    meaning: '刚健中正，自强不息',
+                    judgment: '元亨利贞',
+                    yao_texts: [
+                        '潜龙勿用',
+                        '见龙在田，利见大人',
+                        '君子终日乾乾，夕惕若，厉无咎',
+                        '或跃在渊，无咎',
+                        '飞龙在天，利见大人',
+                        '亢龙有悔'
+                    ],
+                    trigrams: { upper: 'Heaven', lower: 'Heaven' }
+                };
+                
+                // 测试卦象数据序列化
+                const serialized = JSON.stringify(hexagramData);
+                const deserialized = JSON.parse(serialized);
+                
+                if (deserialized.number === 1 && deserialized.lines.length === 6) {
+                    log('✅ 卦象数据序列化正常', 'success');
+                } else {
+                    log('❌ 卦象数据序列化异常', 'error');
+                }
+                
+                // 测试爻位计算
+                const binaryStr = hexagramData.lines.join('');
+                if (binaryStr === '111111') {
+                    log('✅ 爻位计算正常', 'success');
+                } else {
+                    log('❌ 爻位计算异常', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 卦象解析测试失败: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 测试LLM服务
+        async function testLLMService() {
+            log('开始测试LLM服务配置...', 'info');
+            
+            try {
+                // 测试配置数据结构
+                const llmConfig = {
+                    provider: 'qianwen',
+                    apiKey: 'test_key',
+                    baseURL: 'https://api.example.com',
+                    model: 'qwen-turbo'
+                };
+                
+                // 测试配置序列化
+                const serialized = JSON.stringify(llmConfig);
+                const deserialized = JSON.parse(serialized);
+                
+                if (deserialized.provider === 'qianwen') {
+                    log('✅ LLM配置序列化正常', 'success');
+                } else {
+                    log('❌ LLM配置序列化异常', 'error');
+                }
+                
+                // 测试配置存储
+                localStorage.setItem('llm_config', serialized);
+                const storedConfig = localStorage.getItem('llm_config');
+                
+                if (storedConfig) {
+                    const parsedConfig = JSON.parse(storedConfig);
+                    if (parsedConfig.provider === 'qianwen') {
+                        log('✅ LLM配置存储和读取正常', 'success');
+                    } else {
+                        log('❌ LLM配置存储后读取异常', 'error');
+                    }
+                } else {
+                    log('❌ LLM配置存储失败', 'error');
+                }
+                
+                localStorage.removeItem('llm_config');
+                
+            } catch (error) {
+                log(`❌ LLM服务测试失败: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 页面加载时自动运行基本测试
+        window.addEventListener('load', function() {
+            log('Debug测试页面已加载', 'info');
+            log('点击上方按钮开始测试各项功能', 'info');
+        });
+        
+        // 捕获全局错误
+        window.addEventListener('error', function(event) {
+            log(`❌ 全局错误: ${event.error.message}`, 'error');
+            log(`错误位置: ${event.filename}:${event.lineno}:${event.colno}`, 'error');
+        });
+        
+        // 捕获未处理的Promise错误
+        window.addEventListener('unhandledrejection', function(event) {
+            log(`❌ 未处理的Promise错误: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html> 

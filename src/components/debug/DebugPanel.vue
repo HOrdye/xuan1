@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+// import { computed } from 'vue';
 import type { Hexagram } from '../../features/dilemma/types';
 
 // 定义组件属性
@@ -49,7 +49,7 @@ interface Props {
 }
 
 // 设置默认值
-const props = withDefaults(defineProps<Props>(), {
+const _props = withDefaults(defineProps<Props>(), {
   hexagram: null,
   currentImageUrl: '',
   imageLoaded: false,

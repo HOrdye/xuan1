@@ -3,8 +3,8 @@
  * 包括铜钱占卜法、梅花易数和随机起卦法
  */
 
-import { Hexagram, Trigram, AnalysisResult, DivinationMethod, CoinResult, PlumBlossomResult, SixCoinsResult, PlumBlossomParams } from '../types';
-import { generateHexagram } from './hexagramGenerator';
+import { Hexagram, Trigram, AnalysisResult, CoinResult, PlumBlossomResult, SixCoinsResult, PlumBlossomParams } from '../types';
+// import { generateHexagram } from './hexagramGenerator';
 import { loadAllHexagrams } from './loadHexagrams';
 import { Random } from '../utils/Random';
 
@@ -365,8 +365,8 @@ export async function randomDivination(question: string): Promise<AnalysisResult
  */
 function calculateHexagram(lines: number[]): Hexagram {
   // 将六爻转换为卦象
-  const upperTrigram = lines.slice(3).join('');
-  const lowerTrigram = lines.slice(0, 3).join('');
+  // const upperTrigram = lines.slice(3).join('');
+  // const lowerTrigram = lines.slice(0, 3).join('');
   
   // 查找对应的卦象
   const hexagram = findHexagramFromDatabase(lines);
@@ -504,7 +504,7 @@ function findHexagramFromDatabase(lines: number[]): Hexagram {
 ensureDivinationDataLoaded().catch(err => console.error('占卜模块预加载数据失败:', err));
 
 // 添加calculateTrigram函数
-function calculateTrigram(number: number, isUpper: boolean): Trigram {
+function calculateTrigram(number: number, _isUpper: boolean): Trigram {
   return TRIGRAMS[number - 1];
 }
 

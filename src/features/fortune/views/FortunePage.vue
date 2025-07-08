@@ -58,7 +58,7 @@
               <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mr-6 shadow-lg">
                 <span class="text-3xl">✨</span>
               </div>
-    <div>
+              <div>
                 <h2 class="text-2xl font-bold mb-1">个人信息填写</h2>
                 <p class="text-purple-100 text-base">请填写您的基本信息，AI将为您生成专属运势分析</p>
               </div>
@@ -120,30 +120,30 @@
                   <span class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mr-2 text-red-600 text-xs">🐲</span>
                   生肖
                 </label>
-      <select 
-        v-model="formData.zodiacSign"
+                <select 
+                  v-model="formData.zodiacSign"
                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200"
                   :class="{'border-red-300 ring-red-200': showError && !formData.zodiacSign}"
-      >
+                >
                   <option value="">请选择生肖</option>
-        <option v-for="sign in zodiacSigns" :key="sign" :value="sign">{{ sign }}</option>
-      </select>
+                  <option v-for="sign in zodiacSigns" :key="sign" :value="sign">{{ sign }}</option>
+                </select>
                 <p v-if="showError && !formData.zodiacSign" class="text-red-500 text-xs mt-1 ml-8">请选择您的生肖</p>
-    </div>
+              </div>
               
               <div class="group">
                 <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <span class="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center mr-2 text-yellow-600 text-xs">⭐</span>
                   星座
                 </label>
-      <select 
-        v-model="formData.constellation"
+                <select 
+                  v-model="formData.constellation"
                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-200"
                   :class="{'border-red-300 ring-red-200': showError && !formData.constellation}"
-      >
+                >
                   <option value="">请选择星座</option>
-        <option v-for="sign in constellations" :key="sign" :value="sign">{{ sign }}</option>
-      </select>
+                  <option v-for="sign in constellations" :key="sign" :value="sign">{{ sign }}</option>
+                </select>
                 <p v-if="showError && !formData.constellation" class="text-red-500 text-xs mt-1 ml-8">请选择您的星座</p>
               </div>
             </div>
@@ -161,6 +161,67 @@
                 class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 resize-none"
                 rows="3"
               ></textarea>
+            </div>
+
+            <!-- 分析模式选择 -->
+            <div class="group">
+              <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 text-blue-600 text-xs">🤖</span>
+                分析模式
+              </label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex items-center cursor-pointer group">
+                  <div class="relative">
+                    <input type="radio" v-model="analysisMode" value="ai" class="sr-only" />
+                    <div class="w-6 h-6 border-2 border-gray-300 rounded-full group-hover:border-blue-400 transition-colors"
+                         :class="{'border-blue-500 bg-blue-500': analysisMode === 'ai'}">
+                      <div v-if="analysisMode === 'ai'" class="w-2 h-2 bg-white rounded-full mx-auto mt-1"></div>
+                    </div>
+                  </div>
+                  <div class="ml-3">
+                    <span class="text-gray-700 font-medium">🤖 AI智能分析</span>
+                    <p class="text-xs text-gray-500">深度个性化分析，内容更丰富</p>
+                  </div>
+                </label>
+                <label class="flex items-center cursor-pointer group">
+                  <div class="relative">
+                    <input type="radio" v-model="analysisMode" value="quick" class="sr-only" />
+                    <div class="w-6 h-6 border-2 border-gray-300 rounded-full group-hover:border-green-400 transition-colors"
+                         :class="{'border-green-500 bg-green-500': analysisMode === 'quick'}">
+                      <div v-if="analysisMode === 'quick'" class="w-2 h-2 bg-white rounded-full mx-auto mt-1"></div>
+                    </div>
+                  </div>
+                  <div class="ml-3">
+                    <span class="text-gray-700 font-medium">⚡ 快速分析</span>
+                    <p class="text-xs text-gray-500">基础运势分析，速度更快</p>
+                  </div>
+                </label>
+              </div>
+              
+              <!-- API配置提示 -->
+              <div v-if="analysisMode === 'ai'" class="mt-4 p-4 rounded-lg border"
+                   :class="apiConfigStatus.isConfigured ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'">
+                <div class="flex items-start">
+                  <span class="mr-2" :class="apiConfigStatus.isConfigured ? 'text-green-500' : 'text-blue-500'">
+                    {{ apiConfigStatus.isConfigured ? '✅' : 'ℹ️' }}
+                  </span>
+                  <div>
+                    <p class="text-sm font-medium" 
+                       :class="apiConfigStatus.isConfigured ? 'text-green-700' : 'text-blue-700'">
+                      {{ apiConfigStatus.isConfigured ? 'AI智能分析已就绪' : 'AI智能分析说明' }}
+                    </p>
+                    <p v-if="apiConfigStatus.isConfigured" class="text-xs text-green-600 mt-1">
+                      当前使用：{{ apiConfigStatus.provider.toUpperCase() }} 服务，将为您提供深度个性化分析。
+                    </p>
+                    <p v-else class="text-xs text-blue-600 mt-1">
+                      首次使用AI分析功能，需要在全局设置中配置LLM API密钥。如未配置，系统将自动使用传统命理学分析。
+                    </p>
+                    <p v-if="!apiConfigStatus.isConfigured" class="text-xs text-blue-500 mt-2">
+                      <strong>配置方法：</strong>点击页面右下角的AI配置按钮进行设置。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- 提交按钮 -->
@@ -187,54 +248,32 @@
         </div>
       </div>
 
-      <!-- 运势结果卡片 -->
-      <div v-if="fortuneResult" class="max-w-4xl mx-auto">
-        <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden transition-all duration-500 transform"
-             :class="{'opacity-100 translate-y-0': showResult, 'opacity-0 translate-y-4': !showResult}">
-          <!-- 结果头部 -->
-          <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
-                  <span class="text-2xl">✨</span>
-                </div>
-                <div>
-                  <h3 class="text-xl font-semibold">您的专属运势分析</h3>
-                  <p class="text-emerald-100 text-sm">{{ formData.constellation }}座 • {{ formData.zodiacSign }}年 • {{ formData.gender === 'male' ? '男性' : '女性' }}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="text-sm text-emerald-100">{{ currentDate }}</div>
-                <div class="text-xs text-emerald-200">AI智能分析</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 结果内容 -->
-          <div class="p-6">
-            <div class="prose prose-lg max-w-none">
-              <div v-html="formatFortuneResult(fortuneResult)" class="fortune-content"></div>
-            </div>
-            
-            <!-- 分享和操作 -->
-            <div class="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
-              <div class="flex items-center space-x-4">
-                <button @click="shareResult" class="flex items-center px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors">
-                  <span class="mr-2">📤</span>
-                  分享运势
-                </button>
-                <button @click="saveResult" class="flex items-center px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors">
-                  <span class="mr-2">💾</span>
-                  保存结果
-                </button>
-              </div>
-              <button @click="generateAgain" class="flex items-center px-4 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors">
-                <span class="mr-2">🔄</span>
-                重新分析
-              </button>
-            </div>
-          </div>
+      <!-- 运势结果区域 -->
+      <div v-if="fortune && !loading" class="max-w-6xl mx-auto">
+        <!-- 挑战和机遇卡片 -->
+        <div v-if="fortune.dailyChallenge || fortune.dailyOpportunity" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <FortuneChallenge
+            v-if="fortune.dailyChallenge"
+            :type="fortune.dailyChallenge.type"
+            :content="fortune.dailyChallenge.content"
+            :tips="fortune.dailyChallenge.tips"
+            :difficulty="fortune.dailyChallenge.difficulty || 'easy'"
+            :is-unlocked="fortune.dailyChallenge.isUnlocked || false"
+            @unlock="handleUnlock('challenge')"
+          />
+          <FortuneChallenge
+            v-if="fortune.dailyOpportunity"
+            :type="fortune.dailyOpportunity.type"
+            :content="fortune.dailyOpportunity.content"
+            :tips="fortune.dailyOpportunity.tips"
+            :difficulty="fortune.dailyOpportunity.difficulty || 'easy'"
+            :is-unlocked="fortune.dailyOpportunity.isUnlocked || false"
+            @unlock="handleUnlock('opportunity')"
+          />
         </div>
+
+        <!-- 现代化运势卡片 -->
+        <FortuneCard :fortune="fortune" />
       </div>
 
       <!-- 错误提示 -->
@@ -259,8 +298,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted, onUnmounted } from 'vue';
-import { LLMService } from '../../../services/LLMService';
+import { reactive, ref, computed, onMounted } from 'vue';
+import { useFortune } from '../composables/useFortune';
+import { useLLMConfigStore } from '../../../store/llmConfig';
+import { useAIReading } from '../../../composables/useAIReading';
+import FortuneCard from '../components/FortuneCard.vue';
+import FortuneChallenge from '../components/FortuneChallenge.vue';
+import type { PersonalizedFortuneData } from '../types/fortune';
 
 interface FortuneRequest {
   birthDate: string;
@@ -270,30 +314,68 @@ interface FortuneRequest {
   question: string;
 }
 
-  const zodiacSigns = [
-    '鼠', '牛', '虎', '兔', '龙', '蛇', 
-    '马', '羊', '猴', '鸡', '狗', '猪'
-  ];
-  
-  const constellations = [
-    '白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座',
-    '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'
-  ];
-  
-  const formData = reactive<FortuneRequest>({
-    birthDate: '',
-    gender: 'male',
-    zodiacSign: '',
-    constellation: '',
-    question: ''
-  });
+const zodiacSigns = [
+  '鼠', '牛', '虎', '兔', '龙', '蛇', 
+  '马', '羊', '猴', '鸡', '狗', '猪'
+];
 
-const loading = ref(false);
-const fortuneResult = ref('');
-const error = ref('');
+const constellations = [
+  '白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座',
+  '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'
+];
+
+const formData = reactive<FortuneRequest>({
+  birthDate: '',
+  gender: 'male',
+  zodiacSign: '',
+  constellation: '',
+  question: ''
+});
+
+const { fortune, loading, error, generate } = useFortune();
 const showError = ref(false);
-const showResult = ref(false);
 const loadingText = ref('正在分析中...');
+const analysisMode = ref('ai');
+
+// 检查API配置状态
+const apiConfigStatus = computed(() => {
+  const currentConfig = LLMService.getConfig();
+  const hasApiKey = currentConfig && currentConfig.apiKey && currentConfig.apiKey.trim() !== '';
+  
+  return {
+    hasApiKey,
+    provider: currentConfig?.provider || 'unknown',
+    isConfigured: hasApiKey
+  };
+});
+
+// 加载全局LLM配置
+onMounted(() => {
+  console.log('🔧 运势模块初始化，加载全局LLM配置...');
+  
+  // 从localStorage加载全局配置
+  const savedConfig = localStorage.getItem('llm-config');
+  if (savedConfig) {
+    try {
+      const config = JSON.parse(savedConfig);
+      console.log('📄 找到全局LLM配置:', config);
+      
+      // 更新LLMService配置
+      LLMService.setConfig({
+        provider: config.provider,
+        apiKey: config.apiKey,
+        baseURL: config.baseURL,
+        model: config.model
+      });
+      
+      console.log('✅ 全局LLM配置已加载到运势模块');
+    } catch (error) {
+      console.warn('⚠️ 解析全局LLM配置失败:', error);
+    }
+  } else {
+    console.log('📭 未找到全局LLM配置');
+  }
+});
 
 // 获取当前日期和星期
 const currentDate = computed(() => {
@@ -314,55 +396,38 @@ const isFormValid = computed(() => {
   return formData.birthDate && formData.zodiacSign && formData.constellation;
 });
 
-// LLM加载状态订阅
-let unsubscribeLoadingState: (() => void) | null = null;
-
-onMounted(() => {
-  unsubscribeLoadingState = LLMService.onLoadingStateChange((state) => {
-    if (state.isLoading) {
-      loadingText.value = state.progress;
-    }
-  });
-});
-
-onUnmounted(() => {
-  if (unsubscribeLoadingState) {
-    unsubscribeLoadingState();
+// 根据生日自动填充生肖和星座
+const watchBirthDate = () => {
+  if (formData.birthDate) {
+    const birthDate = new Date(formData.birthDate);
+    formData.zodiacSign = getZodiacSign(birthDate);
+    formData.constellation = getConstellation(birthDate);
   }
-});
+};
+
+// 根据出生日期获取生肖
+const getZodiacSign = (date: Date): string => {
+  const year = date.getFullYear();
+  const zodiacIndex = (year - 1900) % 12;
+  return zodiacSigns[zodiacIndex];
+};
+
+// 根据出生日期获取星座
+const getConstellation = (date: Date): string => {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
   
-  // 根据生日自动填充生肖和星座
-  const watchBirthDate = () => {
-    if (formData.birthDate) {
-      const birthDate = new Date(formData.birthDate);
-      formData.zodiacSign = getZodiacSign(birthDate);
-      formData.constellation = getConstellation(birthDate);
-    }
-  };
-  
-  // 根据出生日期获取生肖
-  const getZodiacSign = (date: Date): string => {
-    const year = date.getFullYear();
-    const zodiacIndex = (year - 1900) % 12;
-    return zodiacSigns[zodiacIndex];
-  };
-  
-  // 根据出生日期获取星座
-  const getConstellation = (date: Date): string => {
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    
-    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return '白羊座';
-    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return '金牛座';
-    if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return '双子座';
-    if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return '巨蟹座';
-    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return '狮子座';
-    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return '处女座';
-    if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return '天秤座';
-    if ((month === 10 && day >= 24) || (month === 11 && day <= 22)) return '天蝎座';
-    if ((month === 11 && day >= 23) || (month === 12 && day <= 21)) return '射手座';
-    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return '摩羯座';
-    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return '水瓶座';
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return '白羊座';
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return '金牛座';
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return '双子座';
+  if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return '巨蟹座';
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return '狮子座';
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return '处女座';
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return '天秤座';
+  if ((month === 10 && day >= 24) || (month === 11 && day <= 22)) return '天蝎座';
+  if ((month === 11 && day >= 23) || (month === 12 && day <= 21)) return '射手座';
+  if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return '摩羯座';
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return '水瓶座';
   return '双鱼座';
 };
 
@@ -374,92 +439,80 @@ const generateFortune = async () => {
     return;
   }
 
-  loading.value = true;
-  error.value = '';
+  // 如果选择AI模式，提示用户API配置状态
+  if (analysisMode.value === 'ai') {
+    console.log('🤖 选择了AI智能分析模式');
+    
+    // 检查LLMService的当前配置
+    const currentConfig = LLMService.getConfig();
+    const hasApiKey = currentConfig && currentConfig.apiKey && currentConfig.apiKey.trim() !== '';
+    
+    console.log('🔍 检查API配置:', { 
+      provider: currentConfig?.provider, 
+      hasApiKey: !!hasApiKey,
+      apiKeyLength: hasApiKey ? currentConfig.apiKey?.length : 0
+    });
+    
+    if (!hasApiKey) {
+      console.warn('⚠️ 未配置LLM API密钥，将使用本地分析');
+      loadingText.value = '未配置AI密钥，使用传统命理学分析...';
+    } else {
+      console.log('✅ 检测到API密钥，将使用AI分析');
+      loadingText.value = `正在调用${currentConfig?.provider || 'AI'}进行深度分析...`;
+    }
+  } else {
+    loadingText.value = '正在进行快速运势分析...';
+  }
+
   showError.value = false;
-  showResult.value = false;
-  fortuneResult.value = '';
   
   try {
-    console.log('🔮 开始调用LLM运势分析服务...');
+    console.log('🔮 开始生成运势...');
+    console.log('📋 表单数据:', formData);
+    console.log('🎯 分析模式:', analysisMode.value);
     
-    // 调用LLM服务进行运势分析
-    const result = await LLMService.getFortuneAnalysis(
-      formData.birthDate,
-      formData.gender,
-      formData.zodiacSign,
-      formData.constellation,
-      formData.question
-    );
+    // 构建个性化数据，包含完整的zodiac和constellation信息
+    const personalData: PersonalizedFortuneData = {
+      birthDate: new Date(formData.birthDate),
+      gender: formData.gender,
+      question: formData.question || undefined,
+      zodiac: {
+        sign: formData.zodiacSign,
+        element: '未知',
+        luckyColor: '未知'
+      },
+      constellation: {
+        name: formData.constellation,
+        element: '未知',
+        luckyColor: '未知'
+      }
+    };
     
-    fortuneResult.value = result;
+    console.log('📝 个性化数据:', personalData);
+    console.log('🎯 开始调用 useFortune.generate...');
     
-    // 延迟显示结果，增加动画效果
-    setTimeout(() => {
-      showResult.value = true;
-    }, 300);
+    await generate(personalData, analysisMode.value === 'ai');
     
-    console.log('✅ 运势分析完成');
-  } catch (err) {
+    console.log('✅ 运势生成完成，fortune:', fortune.value);
+  } catch (err: any) {
     console.error('❌ 运势分析失败:', err);
-    error.value = '运势分析失败，请检查网络连接后重试';
-  } finally {
-    loading.value = false;
+    if (analysisMode.value === 'ai' && err.message && err.message.includes('API')) {
+      error.value = `AI分析失败: ${err.message}。建议尝试快速分析模式或配置API密钥。`;
+    } else {
+      error.value = `运势分析失败: ${err.message || '未知错误'}`;
+    }
   }
 };
 
-// 格式化运势结果
-const formatFortuneResult = (result: string): string => {
-  if (!result) return '';
+// 处理解锁事件
+const handleUnlock = (type: 'challenge' | 'opportunity') => {
+  if (!fortune.value) return;
   
-  // 将换行符转换为HTML
-  let formatted = result.replace(/\n/g, '<br>');
-  
-  // 格式化特殊标记
-  formatted = formatted.replace(/【([^】]+)】/g, '<h4 class="font-bold text-lg text-gray-800 mt-4 mb-2 flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>$1</h4>');
-  
-  // 格式化星级评分
-  formatted = formatted.replace(/★/g, '<span class="text-yellow-400">★</span>');
-  formatted = formatted.replace(/☆/g, '<span class="text-gray-300">☆</span>');
-  
-  // 格式化emoji和特殊符号
-  formatted = formatted.replace(/🌟|💫|📊|💼|💕|💰|🏃‍♀️|🎨|🔢|✨|🤔|📝/g, '<span class="text-xl mr-2">$&</span>');
-  
-  return formatted;
-};
-
-// 分享结果
-const shareResult = () => {
-  if (navigator.share) {
-    navigator.share({
-      title: '我的今日运势',
-      text: '快来看看我的专属运势分析！',
-      url: window.location.href
-    });
-  } else {
-    // 复制到剪贴板
-    navigator.clipboard.writeText(fortuneResult.value.replace(/<[^>]*>/g, ''));
-    alert('运势内容已复制到剪贴板！');
+  if (type === 'challenge' && fortune.value.dailyChallenge) {
+    fortune.value.dailyChallenge.isUnlocked = true;
+  } else if (type === 'opportunity' && fortune.value.dailyOpportunity) {
+    fortune.value.dailyOpportunity.isUnlocked = true;
   }
-};
-
-// 保存结果
-const saveResult = () => {
-  const blob = new Blob([fortuneResult.value.replace(/<[^>]*>/g, '')], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `运势分析_${currentDate.value}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-// 重新分析
-const generateAgain = () => {
-  fortuneResult.value = '';
-  showResult.value = false;
-  error.value = '';
-  showError.value = false;
 };
 </script>
 
@@ -508,23 +561,6 @@ const generateAgain = () => {
   66% {
     background: linear-gradient(135deg, rgb(147, 51, 234) 0%, rgb(126, 34, 206) 50%, rgb(88, 28, 135) 100%);
   }
-}
-
-.fortune-content :deep(h4) {
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.fortune-content :deep(p) {
-  margin-bottom: 1rem;
-  line-height: 1.7;
-  color: #6b7280;
-}
-
-.fortune-content :deep(br) {
-  margin-bottom: 0.5rem;
 }
 
 /* 动画效果 */

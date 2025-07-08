@@ -177,7 +177,7 @@ import { coinDivination, plumBlossomDivination, randomDivination } from '../util
 import CoinDivinationAnimation from '../components/CoinDivinationAnimation.vue';
 import DivinationResult from '../components/DivinationResult.vue';
 import LLMConfigPanel from '../components/LLMConfigPanel.vue';
-import { generateHexagramFromLines, generateAnalysisAsync } from '../utils/hexagramGenerator';
+import { generateHexagramFromLines } from '../utils/hexagramGenerator';
 import { LLMService } from '../../../services/LLMService';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
 import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';

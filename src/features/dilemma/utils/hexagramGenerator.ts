@@ -184,9 +184,9 @@ function calculateOptionWeight(option: string): number {
  */
 function adjustGenerationMethod(
   method: 'time' | 'random',
-  optionAWeight: number,
-  optionBWeight: number,
-  position: number
+  _optionAWeight: number,
+  _optionBWeight: number,
+  _position: number
 ): 'time' | 'random' {
   // 这里实现微调逻辑
   return method; // 简单起见，暂时保持原方法
@@ -1002,7 +1002,7 @@ export async function generateAnalysisAsync(
 }
 
 // 移除同步generateAnalysis，改用异步版本
-export function generateAnalysis(hexagram: any, changingLines: number[], relatedHexagram: any): string {
+export function generateAnalysis(_hexagram: any, _changingLines: number[], _relatedHexagram: any): string {
   // 返回一个占位符，提示用户需要等待异步加载
   return '正在生成解读内容，请稍候...';
 }
@@ -1019,7 +1019,7 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
   const changingLines: number[] = [];
   
   // 初始化随机数生成器
-  const rng = new Random(seed);
+  // const rng = new Random(seed);
   
   // 生成每一爻
   for (let i = 0; i < 6; i++) {

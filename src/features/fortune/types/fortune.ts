@@ -1,36 +1,73 @@
 /**
  * 运势等级类型
  */
-export type FortuneLevel = 'excellent' | 'good' | 'normal' | 'bad';
+export type FortuneLevel = 'excellent' | 'good' | 'normal' | 'bad' | 'terrible';
+
+/**
+ * 每日挑战/机遇
+ */
+export interface DailyChallenge {
+  type: 'challenge' | 'opportunity';
+  content: string;
+  tips: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  isUnlocked?: boolean;
+}
+
+/**
+ * 运势方面详情
+ */
+export interface FortuneItem {
+  level: FortuneLevel;
+  description: string;
+  energyScore?: number;
+  energyDescription?: string;
+}
+
+/**
+ * 运势方面数据
+ */
+export interface AspectData {
+  score: number;
+  description: string;
+  level?: FortuneLevel;
+  suggestion?: string;
+}
 
 /**
  * 运势请求参数
  */
 export interface FortuneRequest {
   birthDate?: string;
-  gender?: 'male' | 'female';
   zodiacSign?: string;
-  constellation?: string;
   question?: string;
-}
-
-/**
- * 运势方面详情
- */
-export interface FortuneAspect {
-  score: number;
-  level: FortuneLevel;
-  description: string;
-  suggestion: string;
+  date?: string;
 }
 
 /**
  * 幸运元素
  */
 export interface LuckyElements {
-  numbers: number[];
-  colors: string[];
-  directions: string[];
+  color: string;
+  number: number;
+  direction: string;
+}
+
+/**
+ * 运势提示
+ */
+export interface FortuneTips {
+  do: string[];
+  dont: string[];
+}
+
+/**
+ * 星座信息
+ */
+export interface ZodiacInfo {
+  sign: string;
+  element: string;
+  luckyColor: string;
 }
 
 /**
@@ -38,30 +75,27 @@ export interface LuckyElements {
  */
 export interface FortuneResult {
   date: string;
-  overall: FortuneAspect;
+  birthday?: string;
+  overall: FortuneItem;
+  career: FortuneItem;
+  wealth: FortuneItem;
+  love: FortuneItem;
+  health: FortuneItem;
+  tips: FortuneTips;
+  story: string;
+  luckyElements: LuckyElements;
+  zodiac: ZodiacInfo;
   aspects: {
-    career: FortuneAspect;
-    wealth: FortuneAspect;
-    love: FortuneAspect;
-    health: FortuneAspect;
+    career: AspectData;
+    wealth: AspectData;
+    love: AspectData;
+    health: AspectData;
   };
-  lucky: LuckyElements;
   advice: string[];
-  // 可选的AI增强内容
+  dailyChallenge: DailyChallenge;
+  dailyOpportunity: DailyChallenge;
   aiAnalysis?: string;
   personalizedTips?: string[];
-}
-
-/**
- * 生肖信息
- */
-export interface ZodiacInfo {
-  sign: string;
-  element: string;
-  traits: string[];
-  luckyColor: string;
-  luckyNumber: number;
-  personality: string;
 }
 
 /**
@@ -118,34 +152,6 @@ export interface DetailedFortuneResult extends FortuneResult {
   };
 }
 
-// Legacy types for backward compatibility
-export interface FortuneItem {
-  level: FortuneLevel;
-  description: string;
-  energyScore?: number;
-  energyDescription?: string;
-  zodiac?: {
-    sign: string;
-    element: string;
-    luckyColor: string;
-  };
-  birthday?: string;
-  date?: string;
-  luckyNumber?: number;
-  luckyColor?: {
-    name: string;
-    hex: string;
-  };
-  luckyDirection?: string;
-  goodActivities?: string[];
-  badActivities?: string[];
-}
-
-export interface FortuneTips {
-  do: string[];
-  dont: string[];
-}
-
 export interface FortuneDetail {
   type: string;
   status: string;
@@ -165,4 +171,22 @@ export interface LuckyColor {
 export interface ActionSuggestion {
   title: string;
   description: string;
+}
+
+export type AspectKey = 'career' | 'wealth' | 'love' | 'health';
+
+export interface FortuneItem {
+  level: FortuneLevel;
+  description: string;
+  energyScore?: number;
+  energyDescription?: string;
+  score?: number;
+  suggestion?: string;
+}
+
+export interface AspectData {
+  score: number;
+  description: string;
+  level?: FortuneLevel;
+  suggestion?: string;
 } 

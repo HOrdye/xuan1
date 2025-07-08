@@ -22,7 +22,7 @@ interface HexagramRawData {
  * @param binary 二进制字符串，如"101010"
  * @returns 数字数组，如[1, 0, 1, 0, 1, 0]
  */
-function binaryToLines(binary: string): number[] {
+function _binaryToLines(binary: string): number[] {
   return binary.split('').map(char => parseInt(char, 10));
 }
 
@@ -159,7 +159,7 @@ function getHexagramSymbol(sequence: number): string {
  * @param chineseName 中文卦名
  * @returns 英文名称
  */
-function getEnglishName(chineseName: string): string {
+function _getEnglishName(chineseName: string): string {
   const nameMap: {[key: string]: string} = {
     '乾': 'The Creative',
     '坤': 'The Receptive',

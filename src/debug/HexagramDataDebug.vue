@@ -128,7 +128,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { getDataLoadingStatus, ensureDataLoaded } from '../features/dilemma/utils/hexagramGenerator';
-import { ensureDivinationDataLoaded } from '../features/dilemma/utils/divinationMethods';
+// import { ensureDivinationDataLoaded } from '../features/dilemma/utils/divinationMethods';
 
 // 数据状态
 const dataStatus = reactive({
@@ -327,7 +327,7 @@ const checkRawData = async () => {
     rawDataCheck.value = {
       status: '数据加载成功',
       count: entries.length,
-      samples: entries.slice(0, 5).map(([key, value]: [string, any]) => ({
+      samples: entries.slice(0, 5).map(([_key, value]: [string, any]) => ({
         sequence: value.sequence,
         name: value.name,
         lines: value.lines

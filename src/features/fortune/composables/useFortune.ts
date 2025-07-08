@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { generateFortune } from '../utils/fortuneGenerator';
-import type { FortuneResult } from '../types/fortune';
+import type { FortuneResult, PersonalizedFortuneData } from '../types/fortune';
 
 export function useFortune() {
   const fortune = ref<FortuneResult | null>(null);
@@ -24,36 +24,18 @@ export function useFortune() {
   });
 
   // 生成运势
-  const generate = async (birthday?: string) => {
+  const generate = async (personalData: PersonalizedFortuneData, useAI: boolean = true) => {
     if (loading.value) {
       console.log('已在加载中，跳过本次调用');
       return;
     }
     loading.value = true;
     error.value = null;
-    console.log('开始生成运势，输入birthday:', birthday);
+    console.log('开始生成运势，输入personalData:', personalData, '使用AI:', useAI);
   
     try {
-      let dateObj: Date;
-      if (birthday) {
-        console.log('收到生日字符串:', birthday);
-        const [year, month, day] = birthday.split('-').map(Number);
-        console.log('解析后:', { year, month, day });
-        if (!year || !month || !day) {
-          throw new Error('生日格式不正确，请使用 YYYY-MM-DD 格式');
-        }
-        dateObj = new Date(year, month - 1, day);
-        console.log('生成的dateObj:', dateObj);
-        if (isNaN(dateObj.getTime())) {
-          throw new Error('生日日期无效');
-        }
-      } else {
-        dateObj = new Date();
-        console.log('未输入生日，使用当前日期:', dateObj);
-      }
-  
-      console.log('准备调用 generateFortune', dateObj, birthday);
-      const result = generateFortune(dateObj, birthday);
+      console.log('准备调用 generateFortune', personalData, useAI);
+      const result = await generateFortune(personalData, useAI);
       console.log('generateFortune 已返回', result);
   
       if (!result || !result.date) {

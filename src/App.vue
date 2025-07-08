@@ -13,20 +13,29 @@
   </template>
   
   <script setup>
-  import { onMounted } from 'vue';
-  import anime from 'animejs';
-  import GlobalLLMConfig from './components/GlobalLLMConfig.vue';
-  
-  onMounted(() => {
-    anime({
-      targets: 'header',
-      translateY: [-40, 0],
-      opacity: [0, 1],
-      duration: 1200,
-      easing: 'easeOutExpo',
-    });
+import { onMounted } from 'vue';
+import anime from 'animejs';
+import GlobalLLMConfig from './components/GlobalLLMConfig.vue';
+import { useLLMConfigStore } from './store/llmConfig';
+
+// 初始化全局LLM配置Store
+const llmStore = useLLMConfigStore();
+
+onMounted(async () => {
+  // 启动动画
+  anime({
+    targets: 'header',
+    translateY: [-40, 0],
+    opacity: [0, 1],
+    duration: 1200,
+    easing: 'easeOutExpo',
   });
-  </script>
+  
+  // 初始化LLM配置
+  await llmStore.initializeFromStorage();
+  console.log('🚀 天玄Web应用启动完成，LLM配置已加载');
+});
+</script>
   
   <style scoped>
   header {

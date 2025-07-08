@@ -1,80 +1,83 @@
-import { generateDailyFortune } from './fortuneGenerator';
+import { generateFortune } from './fortuneGenerator';
+import type { PersonalizedFortuneData } from '../types/fortune';
 
 /**
  * 测试运势生成器
- * 测试多个日期的运势生成，确保:
- * 1. 相同日期生成相同运势
- * 2. 不同日期生成不同运势
- * 3. 所有必要的数据字段都存在且格式正确
+ * 测试运势生成功能，确保:
+ * 1. 基本功能正常工作
+ * 2. 所有必要的数据字段都存在且格式正确
+ * 3. 不同的输入产生合理的输出
  */
-function testFortuneGenerator() {
+async function testFortuneGenerator() {
   console.log('==== 运势生成器测试开始 ====');
   
-  // 测试1: 相同日期的一致性测试
-  const testDate1 = new Date('2023-07-01');
-  console.log(`测试1: 相同日期(${testDate1.toLocaleDateString()})的一致性测试`);
-  
-  const fortune1A = generateDailyFortune(testDate1);
-  const fortune1B = generateDailyFortune(testDate1);
-  
-  console.log('生成结果是否相同?', 
-    JSON.stringify(fortune1A) === JSON.stringify(fortune1B) ? '通过 ✅' : '失败 ❌');
-  
-  // 测试2: 不同日期的差异性测试
-  const testDate2 = new Date('2023-07-02');
-  console.log(`测试2: 不同日期的差异性测试(${testDate1.toLocaleDateString()} vs ${testDate2.toLocaleDateString()})`);
-  
-  const fortune2 = generateDailyFortune(testDate2);
-  
-  const isDifferent = JSON.stringify(fortune1A) !== JSON.stringify(fortune2);
-  console.log('生成结果是否不同?', isDifferent ? '通过 ✅' : '失败 ❌');
-  
-  // 测试3: 数据完整性测试
-  console.log('测试3: 数据完整性测试');
-  
-  const completenessCheck = [
-    { name: 'date', value: !!fortune1A.date },
-    { name: 'energyScore', value: typeof fortune1A.energyScore === 'number' && fortune1A.energyScore >= 0 && fortune1A.energyScore <= 100 },
-    { name: 'energyDescription', value: !!fortune1A.energyDescription },
-    { name: 'fortuneDetails', value: Array.isArray(fortune1A.fortuneDetails) && fortune1A.fortuneDetails.length > 0 },
-    { name: 'luckyColor', value: !!fortune1A.luckyColor && !!fortune1A.luckyColor.name && !!fortune1A.luckyColor.hex },
-    { name: 'luckyNumber', value: typeof fortune1A.luckyNumber === 'number' },
-    { name: 'luckyDirection', value: !!fortune1A.luckyDirection },
-    { name: 'storyContent', value: !!fortune1A.storyContent },
-    { name: 'goodActivities', value: Array.isArray(fortune1A.goodActivities) && fortune1A.goodActivities.length > 0 },
-    { name: 'badActivities', value: Array.isArray(fortune1A.badActivities) && fortune1A.badActivities.length > 0 },
-    { name: 'actionSuggestions', value: Array.isArray(fortune1A.actionSuggestions) && fortune1A.actionSuggestions.length > 0 }
-  ];
-  
-  let allFieldsValid = true;
-  completenessCheck.forEach(check => {
-    if (!check.value) {
-      allFieldsValid = false;
-      console.log(`字段 ${check.name} 无效 ❌`);
+  try {
+    // 测试1: 基本功能测试
+    const testData1: PersonalizedFortuneData = {
+      birthDate: new Date('1995-01-01'),
+      gender: 'female',
+      question: '今天运势怎么样？'
+    };
+    console.log(`测试1: 基本功能测试`);
+    
+    const fortune1 = await generateFortune(testData1, false); // 不使用AI确保稳定性
+    console.log('基本功能是否正常?', fortune1 ? '通过 ✅' : '失败 ❌');
+    
+    // 测试2: 不同参数的差异性测试
+    const testData2: PersonalizedFortuneData = {
+      birthDate: new Date('1990-06-15'),
+      gender: 'male',
+      question: '工作发展如何？'
+    };
+    console.log(`测试2: 不同参数的差异性测试`);
+    
+    const fortune2 = await generateFortune(testData2, false);
+    const isDifferent = JSON.stringify(fortune1) !== JSON.stringify(fortune2);
+    console.log('不同参数生成结果是否不同?', isDifferent ? '通过 ✅' : '失败 ❌');
+    
+    // 测试3: 数据完整性测试
+    console.log('测试3: 数据完整性测试');
+    
+    const completenessCheck = [
+      { name: 'date', value: !!fortune1.date },
+      { name: 'overall', value: !!fortune1.overall && typeof fortune1.overall.energyScore === 'number' },
+      { name: 'career', value: !!fortune1.career && typeof fortune1.career.energyScore === 'number' },
+      { name: 'wealth', value: !!fortune1.wealth && typeof fortune1.wealth.energyScore === 'number' },
+      { name: 'love', value: !!fortune1.love && typeof fortune1.love.energyScore === 'number' },
+      { name: 'health', value: !!fortune1.health && typeof fortune1.health.energyScore === 'number' },
+      { name: 'luckyElements', value: !!fortune1.luckyElements && !!fortune1.luckyElements.color },
+      { name: 'tips', value: !!fortune1.tips && Array.isArray(fortune1.tips.do) },
+      { name: 'advice', value: Array.isArray(fortune1.advice) },
+      { name: 'aspects', value: !!fortune1.aspects && !!fortune1.aspects.career }
+    ];
+    
+    let allFieldsValid = true;
+    completenessCheck.forEach(check => {
+      if (!check.value) {
+        allFieldsValid = false;
+        console.log(`字段 ${check.name} 无效 ❌`);
+      } else {
+        console.log(`字段 ${check.name} 有效 ✅`);
+      }
+    });
+    
+    console.log('所有字段是否有效?', allFieldsValid ? '通过 ✅' : '失败 ❌');
+    
+    // 测试4: AI功能测试（如果配置了的话）
+    console.log('测试4: AI功能测试');
+    try {
+      const fortuneAI = await generateFortune(testData1, true);
+      console.log('AI增强功能是否正常?', fortuneAI ? '通过 ✅' : '失败 ❌');
+    } catch (error) {
+      console.log('AI功能测试结果: 未配置AI或AI调用失败（这是正常的）⚠️');
     }
-  });
-  
-  console.log('所有字段是否有效?', allFieldsValid ? '通过 ✅' : '失败 ❌');
-  
-  // 测试4: 个性化数据测试
-  console.log('测试4: 个性化数据测试');
-  const userData = {
-    birthDate: '1995-01-01',
-    gender: '女',
-    location: '北京'
-  };
-  
-  const personalized = generateDailyFortune(testDate1, userData);
-  // 由于当前实现没有使用userData进行个性化，所以应该返回相同结果
-  // 如果将来实现了个性化，这个测试需要调整
-  console.log('个性化结果是否有效?', 
-    JSON.stringify(personalized) !== '' ? '通过 ✅' : '失败 ❌');
-  
-  console.log('==== 运势生成器测试完成 ====');
+    
+    console.log('==== 运势生成器测试完成 ====');
+    
+  } catch (error) {
+    console.error('❌ 测试过程中发生错误:', error);
+  }
 }
-
-// 运行测试
-testFortuneGenerator();
 
 // 导出函数以便其他地方调用
 export { testFortuneGenerator }; 

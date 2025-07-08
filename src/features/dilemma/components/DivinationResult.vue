@@ -83,10 +83,10 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue';
-import type { AnalysisResult, Hexagram } from '../types';
+import type { AnalysisResult } from '../types';
 import HexagramDisplay from '../../../components/hexagram/HexagramDisplay.vue';
 
-const props = defineProps<{
+const _props = defineProps<{
   result: AnalysisResult | null;
 }>();
 

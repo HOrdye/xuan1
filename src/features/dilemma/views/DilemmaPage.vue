@@ -352,7 +352,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { generateHexagram, AnalysisResult } from '../utils/hexagramGenerator';
 import { generateFortuneSeed } from '../utils/fortuneSeed';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
@@ -581,7 +581,7 @@ const getHexagramNature = (hexagram: any): string => {
   const chineseName = hexagram.chineseName || '';
   for (const key in meanings) {
     if (chineseName.includes(key)) {
-      return meanings[key];
+      return (meanings as any)[key];
     }
   }
   

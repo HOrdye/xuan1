@@ -231,9 +231,9 @@ const filteredHexagrams = computed(() => {
     );
   }
   
-  // 应用五行属性筛选
+  // 应用五行属性筛选（如果有这个属性的话）
   if (elementFilter.value) {
-    result = result.filter(hexagram => hexagram.element === elementFilter.value);
+    result = result.filter(hexagram => (hexagram as any).element === elementFilter.value);
   }
   
   return result;

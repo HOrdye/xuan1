@@ -102,16 +102,16 @@
         <div class="bg-gray-50 p-4 rounded-lg mb-4">
           <div class="flex justify-between items-start">
             <div>
-              <h4 class="font-bold text-gray-800">{{ testResult.hexagram.name }} ({{ testResult.hexagram.name }})</h4>
-              <p class="text-sm text-gray-600 mt-1">{{ testResult.hexagram.meaning }}</p>
+              <h4 class="font-bold text-gray-800">{{ testResult.hexagram?.name }} ({{ testResult.hexagram?.name }})</h4>
+              <p class="text-sm text-gray-600 mt-1">{{ testResult.hexagram?.meaning }}</p>
             </div>
-            <div class="text-4xl">{{ testResult.hexagram.symbol }}</div>
+            <div class="text-4xl">{{ testResult.hexagram?.symbol }}</div>
           </div>
           
           <!-- 卦爻图 -->
           <div class="flex justify-center my-4">
             <div class="flex flex-col" ref="hexagramLinesRef">
-              <div v-for="(line, index) in testResult.hexagram.lines.slice().reverse()" :key="index" class="my-1 flex items-center">
+              <div v-for="(line, index) in testResult.hexagram?.lines.slice().reverse()" :key="index" class="my-1 flex items-center">
                 <span class="text-xs text-gray-500 mr-2 w-4 text-right">{{ 6-index }}</span>
                 <div v-if="line === 1" 
                      class="w-16 h-2 bg-primary rounded-full yang-line" 

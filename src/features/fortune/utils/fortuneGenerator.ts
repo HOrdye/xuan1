@@ -1,23 +1,39 @@
-import type { FortuneResult, FortuneRequest, FortuneAspect, LuckyElements } from '../types/fortune';
+import type { 
+  FortuneResult, 
+  FortuneRequest, 
+  LuckyElements,
+  DailyChallenge,
+  PersonalizedFortuneData,
+  FortuneLevel
+} from '../types/fortune';
 import { LLMService } from '../../../services/LLMService';
 
-// 丰富的运势等级描述，增加多样性
-const LEVEL_DESCRIPTIONS = {
+// 运势等级描述，混合专业性和趣味性
+const LEVEL_DESCRIPTIONS: Record<FortuneLevel, string[]> = {
   excellent: [
-    '极佳', '非常好', '特别顺利', '大吉大利', '万事如意',
-    '事事顺心', '吉星高照', '福气满满', '势如破竹', '前途光明'
+    '运势爆棚！紫气东来✨', 
+    '欧皇附体，天时地利人和', 
+    '今日主角光环加持，诸事皆宜'
   ],
   good: [
-    '良好', '不错', '顺利', '平稳向上', '较为顺遂',
-    '整体向好', '颇为有利', '吉祥如意', '机遇不断', '稳步前进'
+    '吉星高照，运势在线', 
+    '福气加持，状态不错', 
+    '好运来袭，干啥啥顺'
   ],
   normal: [
-    '一般', '平稳', '普通', '中规中矩', '平平常常',
-    '不温不火', '有喜有忧', '有得有失', '喜忧参半', '有起有伏'
+    '平稳运势，佛系日常', 
+    '中规中矩，随缘就好', 
+    '平平淡淡才是真，佛系度过一整天'
   ],
   bad: [
-    '不佳', '不顺', '需要谨慎', '注意变数', '多有阻碍',
-    '困难重重', '多加小心', '谨慎行事', '宜守不宜进', '静待时机'
+    '小人星动，需谨慎破解', 
+    '破财星临，建议躺平充电', 
+    '倒霉星附体，先冷静一下'
+  ],
+  terrible: [
+    '太岁当头，建议闭关修炼', 
+    '诸事不宜，先开摆为敬', 
+    '今日建议重启系统，避免出bug'
   ]
 };
 
@@ -36,261 +52,245 @@ const LUCKY_DIRECTIONS = [
 ];
 
 // 各方面运势的建议库
-const FORTUNE_ADVICE = {
+const FORTUNE_ADVICE: Record<string, Record<FortuneLevel, string[]>> = {
   career: {
     excellent: [
-      '把握当前的黄金机会，大胆提出创新想法',
-      '事业发展正值巅峰期，适合大展拳脚',
-      '领导能力受到赏识，可争取更多责任',
-      '适合开展新项目或接受新挑战',
-      '职场人缘极佳，团队协作事半功倍',
-      '能力得到充分发挥，成就感满满',
-      '工作效率高，能轻松完成目标',
-      '适合展示专业能力，提升个人影响力'
+      '贵人运旺盛，职场大杀四方',
+      '文昌星闪耀，摸鱼都能被夸',
+      '今天干啥啥顺利，老板都夸好'
     ],
     good: [
-      '职场发展稳步向前，保持专注和努力',
-      '适合完善专业技能，为晋升做准备',
-      '工作关系和谐，沟通顺畅',
-      '努力会得到相应回报，坚持是关键',
-      '适合巩固现有成果，稳中求进',
-      '团队协作顺利，能得到同事支持',
-      '保持积极态度，不错过任何机会',
-      '工作充满动力，进展顺利'
+      '事业稳步上升，继续保持',
+      '工作节奏在线，摸鱼要适度',
+      '职场人缘不错，多交流有惊喜'
     ],
     normal: [
-      '工作稳定但缺乏亮点，需主动创造价值',
-      '职场中保持低调，踏实做事',
-      '按部就班完成工作，暂不宜冒进',
-      '完善自我，等待机会到来',
-      '职场人际关系需要维护，保持友善',
-      '适当提升技能，增加竞争力',
-      '工作中可能遇到小波折，保持平常心',
-      '努力工作，但不要期望立竿见影的效果'
+      '工作平稳，摸鱼要适可而止',
+      '职场社交正常，保持队形别浪',
+      '日常工作顺利，但别太放飞自我'
     ],
     bad: [
-      '工作中可能面临挑战，需谨慎应对',
-      '暂时不适合做重大决策或转变',
-      '与同事沟通时注意技巧，避免冲突',
-      '做好本职工作，不要轻易尝试新事物',
-      '工作压力较大，注意调整心态',
-      '可能遇到不公平对待，保持冷静',
-      '工作进展受阻，需要耐心等待',
-      '职场中需保持低调，避免锋芒毕露'
+      '小心职场暗坑，谨慎发言',
+      '今日不宜重要决策，建议苟着',
+      '工作易出岔子，多检查多备份'
+    ],
+    terrible: [
+      '今日宜摆烂，暂避职场风波',
+      '诸事不宜冲动，建议闭关修炼',
+      '工位风水犯太岁，远程办公为上'
     ]
   },
   wealth: {
     excellent: [
-      '财运亨通，适合投资或理财规划',
-      '可能有意外收入或财富增长',
-      '投资眼光敏锐，容易找到好机会',
-      '收入有明显增长，财务状况改善',
-      '可考虑适当扩大投资范围',
-      '有偏财运，可能获得额外收益',
-      '理财决策正确，回报丰厚',
-      '财务状况稳健，可适当冒险'
+      '财神眷顾，理财投资都吉利',
+      '偏财运旺，意外之财在路上',
+      '今天花钱都能赚到钱，是真欧皇'
     ],
     good: [
-      '财务状况稳定向好，收支平衡',
-      '投资有稳定回报，继续保持',
-      '适合制定长期理财计划',
-      '收入稳定，可小额投资尝试',
-      '理财眼光不错，坚持当前策略',
-      '工作努力带来相应回报',
-      '财务管理得当，积累持续增长',
-      '可能有小额额外收入'
+      '财运稳健，适合理性投资',
+      '小富即安，量力而行最重要',
+      '钱包喜提充能，注意要量入为出'
     ],
     normal: [
-      '财务状况一般，量入为出',
-      '投资需谨慎，避免盲目跟风',
-      '收支基本平衡，注意开源节流',
-      '适合保守理财，确保资金安全',
-      '暂不宜大额消费或投资',
-      '理财需稳健，避免冒险',
-      '工作收入稳定，但无明显增长',
-      '保持当前财务状态，暂不宜改变'
+      '财运平平，该赚赚该花花',
+      '收支平衡，理性消费为上',
+      '钱包日常，不会空但也不会满'
     ],
     bad: [
-      '财务状况不佳，需控制支出',
-      '投资宜缓行，避免资金损失',
-      '可能面临意外支出，注意储备',
-      '投资回报不如预期，需调整计划',
-      '避免冲动消费，控制欲望',
-      '暂缓大额投资决策',
-      '财务可能面临压力，提前做好准备',
-      '注意资金安全，谨防诈骗或损失'
+      '破财星动，剁手需谨慎',
+      '今日不宜大额消费，钱包要静养',
+      '容易冲动消费，管住剁手的手'
+    ],
+    terrible: [
+      '破财星当头，建议开启省钱模式',
+      '钱包已经罢工，速速开启节约术',
+      '今日不宜花钱，囤货需谨慎'
     ]
   },
   love: {
     excellent: [
-      '感情甜蜜和谐，关系更进一步',
-      '单身者桃花运旺，易遇良缘',
-      '情侣间沟通顺畅，互相理解',
-      '适合表白或求婚，成功率高',
-      '感情生活充满惊喜和浪漫',
-      '夫妻感情升温，恩爱有加',
-      '异性缘好，受到关注和青睐',
-      '适合参加社交活动，扩展人脉'
+      '桃花运旺盛，脱单有望',
+      '月老牵线中，缘分在靠近',
+      '今天恋爱运满格，冲鸭！'
     ],
     good: [
-      '感情发展良好，关系稳定',
-      '单身者有机会遇到心仪对象',
-      '情侣间相处融洽，互相支持',
-      '适合增进情感交流，加深理解',
-      '伴侣关系温馨，共同成长',
-      '感情中懂得相互体谅',
-      '异性朋友相处自然，有好感',
-      '感情中充满信任和尊重'
+      '桃花朵朵开，恋爱运在线',
+      '感情有好兆头，保持真诚',
+      '暧昧有进展，继续加油'
     ],
     normal: [
-      '感情状况一般，平淡中有温馨',
-      '单身者桃花不多，需主动一些',
-      '情侣间偶有小摩擦，及时沟通',
-      '夫妻生活平平，可增加情趣',
-      '对感情期望适度，不要着急',
-      '感情中需要更多耐心和包容',
-      '可能遇到心动的人，但需时间发展',
-      '感情需要双方共同维护'
+      '感情平稳，随缘最重要',
+      '暧昧期继续，保持耐心',
+      '单身也快乐，不急不躁'
     ],
     bad: [
-      '感情可能遇到波折，需耐心处理',
-      '单身者桃花较少，暂时专注自我提升',
-      '情侣间沟通不畅，易产生误会',
-      '感情中不要过于强势或固执',
-      '避免感情纠纷，冷静处理矛盾',
-      '不适合冲动表白或做重大决定',
-      '感情中需要多一些理解和宽容',
-      '可能面临情感选择，慎重决定'
+      '情感易起波澜，保持理性',
+      '今日不宜表白，先观察观察',
+      '暧昧需谨慎，容易产生误会'
+    ],
+    terrible: [
+      '今日感情事事休，先专注自我',
+      '桃花劫在即，建议闭关修炼',
+      '不宜谈情说爱，先充实自己'
     ]
   },
   health: {
     excellent: [
-      '身体状况极佳，精力充沛',
-      '免疫力强，抵抗力好',
-      '作息规律，sleep质量高',
-      '饮食健康，营养均衡',
-      '运动效果显著，体能提升',
-      '心情愉悦，精神状态佳',
-      '恢复能力强，疲劳感少',
-      '生活充满活力，充满正能量'
+      '精力充沛，活力满满',
+      '气血双补，状态在线',
+      '今天元气满满，干啥都有劲'
     ],
     good: [
-      '身体状况良好，精力充足',
-      '免疫系统正常，少生病',
-      '作息相对规律，休息充分',
-      '饮食较为健康，注意营养',
-      '保持适量运动，身体灵活',
-      '心情较好，压力可控',
-      '有些小疲劳，但能及时恢复',
-      '整体健康，偶有小不适'
+      '身体状态不错，适度运动',
+      '作息规律，保持健康',
+      '活力值在线，继续保持'
     ],
     normal: [
-      '身体状况一般，偶有疲惫',
-      '免疫力一般，注意保护',
-      '作息不太规律，调整作息',
-      '饮食有所不均，注意调整',
-      '运动量不足，增加活动',
-      '压力较大，注意减压',
-      '易感疲劳，需要休息',
-      '小问题较多，注意健康管理'
+      '身体状态一般，别太操劳',
+      '注意休息，保持活力',
+      '该运动运动，该休息休息'
     ],
     bad: [
-      '身体状况欠佳，需要休息',
-      '抵抗力下降，易感不适',
-      '作息紊乱，影响健康',
-      '饮食不规律或不健康',
-      '缺乏运动，身体僵硬',
-      '精神紧张，压力过大',
-      '疲劳感明显，恢复慢',
-      '注意潜在健康隐患'
+      '易感疲惫，需要及时充电',
+      '注意身体，多休息少熬夜',
+      '今日容易犯困，记得补充能量'
+    ],
+    terrible: [
+      '今日体力值耗尽，需要充能',
+      '健康预警，建议闭关修养',
+      '不宜熬夜，早点休息为上'
     ]
   }
 };
 
-// 每日建议模板库，用于生成更丰富的建议
-const DAILY_ADVICE = [
-  // 通用建议
+// 每日建议模板库
+const DAILY_ADVICE: [string[], string[], string[]] = [
+  // 宜做的事
   [
-    '尝试一项新的活动或爱好，激发创造力',
-    '花时间阅读一本启发思考的书籍',
-    '整理工作或生活空间，提升效率',
-    '与久未联系的朋友或家人聊天',
-    '制定短期目标，并分解为可行动的步骤',
-    '尝试冥想或深呼吸，放松身心',
-    '记录三件感恩的事，培养积极心态',
-    '提前规划明天的任务，减少压力'
+    '早起冲杯手冲咖啡，提升今日运势',
+    '整理工位，布置开运小物件',
+    '刷刷小红书，找找灵感和能量',
+    '和好友来一把游戏，放松心情',
+    '尝试新的健身APP，充能补血',
+    '整理心情，发条朋友圈记录生活',
+    '学习新技能，提升自我属性',
+    '给自己买个小礼物，提升心情值'
   ],
-  // 职业建议
+  // 不宜做的事
   [
-    '主动向主管寻求反馈，了解提升空间',
-    '学习一项新的职业技能，增加竞争力',
-    '整理工作计划，提高工作效率',
-    '与同事建立更紧密的合作关系',
-    '参加行业研讨会或线上课程',
-    '更新个人简历和职业档案',
-    '拓展专业人脉，寻找合作机会',
-    '设定明确的职业目标并制定行动计划'
+    '熬夜爆肝，容易破财又伤身',
+    '剁手冲动消费，钱包会破产',
+    '对工作摆烂，会被老板盯上',
+    '跳过早餐，容易一整天没状态',
+    '一个人憋着情绪不说，容易内耗',
+    '刷短视频到深夜，影响运势',
+    '见人就吐槽，容易招来小人',
+    '囤货不使用，会带来霉运'
   ],
-  // 财务建议
+  // 每日箴言
   [
-    '检查财务状况，调整预算计划',
-    '研究理财知识，提升财商',
-    '寻找节约开支的方法，减少浪费',
-    '考虑多元化投资，分散风险',
-    '制定长期财务目标和储蓄计划',
-    '整理账单和收支记录，掌握财务状况',
-    '学习税务知识，合理规划纳税',
-    '咨询专业理财顾问，获取建议'
-  ],
-  // 健康建议
-  [
-    '保证充足睡眠，早睡早起',
-    '增加水分摄入，保持身体水分平衡',
-    '尝试新的健康食谱，改善饮食结构',
-    '进行20-30分钟有氧运动',
-    '保持正确坐姿，减少颈椎和腰椎压力',
-    '减少屏幕时间，保护视力',
-    '尝试舒缓的瑜伽或拉伸运动',
-    '定期体检，关注身体变化'
-  ],
-  // 人际关系建议
-  [
-    '主动向亲友表达感谢和关爱',
-    '学习积极倾听，提升沟通技巧',
-    '参加社交活动，扩展人际圈',
-    '解决未解决的冲突，修复关系',
-    '花时间陪伴重要的人',
-    '表达真实感受，避免误解',
-    '尊重他人界限，建立健康关系',
-    '学习处理冲突的技巧和方法'
+    '今天也要元气满满，和生活碰个杯🍻',
+    '人生就要多尝试，说不定就遇到好事了',
+    '机会总是青睐有准备的人，继续加油',
+    '平平淡淡才是真，佛系也是一种生活态度',
+    '今天的你也在努力生活呢，给自己一个大大的拥抱',
+    '不要着急，好运就在下一个路口',
+    '人生就像抽卡游戏，总有欧皇时刻',
+    '保持热爱，奇迹自然发生'
   ]
 ];
 
-export function generateFortune(birthDate?: Date, birthdayString?: string): FortuneResult {
+// 每日挑战模板库
+const DAILY_CHALLENGES: string[] = [
+  '尝试一个新的健身动作或运动',
+  '学习一个工作技能或兴趣爱好',
+  '主动认识一个新朋友',
+  '清理手机或电脑的存储空间',
+  '整理一下杂乱的工作区域',
+  '给自己制定一个小目标',
+  '尝试一家新店或新美食',
+  '写下今天的心情或感悟'
+];
+
+// 挑战提示
+const CHALLENGE_TIPS: string[] = [
+  '循序渐进，一步步来就好',
+  '相信自己，你比想象中更强大',
+  '遇到困难可以寻求帮助',
+  '记录过程，未来回看会很有趣',
+  '给自己设定合理的目标',
+  '失败也是成长的一部分',
+  '享受挑战的过程',
+  '每个人都是自己人生的主角'
+];
+
+// 每日机遇模板库
+const DAILY_OPPORTUNITIES: string[] = [
+  '可能遇到志同道合的朋友',
+  '工作上可能有意外惊喜',
+  '可能收到好消息或好运',
+  '可能遇到意外的发展机会',
+  '可能得到前辈或贵人指点',
+  '可能发现新的兴趣爱好',
+  '可能获得额外的收入',
+  '可能遇到解决困扰的方法'
+];
+
+// 机遇提示
+const OPPORTUNITY_TIPS: string[] = [
+  '保持开放的心态迎接机会',
+  '准备好自己，机会随时来临',
+  '把握当下，不要犹豫太久',
+  '相信自己的直觉和判断',
+  '勇于尝试新的可能性',
+  '保持积极乐观的态度',
+  '多和他人交流互动',
+  '对生活保持好奇心'
+];
+
+export async function generateFortune(personalData: PersonalizedFortuneData, useAI: boolean = true): Promise<FortuneResult> {
   try {
-    console.log('🔮 开始生成运势...', { birthDate, birthdayString });
+    console.log('🔮 开始生成运势...', personalData, '使用AI:', useAI);
     
     const today = new Date();
     const dateString = today.toISOString().split('T')[0];
     
     // 构建运势请求参数
     const request: FortuneRequest = {
-      birthDate: birthdayString || birthDate?.toISOString().split('T')[0],
-      gender: undefined, // 可以从用户设置中获取
-      zodiacSign: birthdayString ? getZodiacFromDate(birthdayString) : undefined,
-      constellation: birthdayString ? getConstellationFromDate(birthdayString) : undefined
+      birthDate: personalData.birthDate?.toISOString().split('T')[0],
+      gender: personalData.gender,
+      zodiacSign: personalData.zodiac?.sign,
+      constellation: personalData.constellation?.name,
+      question: personalData.question
     };
     
     console.log('📝 运势请求参数:', request);
     
-    // 使用新的FortuneGenerator类生成运势，并添加日期
+    // 根据useAI参数决定使用哪种生成方式
+    if (useAI) {
+      // 尝试使用AI增强的运势生成
+      try {
+        console.log('🤖 尝试使用AI增强运势分析...');
+        const result = await FortuneGenerator.generateFortuneWithAI(request);
+        result.date = dateString; // 更新日期
+        console.log('✅ AI运势生成完成:', result);
+        return result;
+      } catch (error) {
+        console.warn('⚠️ AI运势分析失败，回退到基础运势:', error);
+        // 如果AI失败，使用基础运势生成
+        const result = FortuneGenerator.generateFortune(request);
+        result.date = dateString; // 更新日期
+        console.log('✅ 基础运势生成完成:', result);
+        return result;
+      }
+    } else {
+      // 直接使用快速本地算法
+      console.log('⚡ 使用快速分析模式...');
     const result = FortuneGenerator.generateFortune(request);
-    console.log('✅ 运势生成完成:', result);
-    
-    return {
-      date: dateString,
-      ...result
-    };
+      result.date = dateString; // 更新日期
+      console.log('✅ 快速运势生成完成:', result);
+      return result;
+    }
   } catch (error) {
     console.error('❌ 生成运势失败:', error);
     // 返回默认运势
@@ -356,47 +356,74 @@ function getDefaultFortune(): FortuneResult {
   return {
     date: today,
     overall: {
-      score: 75,
-      level: 'good',
+      level: 'good' as FortuneLevel,
       description: '运势良好',
-      suggestion: '保持积极心态，把握今日机会'
+      energyScore: 75,
+      energyDescription: '运势良好，继续保持'
     },
-    aspects: {
       career: {
-        score: 70,
-        level: 'good',
+      level: 'good' as FortuneLevel,
         description: '工作顺利',
-        suggestion: '专注当前任务，稳步前进'
+      energyScore: 70,
+      energyDescription: '工作状态不错'
       },
       wealth: {
-        score: 65,
-        level: 'normal',
+      level: 'normal' as FortuneLevel,
         description: '财运平稳',
-        suggestion: '理性消费，稳健理财'
+      energyScore: 65,
+      energyDescription: '理性消费为主'
       },
       love: {
-        score: 80,
-        level: 'good',
+      level: 'good' as FortuneLevel,
         description: '感情和谐',
-        suggestion: '多关心身边的人'
+      energyScore: 80,
+      energyDescription: '桃花运不错'
       },
       health: {
-        score: 85,
-        level: 'excellent',
+      level: 'excellent' as FortuneLevel,
         description: '身体健康',
-        suggestion: '保持良好作息'
-      }
+      energyScore: 85,
+      energyDescription: '活力满满'
     },
-    lucky: {
-      numbers: [3, 7, 21],
-      colors: ['蓝色', '绿色'],
-      directions: ['东', '南']
+    tips: {
+      do: ['保持积极乐观的心态', '适当休息，劳逸结合'],
+      dont: ['熬夜伤身', '过度消费']
+    },
+    luckyElements: {
+      color: '蓝色',
+      number: 7,
+      direction: '东'
+    },
+    zodiac: {
+      sign: '未知',
+      element: '未知',
+      luckyColor: '蓝色'
+    },
+    aspects: {
+      career: { score: 70, description: '工作顺利' },
+      wealth: { score: 65, description: '财运平稳' },
+      love: { score: 80, description: '感情和谐' },
+      health: { score: 85, description: '身体健康' }
     },
     advice: [
       '保持积极乐观的心态',
       '适当休息，劳逸结合',
       '关注身边人的需要'
-    ]
+    ],
+    dailyChallenge: {
+      type: 'challenge',
+      content: '尝试一个新的运动',
+      tips: '循序渐进，一步步来',
+      difficulty: 'easy',
+      isUnlocked: false
+    },
+    dailyOpportunity: {
+      type: 'opportunity',
+      content: '可能遇到新朋友',
+      tips: '保持开放的心态',
+      difficulty: 'easy',
+      isUnlocked: false
+    }
   };
 }
 
@@ -419,16 +446,17 @@ export class FortuneGenerator {
     return this.getRandomInt(40, 95);
   }
 
-  private static getLevelFromScore(score: number): 'excellent' | 'good' | 'normal' | 'bad' {
+  private static getLevelFromScore(score: number): 'excellent' | 'good' | 'normal' | 'bad' | 'terrible' {
     if (score >= 85) return 'excellent';
     if (score >= 70) return 'good';
     if (score >= 50) return 'normal';
-    return 'bad';
+    if (score >= 30) return 'bad';
+    return 'terrible';
   }
 
   private static generateAspectFortune(aspect: 'career' | 'wealth' | 'love' | 'health'): {
     score: number;
-    level: 'excellent' | 'good' | 'normal' | 'bad';
+    level: 'excellent' | 'good' | 'normal' | 'bad' | 'terrible';
     description: string;
     suggestion: string;
   } {
@@ -481,29 +509,62 @@ export class FortuneGenerator {
     const generalCount = this.getRandomInt(1, 2);
     result.push(...this.getRandomElements(DAILY_ADVICE[0], generalCount));
     
-    // 随机选择2个专项领域，每个领域抽取1条建议
-    const categories = [1, 2, 3, 4]; // 对应职业、财务、健康、人际关系
-    const selectedCategories = this.getRandomElements(categories, 2);
+    // 从其他类别中抽取建议（修复索引错误）
+    const availableCategories = [1, 2]; // 只访问存在的索引：1(不宜做的事), 2(每日箴言)
+    const selectedCategories = this.getRandomElements(availableCategories, 1);
     
     selectedCategories.forEach(category => {
+      if (DAILY_ADVICE[category] && DAILY_ADVICE[category].length > 0) {
       result.push(this.getRandomElement(DAILY_ADVICE[category]));
+      }
     });
     
-    return result;
+    // 如果结果太少，补充一些通用建议
+    if (result.length < 3) {
+      result.push(...this.getRandomElements(DAILY_ADVICE[0], 3 - result.length));
+    }
+    
+    return result.slice(0, 5); // 最多返回5条建议
+  }
+
+  /**
+   * 生成每日挑战
+   */
+  private static generateDailyChallenge(): DailyChallenge {
+    return {
+      type: 'challenge',
+      content: this.getRandomElement(DAILY_CHALLENGES),
+      tips: this.getRandomElement(CHALLENGE_TIPS),
+      difficulty: this.getRandomElement(['easy', 'medium', 'hard']),
+      isUnlocked: false
+    };
+  }
+
+  /**
+   * 生成每日机遇
+   */
+  private static generateDailyOpportunity(): DailyChallenge {
+    return {
+      type: 'opportunity',
+      content: this.getRandomElement(DAILY_OPPORTUNITIES),
+      tips: this.getRandomElement(OPPORTUNITY_TIPS),
+      difficulty: this.getRandomElement(['easy', 'medium', 'hard']),
+      isUnlocked: false
+    };
   }
 
   /**
    * 生成运势，集成LLM分析
    */
   public static async generateFortuneWithAI(request: FortuneRequest): Promise<FortuneResult> {
+    const basicFortune = this.generateFortune(request);
+    const today = new Date();
+    
     try {
       console.log('🤖 开始生成AI增强运势...', request);
       
-      // 先生成基础运势
-      const baseFortune = this.generateFortune(request);
-      
       // 如果有生日等个人信息，尝试获取AI分析
-      if (request.birthDate && request.zodiacSign && request.constellation) {
+      if (request.birthDate && request.zodiacSign) {
         try {
           console.log('🧠 调用LLM进行个性化分析...');
           
@@ -511,24 +572,32 @@ export class FortuneGenerator {
             request.birthDate,
             request.gender || 'male',
             request.zodiacSign,
-            request.constellation,
+            request.constellation || '',
             request.question || ''
           );
           
           console.log('✅ AI分析完成');
           
-          // 将AI分析结果整合到运势中
+          // 使用新的AI解析器整合AI分析结果
+          const enhancedFortune = this.parseAIAnalysis(aiAnalysis, basicFortune);
+          
           return {
-            ...baseFortune,
-            aiAnalysis,
-            personalizedTips: this.extractTipsFromAIAnalysis(aiAnalysis)
+            ...enhancedFortune,
+            date: today.toISOString().split('T')[0],
+            dailyChallenge: this.generateDailyChallenge(),
+            dailyOpportunity: this.generateDailyOpportunity()
           };
         } catch (error) {
           console.warn('⚠️ AI分析失败，使用基础运势:', error);
         }
       }
       
-      return baseFortune;
+      return {
+        ...basicFortune,
+        date: today.toISOString().split('T')[0],
+        dailyChallenge: this.generateDailyChallenge(),
+        dailyOpportunity: this.generateDailyOpportunity()
+      };
     } catch (error) {
       console.error('❌ 运势生成失败:', error);
       throw error;
@@ -536,43 +605,137 @@ export class FortuneGenerator {
   }
   
   /**
-   * 从AI分析中提取个性化建议
+   * 解析AI分析结果并整合到运势数据中（健壮性升级）
    */
-  private static extractTipsFromAIAnalysis(aiAnalysis: string): string[] {
-    const tips: string[] = [];
-    
-    // 简单的文本处理，提取建议类内容
-    const lines = aiAnalysis.split('\n');
-    
-    for (const line of lines) {
-      const cleanLine = line.trim();
-      
-      // 查找包含建议性词汇的句子
-      if (
-        cleanLine.length > 10 &&
-        (cleanLine.includes('建议') ||
-         cleanLine.includes('适合') ||
-         cleanLine.includes('宜') ||
-         cleanLine.includes('应该') ||
-         cleanLine.includes('可以') ||
-         cleanLine.includes('注意'))
-      ) {
-        // 清理格式字符
-        const cleanTip = cleanLine
-          .replace(/^[•\-\*\d\.]+\s*/, '')
-          .replace(/【.*?】/g, '')
-          .trim();
-        
-        if (cleanTip.length > 5) {
-          tips.push(cleanTip);
+  private static parseAIAnalysis(aiAnalysis: string, basicFortune: FortuneResult): FortuneResult {
+    try {
+      console.log('🔍 开始解析AI分析结果...');
+      let jsonStr = aiAnalysis;
+      // 1. 优先提取```json代码块
+      const jsonMatch = aiAnalysis.match(/```json[\s\S]*?({[\s\S]*?})[\s\S]*?```/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[1];
+      } else {
+        // 2. 提取第一个大括号包围的内容
+        const braceMatch = aiAnalysis.match(/\{[\s\S]*\}/);
+        if (braceMatch) {
+          jsonStr = braceMatch[0];
+        } else {
+          // 3. 尝试去除多余前后缀，只保留JSON部分
+          const firstBrace = aiAnalysis.indexOf('{');
+          const lastBrace = aiAnalysis.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            jsonStr = aiAnalysis.slice(firstBrace, lastBrace + 1);
+          }
         }
       }
+      // 4. 尝试修复常见JSON格式问题
+      jsonStr = jsonStr.replace(/\n/g, '\\n').replace(/\t/g, '');
+      // 5. 尝试解析
+      let aiData: any = {};
+      try {
+        aiData = JSON.parse(jsonStr);
+      } catch (err) {
+        // 6. 尝试用eval兜底（极端情况）
+        try {
+          // eslint-disable-next-line no-eval
+          aiData = eval('(' + jsonStr + ')');
+        } catch (e2) {
+          throw new Error('AI JSON解析失败，已降级为原文');
+        }
+      }
+      console.log('✅ AI数据解析成功:', aiData);
+      // 7. 只用能解析出来的字段，缺失字段用本地默认
+      const safe = (v: any, def: any) => (v !== undefined && v !== null ? v : def);
+      const enhancedFortune: FortuneResult = {
+        ...basicFortune,
+        overall: {
+          level: this.mapAILevelToFortuneLevel(safe(aiData.overall?.level, basicFortune.overall.level)),
+          description: safe(aiData.overall?.description, basicFortune.overall.description),
+          energyScore: safe(aiData.overall?.score, basicFortune.overall.energyScore),
+          energyDescription: safe(aiData.overall?.analysis, basicFortune.overall.energyDescription)
+        },
+        career: {
+          level: this.mapAILevelToFortuneLevel(safe(aiData.career?.level, basicFortune.career.level)),
+          description: safe(aiData.career?.description, basicFortune.career.description),
+          energyScore: safe(aiData.career?.score, basicFortune.career.energyScore),
+          energyDescription: safe(aiData.career?.analysis, basicFortune.career.energyDescription)
+        },
+        wealth: {
+          level: this.mapAILevelToFortuneLevel(safe(aiData.wealth?.level, basicFortune.wealth.level)),
+          description: safe(aiData.wealth?.description, basicFortune.wealth.description),
+          energyScore: safe(aiData.wealth?.score, basicFortune.wealth.energyScore),
+          energyDescription: safe(aiData.wealth?.analysis, basicFortune.wealth.energyDescription)
+        },
+        love: {
+          level: this.mapAILevelToFortuneLevel(safe(aiData.love?.level, basicFortune.love.level)),
+          description: safe(aiData.love?.description, basicFortune.love.description),
+          energyScore: safe(aiData.love?.score, basicFortune.love.energyScore),
+          energyDescription: safe(aiData.love?.analysis, basicFortune.love.energyDescription)
+        },
+        health: {
+          level: this.mapAILevelToFortuneLevel(safe(aiData.health?.level, basicFortune.health.level)),
+          description: safe(aiData.health?.description, basicFortune.health.description),
+          energyScore: safe(aiData.health?.score, basicFortune.health.energyScore),
+          energyDescription: safe(aiData.health?.analysis, basicFortune.health.energyDescription)
+        },
+        luckyElements: {
+          color: safe(aiData.luckyElements?.colors?.[0], basicFortune.luckyElements.color),
+          number: safe(aiData.luckyElements?.numbers?.[0], basicFortune.luckyElements.number),
+          direction: safe(aiData.luckyElements?.direction, basicFortune.luckyElements.direction)
+        },
+        tips: {
+          do: safe(aiData.dailyAdvice?.do, basicFortune.tips.do),
+          dont: safe(aiData.dailyAdvice?.dont, basicFortune.tips.dont)
+        },
+        advice: [
+          ...(aiData.dailyAdvice?.do || []),
+          aiData.dailyAdvice?.special || '',
+          ...(aiData.personalizedInsights ? [aiData.personalizedInsights] : [])
+        ].filter(Boolean),
+        aiAnalysis,
+        personalizedTips: aiData.dailyAdvice?.do,
+        personalizedInsights: aiData.personalizedInsights,
+        questionAnswer: aiData.questionAnswer,
+      };
+      // 更新aspects
+      enhancedFortune.aspects = {
+        career: { score: enhancedFortune.career.energyScore || 0, description: enhancedFortune.career.description },
+        wealth: { score: enhancedFortune.wealth.energyScore || 0, description: enhancedFortune.wealth.description },
+        love: { score: enhancedFortune.love.energyScore || 0, description: enhancedFortune.love.description },
+        health: { score: enhancedFortune.health.energyScore || 0, description: enhancedFortune.health.description }
+      };
+      console.log('🎨 AI数据整合完成，增强运势:', enhancedFortune);
+      return enhancedFortune;
+    } catch (error) {
+      console.warn('⚠️ AI分析结果解析失败，已降级为原文:', error);
+      // 解析失败时，至少保存AI分析文本
+      return {
+        ...basicFortune,
+        aiAnalysis,
+        advice: [aiAnalysis, ...(basicFortune.advice || [])]
+      };
     }
+  }
+  
+  /**
+   * 将AI的level映射到FortuneLevel类型
+   */
+  private static mapAILevelToFortuneLevel(aiLevel: string): FortuneLevel {
+    const levelMap: {[key: string]: FortuneLevel} = {
+      'excellent': 'excellent',
+      'good': 'good',
+      'normal': 'normal',
+      'bad': 'bad',
+      'terrible': 'terrible'
+    };
     
-    return tips.slice(0, 5); // 最多返回5条建议
+    return levelMap[aiLevel] || 'normal';
   }
 
-  public static generateFortune(request: FortuneRequest): Omit<FortuneResult, 'date'> {
+  public static generateFortune(request: FortuneRequest): FortuneResult {
+    const today = new Date();
+    
     // 基于request中的信息进行个性化调整
     const birthDateFactor = request.birthDate ? 0.1 : 0;
     const questionFactor = request.question ? 0.05 : 0;
@@ -588,21 +751,19 @@ export class FortuneGenerator {
     const overallDescription = this.getRandomElement(LEVEL_DESCRIPTIONS[overallLevel]);
 
     // 生成各方面运势
-    const aspects = {
-      career: this.generateAspectFortune('career'),
-      wealth: this.generateAspectFortune('wealth'),
-      love: this.generateAspectFortune('love'),
-      health: this.generateAspectFortune('health')
-    };
+    const career = this.generateAspectFortune('career');
+    const wealth = this.generateAspectFortune('wealth');
+    const love = this.generateAspectFortune('love');
+    const health = this.generateAspectFortune('health');
 
     // 生成幸运信息
-    const lucky: LuckyElements = {
-      numbers: this.generateLuckyNumbers(),
-      colors: this.generateLuckyColors(),
-      directions: this.generateLuckyDirections()
+    const luckyElements: LuckyElements = {
+      color: this.getRandomElement(LUCKY_COLORS),
+      number: this.getRandomInt(0, 9),
+      direction: this.getRandomElement(LUCKY_DIRECTIONS)
     };
 
-    // 生成建议，加入问题相关的个性化建议
+    // 生成建议
     const baseAdvice = this.generateAdvice();
     let advice = [...baseAdvice];
     
@@ -610,11 +771,11 @@ export class FortuneGenerator {
     if (request.question) {
       const questionLowerCase = request.question.toLowerCase();
       
-      if (questionLowerCase.includes('工作') || questionLowerCase.includes('事业') || questionLowerCase.includes('职业')) {
+      if (questionLowerCase.includes('工作') || questionLowerCase.includes('事业')) {
         advice.push(this.getRandomElement(FORTUNE_ADVICE.career[overallLevel]));
-      } else if (questionLowerCase.includes('钱') || questionLowerCase.includes('财') || questionLowerCase.includes('投资')) {
+      } else if (questionLowerCase.includes('财') || questionLowerCase.includes('钱')) {
         advice.push(this.getRandomElement(FORTUNE_ADVICE.wealth[overallLevel]));
-      } else if (questionLowerCase.includes('爱情') || questionLowerCase.includes('感情') || questionLowerCase.includes('恋爱')) {
+      } else if (questionLowerCase.includes('感情') || questionLowerCase.includes('爱情')) {
         advice.push(this.getRandomElement(FORTUNE_ADVICE.love[overallLevel]));
       } else if (questionLowerCase.includes('健康') || questionLowerCase.includes('身体')) {
         advice.push(this.getRandomElement(FORTUNE_ADVICE.health[overallLevel]));
@@ -622,15 +783,58 @@ export class FortuneGenerator {
     }
 
     return {
+      date: today.toISOString().split('T')[0],
+      birthday: request.birthDate,
       overall: {
-        score: overallScore,
         level: overallLevel,
         description: overallDescription,
-        suggestion: this.getRandomElement(FORTUNE_ADVICE.career[overallLevel]) // 可以优化为更通用的建议
+        energyScore: overallScore,
+        energyDescription: `整体运势 ${overallScore}分，${overallDescription}`
       },
-      aspects,
-      lucky,
-      advice
+      career: {
+        level: career.level,
+        description: career.description,
+        energyScore: career.score,
+        energyDescription: career.suggestion
+      },
+      wealth: {
+        level: wealth.level,
+        description: wealth.description,
+        energyScore: wealth.score,
+        energyDescription: wealth.suggestion
+      },
+      love: {
+        level: love.level,
+        description: love.description,
+        energyScore: love.score,
+        energyDescription: love.suggestion
+      },
+      health: {
+        level: health.level,
+        description: health.description,
+        energyScore: health.score,
+        energyDescription: health.suggestion
+      },
+      tips: {
+        do: this.getRandomElements(DAILY_ADVICE[0], 3),
+        dont: this.getRandomElements(DAILY_ADVICE[1], 2)
+      },
+      story: this.getRandomElement(DAILY_ADVICE[2]),
+      luckyElements,
+      zodiac: {
+        sign: request.zodiacSign || '未知',
+        element: '未知',
+        luckyColor: luckyElements.color
+      },
+      aspects: {
+        career: { score: career.score, description: career.description },
+        wealth: { score: wealth.score, description: wealth.description },
+        love: { score: love.score, description: love.description },
+        health: { score: health.score, description: health.description }
+      },
+      advice,
+      dailyChallenge: this.generateDailyChallenge(),
+      dailyOpportunity: this.generateDailyOpportunity()
     };
   }
 } 

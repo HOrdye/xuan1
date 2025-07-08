@@ -174,7 +174,7 @@ const getStageLabel = (stage: string) => {
     completed: '完成',
     error: '错误'
   }
-  return labels[stage] || '未知'
+  return (labels as any)[stage] || '未知'
 }
 
 const addLog = (type: LogEntry['type'], message: string, details?: any) => {

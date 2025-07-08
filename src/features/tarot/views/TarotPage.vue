@@ -1,154 +1,625 @@
 <template>
-  <div class="tarot-page container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">塔罗牌占卜</h1>
-    
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-      <div class="p-6 md:p-8">
-        <!-- 介绍部分 -->
-        <div v-if="!started" class="text-center mb-8">
-          <p class="text-lg text-gray-700 mb-6">
-            塔罗牌是一种古老的占卜工具，可以帮助你探索未知的可能性，指引你的方向。
-            <br>点击下方按钮开始你的塔罗之旅。
-          </p>
-          <button 
-            @click="startTarot" 
-            class="bg-gradient-to-r from-rose-500 to-pink-500 text-white py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-          >
-            开始占卜
-          </button>
-        </div>
-        
-        <!-- 塔罗牌展示区域 -->
-        <div v-if="started" class="tarot-spread">
-          <div class="text-center mb-6">
-            <p class="text-gray-700 mb-4">请在心中默念你的问题，然后点击下方的牌堆抽取三张牌。</p>
-            <p class="text-sm text-gray-500 mb-4" v-if="!cardsDrawn">这三张牌分别代表：过去、现在、未来。</p>
+  <div class="tarot-page min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <!-- Background effects -->
+    <div class="stars-background">
+      <div class="stars" v-for="n in 50" :key="n" 
+           :style="{ 
+             left: Math.random() * 100 + '%', 
+             top: Math.random() * 100 + '%',
+             animationDelay: Math.random() * 3 + 's'
+           }">⭐</div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 relative z-10">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold text-white mb-4 mystical-glow">🔮 塔罗占卜 🔮</h1>
+        <p class="text-xl text-purple-200">探索命运的神秘面纱，聆听心灵的智慧之声</p>
+      </div>
+
+      <!-- Stage 1: Intro & Question Input -->
+      <div v-if="currentStage === 'intro'" class="max-w-4xl mx-auto">
+        <div class="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-purple-500/30 shadow-2xl">
+          <div class="text-center mb-8">
+            <div class="text-6xl mb-6 animate-pulse">🌟</div>
+            <h2 class="text-3xl font-bold text-white mb-4">欢迎来到神秘的塔罗世界</h2>
+            <p class="text-lg text-purple-200 mb-6 leading-relaxed">
+              塔罗牌是古老的智慧结晶，能够帮助您探索内心深处的答案。<br>
+              在开始占卜之前，请静下心来，专注于您想要了解的问题。
+            </p>
           </div>
-          
-          <!-- 牌堆 -->
-          <div v-if="!cardsDrawn" class="deck-container flex justify-center mb-8">
-            <div 
-              class="tarot-deck w-32 h-48 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1" 
-              @click="drawCards"
+
+          <div class="mb-8">
+            <div class="mb-6">
+              <div class="text-center mb-4">
+                <h3 class="text-lg font-medium text-purple-200 mb-2">💫 高频问题弹幕</h3>
+                <p class="text-sm text-purple-300">点击飘过的问题可快速填充</p>
+              </div>
+              <div 
+                ref="barrageArea"
+                class="barrage-area relative w-full h-32 overflow-hidden bg-white/5 rounded-xl border border-purple-400/30 shadow-inner"
+              ></div>
+            </div>
+            
+            <label class="block text-white text-lg font-medium mb-4">
+              💭 请输入您想要咨询的问题（可选）
+            </label>
+            <textarea 
+              ref="questionInput"
+              v-model="userQuestion"
+              placeholder="例如：我的事业发展如何？我的感情运势怎样？我应该如何面对当前的困境？"
+              class="w-full h-32 px-4 py-3 bg-white/10 border border-purple-400/50 rounded-lg text-white placeholder-purple-300 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 resize-none"
+            ></textarea>
+          </div>
+
+          <div class="mt-6 mb-8 p-4 bg-black/20 rounded-2xl border border-purple-400/30 text-center">
+            <h4 class="font-semibold text-purple-200 mb-2 flex items-center justify-center text-lg">
+              <span class="text-xl mr-2">📜</span>
+              占卜须知
+            </h4>
+            <p class="text-sm text-purple-300 leading-relaxed max-w-2xl mx-auto">
+              不要在短时间内推测同一个问题两次。塔罗牌是你籍以窥探命运一隅的工具，可说是命运旅程上的伙伴，因此，你必须对它寄予绝对的信任。如果它告诉你的结果不尽如意，还是应该保持着尊重的态度。千万不要有“算到好结果出来为止”的心态。命运并不是一种尝试错误的游戏。
+            </p>
+          </div>
+
+          <div class="text-center">
+            <button 
+              @click="goToSpreadSelection" 
+              class="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold py-4 px-12 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mystical-glow"
             >
-              <div class="h-full flex items-center justify-center">
-                <div class="text-white text-center">
-                  <div class="text-3xl mb-2">🃏</div>
-                  <div class="text-sm">点击抽牌</div>
+              🎴 选择牌阵
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 1.5: Spread Selection -->
+      <div v-if="currentStage === 'spreadSelection'" class="max-w-6xl mx-auto">
+        <div class="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-purple-500/30 shadow-2xl">
+          <div class="text-center mb-12">
+            <div class="text-5xl mb-6 animate-pulse">🔮</div>
+            <h2 class="text-3xl font-bold text-white mb-4">选择您的专属牌阵</h2>
+            <p class="text-lg text-purple-200 mb-8">每个牌阵都有其独特的智慧与启示，请根据您的问题选择最适合的牌阵</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div 
+              v-for="(spread) in classicSpreads" 
+              :key="spread.name"
+              class="spread-card cursor-pointer transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+              :class="{ 'selected': selectedSpread?.name === spread.name }"
+              @click="selectSpread(spread)"
+            >
+              <div class="bg-gradient-to-br from-purple-800/50 to-indigo-900/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-400/30 shadow-xl h-full flex flex-col">
+                <div class="text-center mb-4">
+                  <div class="text-4xl mb-3">{{ getSpreadIcon(spread.name) }}</div>
+                  <h3 class="text-xl font-bold text-white mb-2">{{ spread.chineseName }}</h3>
+                  <div class="text-sm text-purple-300 mb-4">{{ spread.positions.length }}张牌</div>
                 </div>
+                <div class="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl p-4 mb-4 border border-yellow-400/40">
+                  <div class="text-center">
+                    <div class="text-yellow-200 text-sm font-bold mb-2 flex items-center justify-center">
+                      <span class="mr-2">⭐</span>
+                      <span>最擅长解决</span>
+                    </div>
+                    <div class="text-yellow-100 text-base font-semibold">{{ spread.bestFor[0] }}</div>
+                  </div>
+                </div>
+                <p class="text-xs text-purple-400 text-white opacity-80 leading-relaxed break-words mt-auto pt-3 border-t border-purple-500/20">
+                  {{ spread.description }}
+                </p>
               </div>
             </div>
           </div>
-          
-          <!-- 已抽取的牌 -->
-          <div v-if="cardsDrawn" class="drawn-cards">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div v-for="(card, index) in drawnCards" :key="index" class="card-container">
-                <div class="card-title text-center mb-2 font-medium text-gray-700">
-                  {{ ['过去', '现在', '未来'][index] }}
+
+          <div class="flex justify-center space-x-6 mt-12">
+            <button @click="goBackToIntro" class="bg-gray-600 hover:bg-gray-700 text-white text-lg font-medium py-3 px-8 rounded-full transition-colors duration-300">
+              ← 返回
+            </button>
+            <button @click="startReading" :disabled="!selectedSpread" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold py-3 px-12 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mystical-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+              🎴 开始占卜
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shuffling Animation -->
+      <div v-if="currentStage === 'shuffling'" class="max-w-4xl mx-auto text-center relative overflow-hidden">
+        <div class="bg-black/30 backdrop-blur-md rounded-3xl p-12 border border-purple-500/30 shadow-2xl relative">
+          <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+            <div v-for="n in 8" :key="n" class="floating-card absolute opacity-20" :style="getFloatingCardStyle(n)">
+              <div class="floating-card-back" :style="cardBackStyle"></div>
+            </div>
+          </div>
+          <div class="relative z-10">
+            <div class="text-6xl mb-6 animate-pulse">🌀</div>
+            <h2 class="text-3xl font-bold text-white mb-4">正在洗牌...</h2>
+            <p class="text-lg text-purple-200 mb-8">请专注于您的问题，让宇宙的能量流入牌中</p>
+            <div class="mystical-progress-container mb-8">
+              <div class="mystical-progress-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawing Stage -->
+      <div v-if="currentStage === 'drawing'" class="max-w-6xl mx-auto">
+        <div class="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-purple-500/30 shadow-2xl">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-white mb-4">✨ 选择您的命运之牌</h2>
+            <p class="text-lg text-purple-200 mb-6">请用心感受，点击下方的牌来抽取您的{{ selectedSpread?.positions.length }}张牌</p>
+            <p class="text-purple-300">已抽取: {{ drawnCards.length }} / {{ selectedSpread?.positions.length }}</p>
+          </div>
+
+          <div 
+            class="deck-spread relative flex justify-center items-end mb-8 h-64"
+          >
+            <div 
+              v-for="(item, index) in displayedDeck" 
+              :key="item.id" 
+              class="deck-card absolute cursor-pointer transform transition-all duration-500 hover:scale-110 hover:-translate-y-4" 
+              :class="{ 'drawn': item.drawn }" 
+              :style="getDeckCardStyle(index, displayedDeck.length)"
+              @click="drawCard(item, index)"
+            >
+              <div class="w-24 h-36 rounded-lg shadow-lg border border-purple-400/50 overflow-hidden">
+                <div class="card-back w-full h-full" :style="cardBackStyle"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawn-positions mt-12">
+            <div class="grid gap-4 justify-center" :class="getCardLayoutClass(positions.length)">
+              <div v-for="(_position, index) in positions" :key="index" class="position-slot">
+                <div class="text-center mb-2">
+                  <h3 class="text-base font-bold text-white mb-2">{{ positions[index] }}</h3>
                 </div>
-                <div 
-                  class="tarot-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
-                  :class="{'flipped': cardFlipped[index]}"
-                  @click="flipCard(index)"
-                >
-                  <div class="card-inner relative">
-                    <!-- 牌背面 -->
-                    <div class="card-back absolute inset-0 w-full h-64 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                      <div class="text-white text-3xl">🃏</div>
-                    </div>
-                    
-                    <!-- 牌正面 -->
-                    <div class="card-front absolute inset-0 w-full h-64 bg-white p-4 flex flex-col items-center justify-between transform opacity-0" :class="{'show': cardFlipped[index]}">
-                      <div class="card-name text-center font-bold">{{ card.name }}</div>
-                      <div class="card-image w-24 h-36 bg-gray-100 rounded flex items-center justify-center">
-                        <span class="text-4xl">{{ card.symbol }}</span>
-                      </div>
-                      <div class="card-meaning text-sm text-center text-gray-600">{{ card.meaning }}</div>
-                    </div>
+                <div class="card-slot w-28 h-40 mx-auto rounded-lg border-2 border-dashed border-purple-400/50 flex items-center justify-center" :class="{ 'filled': drawnCards[index] }">
+                  <div v-if="!drawnCards[index]" class="text-purple-400 text-5xl opacity-50">?</div>
+                  <div v-else class="drawn-card-preview w-full h-full bg-gradient-to-br from-purple-800 to-indigo-900 rounded-lg flex flex-col items-center justify-center transform animate-flip-in border border-purple-400/50">
+                    <div class="text-white text-2xl animate-pulse">🌟</div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="mt-8 text-center">
-              <button 
-                @click="resetTarot" 
-                class="bg-gray-100 text-gray-700 py-2 px-4 rounded hover:bg-gray-200 transition"
+          </div>
+          
+          <div v-if="isReadyToReveal" class="text-center mt-8">
+            <button @click="revealCards" class="bg-gradient-to-r from-pink-600 to-red-600 text-white text-xl font-bold py-4 px-12 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mystical-glow">
+              ✨ 揭示命运
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reveal Stage -->
+      <div v-if="currentStage === 'reveal'" class="max-w-6xl mx-auto">
+        <div class="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-purple-500/30 shadow-2xl">
+          <h1 class="text-white text-5xl text-center">🎴 命运解读</h1>
+          <p class="text-white text-center mt-4 mb-6">您的塔罗牌已经揭示，让我们来解读命运的启示...</p>
+          
+          <div v-if="isRevealing" class="mt-8 mb-8">
+            <div class="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 rounded-2xl p-6 border border-purple-400/30">
+              <div class="flex items-center justify-center mb-4">
+                <div class="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mr-3"></div>
+                <h3 class="text-xl font-bold text-white">正在连接星界网络，获取命运启示...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6 text-center" v-if="userQuestion">
+            <div class="inline-block bg-gradient-to-r from-purple-600/30 to-pink-600/30 backdrop-blur-sm rounded-2xl px-6 py-3 border border-purple-400/30">
+              <span class="text-purple-200 text-sm">您的问题：</span>
+              <span class="text-white font-medium ml-2">{{ userQuestion }}</span>
+            </div>
+          </div>
+          
+          <div class="mt-8" v-if="revealedCards.length > 0">
+            <h2 class="text-2xl font-bold text-white text-center mb-6">您抽到的牌</h2>
+            <div class="grid gap-6 justify-center" :class="getCardLayoutClass(revealedCards.length)">
+              <div 
+                v-for="card in revealedCards" 
+                :key="card.name" 
+                class="text-center"
+                @mouseenter="showCardTooltip(card, $event)" 
+                @mouseleave="hideTooltip"
               >
-                重新占卜
-              </button>
+                <div class="position-title-header mb-3 text-center">
+                  <div class="inline-block bg-gradient-to-r from-purple-600/80 to-indigo-600/80 backdrop-blur-sm rounded-full px-4 py-2 border border-purple-400/40">
+                    <span class="text-white font-bold text-sm">{{ card.position }}</span>
+                  </div>
+                </div>
+                <div class="tarot-card-container relative" :class="[ card.category === 'major' ? 'major-arcana' : 'minor-arcana' ]">
+                  <img :src="card.imageUrl" :alt="card.name" class="tarot-card-image w-full object-cover rounded-lg" @error="handleImageError"/>
+                  <div class="card-info p-2 text-center">
+                    <div class="text-purple-200 mb-1 font-semibold">{{ card.name }}</div>
+                    <div class="text-xs text-purple-300 cursor-help hover:text-purple-100 transition-colors duration-200">📖 详细解读</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-12 space-y-6" v-if="mainInterpretation.length > 0">
+            <div 
+              v-for="(section, index) in mainInterpretation" 
+              :key="index"
+              class="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 backdrop-blur-sm rounded-2xl p-6 border border-indigo-400/30 shadow-xl"
+            >
+              <h3 class="text-2xl font-bold text-yellow-300 mb-4 font-serif flex items-center gap-3">
+                <span class="text-3xl">{{ section.icon }}</span>
+                <span>{{ section.title }}</span>
+              </h3>
+              <p
+                class="text-lg text-gray-200 leading-relaxed"
+                style="white-space: pre-wrap;"
+              >
+                {{ section.content }}
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
+    
+    <div
+      ref="tooltipRef"
+      class="fixed top-0 left-0 z-50 p-4 bg-gray-900 bg-opacity-90 border border-yellow-400/50 text-white rounded-lg shadow-lg max-w-sm transition-opacity duration-200"
+      :style="tooltipStyle"
+      v-show="isTooltipVisible"
+      style="white-space: pre-wrap;"
+    >
+      <p class="text-base leading-relaxed">{{ tooltipContent }}</p>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { tarotCards, type TarotCard } from '../utils/tarotData';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { storyTarotDeck, type StoryTarotCard } from '../utils/storyTarotData';
+import { classicSpreads, type TarotSpread, type TarotPosition } from '../utils/tarotInterpretation';
+import { LLMService, type InterpretationSection } from '../../../services/LLMService';
+import kabeiImage from '../../../assets/kabei.jpg';
 
-const started = ref(false);
-const cardsDrawn = ref(false);
-const drawnCards = ref<TarotCard[]>([]);
-const cardFlipped = ref([false, false, false]);
+const cardBackStyle = { backgroundImage: `url(${kabeiImage})` };
 
-function startTarot() {
-  started.value = true;
+interface RevealedCard extends StoryTarotCard {
+  position: string;
+  interpretation?: string;
 }
 
-function drawCards() {
-  // 随机抽取3张牌
-  const shuffled = [...tarotCards].sort(() => 0.5 - Math.random());
-  drawnCards.value = shuffled.slice(0, 3);
-  cardsDrawn.value = true;
+type Stage = 'intro' | 'spreadSelection' | 'shuffling' | 'drawing' | 'reveal';
+
+const currentStage = ref<Stage>('intro');
+const selectedSpread = ref<TarotSpread | null>(null);
+const userQuestion = ref('');
+const positions = ref<string[]>([]);
+const drawnCards = ref<StoryTarotCard[]>([]);
+const revealedCards = ref<RevealedCard[]>([]);
+const deck = ref<StoryTarotCard[]>([]);
+const displayedDeck = ref<{id: number, drawn: boolean}[]>([]);
+
+const mainInterpretation = ref<InterpretationSection[]>([]);
+const isRevealing = ref(false);
+
+const barrageArea = ref<HTMLElement | null>(null);
+const questionInput = ref<HTMLTextAreaElement | null>(null);
+
+const isReadyToReveal = computed(() => selectedSpread.value && drawnCards.value.length === selectedSpread.value.positions.length);
+
+function goToSpreadSelection() { currentStage.value = 'spreadSelection'; }
+function goBackToIntro() { currentStage.value = 'intro'; }
+
+function selectSpread(spread: TarotSpread) {
+  selectedSpread.value = spread;
+  positions.value = spread.positions.map((p: TarotPosition) => p.chineseName);
 }
 
-function flipCard(index: number) {
-  cardFlipped.value[index] = !cardFlipped.value[index];
+function getSpreadIcon(spreadName: string): string {
+  const icons: Record<string, string> = { 'Three Card Spread': '🔮', 'Love Pyramid Spread': '💕', 'Decision Making Spread': '⚖️' };
+  return icons[spreadName] || '🎴';
 }
 
-function resetTarot() {
-  cardsDrawn.value = false;
-  drawnCards.value = [];
-  cardFlipped.value = [false, false, false];
+function startReading() {
+  if (!selectedSpread.value) return;
+  currentStage.value = 'shuffling';
+  setTimeout(() => {
+    currentStage.value = 'drawing';
+    setupDeckForDrawing();
+  }, 2500);
 }
+
+function shuffleAndDeal() {
+  deck.value = [...storyTarotDeck].sort(() => Math.random() - 0.5);
+}
+
+function setupDeckForDrawing() {
+  // Show 22 cards to give a "full deck" feel for drawing
+  displayedDeck.value = Array.from({ length: 22 }, (_, i) => ({ id: i, drawn: false }));
+}
+
+function drawCard(deckItem: {id: number, drawn: boolean}, index: number) {
+  if (deckItem.drawn || !selectedSpread.value || drawnCards.value.length >= selectedSpread.value.positions.length) return;
+  
+  const card = deck.value.pop();
+  if (card) {
+    drawnCards.value.push(card);
+    deckItem.drawn = true;
+  }
+}
+
+async function revealCards() {
+  if (!selectedSpread.value) return;
+  currentStage.value = 'reveal';
+  isRevealing.value = true;
+  mainInterpretation.value = [];
+  revealedCards.value = [];
+
+  try {
+    const { mainInterpretation: sections, cards: cardsWithInterpretations } = await LLMService.getTarotInterpretation(
+      drawnCards.value,
+      selectedSpread.value,
+      userQuestion.value
+    );
+
+    mainInterpretation.value = sections;
+    
+    // The cards from the service now have all the data we need
+    revealedCards.value = cardsWithInterpretations;
+
+  } catch (error) {
+    console.error("Failed to get tarot interpretation:", error);
+    mainInterpretation.value = [{
+      icon: '⚠️',
+      title: '解读生成失败',
+      content: `抱歉，在为您生成解读时遇到问题。请检查您的网络连接或稍后再试。\n\n错误信息: ${(error as Error).message}`
+    }];
+  } finally {
+    isRevealing.value = false;
+  }
+}
+
+// Tooltip State & Logic
+const tooltipRef = ref<HTMLElement | null>(null);
+const isTooltipVisible = ref(false);
+const tooltipContent = ref('');
+const tooltipStyle = ref<any>({});
+
+const showCardTooltip = (card: RevealedCard, event: MouseEvent) => {
+  if (card.interpretation) {
+    tooltipContent.value = card.interpretation;
+    const cardElement = event.currentTarget as HTMLElement;
+    const rect = cardElement.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    tooltipStyle.value = {
+      display: 'block',
+      top: `${rect.top + scrollTop - 15}px`, // Move up a bit more
+      left: `${rect.left + scrollLeft + rect.width / 2}px`,
+      transform: 'translate(-50%, -100%)',
+      pointerEvents: 'none', // Prevent tooltip from interfering with mouse events
+    };
+    isTooltipVisible.value = true;
+  }
+};
+
+const hideTooltip = () => {
+  isTooltipVisible.value = false;
+};
+
+const getDeckCardStyle = (index: number, total: number) => {
+  const arc = 120; // Fan out over 120 degrees
+  const radius = 400; // The radius of the fan
+  const angleRad = ((index / (total - 1)) - 0.5) * (arc * Math.PI / 180);
+  
+  const x = radius * Math.sin(angleRad);
+  const y = radius * Math.cos(angleRad) - radius + 50; // Adjust to pull the arc up
+
+  return {
+    transform: `translateX(${x}px) translateY(${y}px) rotate(${angleRad * 180 / Math.PI}deg)`,
+    transformOrigin: '50% 100%',
+  };
+};
+
+const getCardLayoutClass = (count: number) => {
+  if (count <= 3) return 'grid-cols-1 md:grid-cols-3';
+  if (count === 4) return 'grid-cols-2 md:grid-cols-4';
+  if (count <= 6) return 'grid-cols-3 md:grid-cols-3';
+  return 'grid-cols-4';
+};
+const handleImageError = (event: Event) => { (event.target as HTMLImageElement).src = kabeiImage; };
+const getFloatingCardStyle = (n: number) => ({ left: `${Math.random()*100}%`, top: `${Math.random()*100}%`, transform: `rotate(${Math.random()*360}deg) scale(${0.5+Math.random()*0.5})`, animation: `float ${5+Math.random()*10}s ease-in-out infinite alternate`, animationDelay: `${Math.random()*5}s` });
+
+// --- Barrage System ---
+interface BarrageItem {
+  el: HTMLDivElement; text: string; x: number; width: number; speed: number; row: number; paused: boolean; likes: number;
+}
+const barrageItems = ref<BarrageItem[]>([]);
+const BARRAGE_ROWS = 4;
+const ROW_HEIGHT = 40;
+interface BarrageRowState { lastItemExitTime: number; }
+const rowStates = ref<BarrageRowState[]>(Array.from({ length: BARRAGE_ROWS }, () => ({ lastItemExitTime: 0 })));
+let barrageAnimationId: number;
+
+function initBarrage() {
+  if (!barrageArea.value) return;
+  const suggestions = [
+    { text: '我的事业发展如何？', likes: 12 }, { text: '我的感情运势怎样？', likes: 25 }, { text: '近期财运如何？', likes: 8 },
+    { text: '我该如何面对当前的困境？', likes: 15 }, { text: '未来三个月会有什么新机会？', likes: 5 }, { text: '我与TA的关系会如何发展？', likes: 18 },
+  ];
+  
+  const add = () => {
+    const currentTexts = new Set(barrageItems.value.map(item => item.text));
+    const availableSuggestions = suggestions.filter(s => !currentTexts.has(s.text));
+    if (availableSuggestions.length > 0) {
+      const suggestion = availableSuggestions[Math.floor(Math.random() * availableSuggestions.length)];
+      addBarrageItem(suggestion);
+    }
+    setTimeout(add, 2000 + Math.random() * 2500);
+  }
+
+  add();
+  animateBarrage();
+}
+
+function addBarrageItem(suggestion: {text: string, likes: number}) {
+  if (!barrageArea.value) return;
+  const containerWidth = barrageArea.value.offsetWidth;
+  let bestRow = -1;
+  let earliestExitTime = Infinity;
+  for (let i = 0; i < BARRAGE_ROWS; i++) {
+    if (performance.now() > rowStates.value[i].lastItemExitTime) {
+      bestRow = i; break;
+    }
+    if (rowStates.value[i].lastItemExitTime < earliestExitTime) {
+      earliestExitTime = rowStates.value[i].lastItemExitTime;
+      bestRow = i;
+    }
+  }
+
+  const el = document.createElement('div');
+  el.className = 'barrage-item absolute whitespace-nowrap cursor-pointer transition-all duration-200 select-none flex items-center gap-3';
+  el.style.top = `${bestRow * ROW_HEIGHT}px`;
+  el.style.transform = `translateX(${containerWidth}px)`;
+  const textSpan = document.createElement('span');
+  textSpan.textContent = suggestion.text;
+  textSpan.className = 'barrage-text flex-1 text-white';
+  const likeButton = document.createElement('button');
+  likeButton.className = 'like-button flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-200 hover:bg-red-500/20';
+  likeButton.innerHTML = `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg><span class="text-xs font-medium text-white">${suggestion.likes}</span>`;
+  el.appendChild(textSpan);
+  el.appendChild(likeButton);
+  barrageArea.value.appendChild(el);
+  const speed = Math.random() * 20 + 40;
+  const width = el.offsetWidth;
+  const item: BarrageItem = { el, text: suggestion.text, x: containerWidth, width, speed, row: bestRow, paused: false, likes: suggestion.likes };
+  const duration = (containerWidth + width) / speed * 1000;
+  rowStates.value[bestRow].lastItemExitTime = performance.now() + duration / 2;
+  el.addEventListener('click', () => userQuestion.value = item.text);
+  el.addEventListener('mouseenter', () => { item.paused = true; el.style.zIndex = '100'; });
+  el.addEventListener('mouseleave', () => { item.paused = false; el.style.zIndex = 'auto'; });
+  likeButton.addEventListener('click', e => {
+      e.stopPropagation();
+      item.likes++;
+      likeButton.innerHTML = `<svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg><span class="text-xs font-medium text-red-500">${item.likes}</span>`;
+  });
+  barrageItems.value.push(item);
+}
+
+function animateBarrage() {
+  let lastTime = 0;
+  const animate = (currentTime: number) => {
+    if (!lastTime) lastTime = currentTime;
+    const deltaTime = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+    for (let i = barrageItems.value.length - 1; i >= 0; i--) {
+      const item = barrageItems.value[i];
+      if (!item.paused) {
+        item.x -= item.speed * deltaTime;
+      }
+      if (item.x + item.width < 0) {
+        item.el.remove();
+        barrageItems.value.splice(i, 1);
+      } else {
+        const scale = item.paused ? 1.05 : 1;
+        item.el.style.transform = `translateX(${item.x}px) scale(${scale})`;
+      }
+    }
+    barrageAnimationId = requestAnimationFrame(animate);
+  }
+  animate(performance.now());
+}
+
+onMounted(() => {
+  initBarrage();
+  shuffleAndDeal();
+});
+
+onUnmounted(() => {
+  cancelAnimationFrame(barrageAnimationId);
+});
 </script>
 
 <style scoped>
-.tarot-deck {
-  transform-style: preserve-3d;
-  transition: all 0.3s ease;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+.tarot-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  overflow-x: hidden;
 }
-
-.tarot-card {
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.mystical-glow {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 12px rgba(192, 132, 252, 0.6), 0 0 20px rgba(192, 132, 252, 0.4);
 }
-
-.tarot-card.flipped {
-  transform: rotateY(180deg);
+.stars-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.stars { position: absolute; color: #fff; opacity: 0.7; animation: twinkle 3s infinite ease-in-out; }
+@keyframes twinkle {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
 }
-
-.card-inner {
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
+.spread-card > div { transition: transform 0.5s, box-shadow 0.5s; }
+.spread-card.selected > div {
+  border-color: rgba(233, 30, 99, 0.8);
+  box-shadow: 0 0 20px rgba(233, 30, 99, 0.7);
+  transform: scale(1.02);
 }
-
-.card-back, .card-front {
-  backface-visibility: hidden;
-  transition: all 0.8s ease;
+@keyframes float {
+  from { transform: translateY(0px) rotate(var(--r-from, 0deg)); }
+  to { transform: translateY(-20px) rotate(var(--r-to, 10deg)); }
 }
-
-.card-front {
-  transform: rotateY(180deg);
+.floating-card {
+  --r-from: -10deg; --r-to: 10deg; animation: float 6s ease-in-out infinite alternate;
 }
-
-.card-front.show {
-  opacity: 1;
+.floating-card:nth-child(odd) {
+  --r-from: 10deg; --r-to: -10deg; animation-duration: 8s;
 }
-</style> 
+.floating-card-back {
+  width: 80px; height: 120px;
+  background-size: cover; border-radius: 8px; border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+.mystical-progress-bar {
+  height: 10px; background: rgba(168, 85, 247, 0.2); border-radius: 5px;
+  overflow: hidden; border: 1px solid rgba(168, 85, 247, 0.4);
+  animation: progress-animation 2.5s linear infinite;
+  background: linear-gradient(90deg, #a855f7, #ec4899, #f97316, #ec4899, #a855f7);
+  background-size: 300% 100%;
+}
+@keyframes progress-animation {
+  0% { background-position: 150% 50%; }
+  100% { background-position: -50% 50%; }
+}
+.card-back { background-size: cover; background-position: center; }
+.deck-card {
+  transition: transform 0.5s ease-in-out, opacity 0.5s;
+}
+.deck-card.drawn { opacity: 0.2; pointer-events: none; transform: translateY(20px) scale(0.9) !important; }
+@keyframes flip-in {
+  from { transform: rotateY(90deg) scale(0.8); }
+  to { transform: rotateY(0deg) scale(1); }
+}
+.animate-flip-in { animation: flip-in 0.5s ease-out forwards; }
+.tarot-card-container {
+  padding: 0.5rem; border-radius: 1rem; background: rgba(0, 0, 0, 0.2);
+  border: 1px solid; transition: all 0.3s ease;
+}
+.major-arcana { border-color: rgba(250, 204, 21, 0.5); }
+.minor-arcana { border-color: rgba(168, 85, 247, 0.4); }
+.tarot-card-image { transition: transform 0.3s ease; border-radius: 0.75rem; }
+.tarot-card-container:hover .tarot-card-image { transform: scale(1.05); }
+.barrage-item {
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 20px;
+  border: 1px solid rgba(147,51,234,0.4);
+  text-shadow: 0 0 5px rgba(167, 139, 250, 0.5);
+  transition: background-color 0.3s, transform 0.3s ease;
+}
+.tarot-page .barrage-area .barrage-item,
+.tarot-page .barrage-area .barrage-item * {
+  color: white !important;
+}
+.barrage-item:hover {
+  background-color: rgba(0,0,0,0.5);
+}
+</style>

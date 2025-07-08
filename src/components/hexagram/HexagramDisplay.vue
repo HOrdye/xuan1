@@ -254,7 +254,7 @@ const onLineHover = (lineIndex: number | null) => {
 // 获取爻位标题
 const getYaoTitle = (lineIndex: number): string => {
   const positions = ['初', '二', '三', '四', '五', '上'];
-  const types = ['六', '九'];
+  // const types = ['六', '九']; // 未使用，注释掉
   
   if (lineIndex < 0 || lineIndex >= 6) return '';
   

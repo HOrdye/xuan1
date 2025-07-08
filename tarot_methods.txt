@@ -1,0 +1,200 @@
+/**
+ * 构建塔罗牌解读提示词
+ */
+private static buildTarotPrompt(
+  cards: StoryTarotCard[],
+  spread: TarotSpread,
+  question: string
+): string {
+  const cardsInfo = cards.map((card, index) => {
+    const position = spread.positions[index];
+    return `位置${index + 1}(${position.name}): ${card.name} - ${card.meaning}${card.reverseReading ? ` (逆位含义: ${card.reverseReading})` : ''}`;
+  }).join('\n');
+
+  return `你是一名资深专业的塔罗牌占卜师，拥有20年以上的丰富经验。请根据以下信息为用户提供深度的塔罗牌解读：
+
+**用户问题**: ${question || '寻求人生指导'}
+
+**牌阵信息**: ${spread.name} - ${spread.description}
+
+**抽中的牌**:
+${cardsInfo}
+
+请提供一个结构化的解读，以JSON格式返回，包含以下内容：
+
+{
+  "overallInterpretation": {
+    "title": "整体解读",
+    "content": "综合分析所有卡牌的整体含义，给出深度洞察"
+  },
+  "cardInterpretations": [
+    {
+      "position": "位置名称",
+      "cardName": "卡牌名称",
+      "interpretation": "该位置上这张卡牌的详细解读"
+    }
+  ],
+  "guidance": {
+    "title": "指导建议",
+    "content": "基于解读结果，给出具体可行的生活建议"
+  },
+  "summary": {
+    "title": "核心要点",
+    "content": "总结最重要的启示和要点"
+  }
+}
+
+解读要求：
+1. 深度专业，体现塔罗占卜师的专业水准
+2. 结合用户问题，给出针对性的解读
+3. 语言温暖有力量，给人希望和指导
+4. 每张卡牌解读要结合其在牌阵中的位置含义
+5. 整体解读要有逻辑性和连贯性`;
+}
+
+/**
+ * 获取本地塔罗牌解读（备用方案）
+ */
+private static getLocalTarotInterpretation(
+  cards: StoryTarotCard[],
+  spread: TarotSpread,
+  question: string
+): StructuredTarotInterpretation {
+  console.log('🏠 使用本地塔罗解读');
+
+  const cardInterpretations = cards.map((card, index) => {
+    const position = spread.positions[index];
+    const baseInterpretation = card.storyReading || card.meaning;
+    
+    return {
+      position: position.name,
+      cardName: card.name,
+      interpretation: `在"${position.name}"位置上，${card.name}暗示${baseInterpretation}。这张牌的能量提醒您要${this.generateCardAdvice(card)}。`
+    };
+  });
+
+  const overallThemes = cards.map(card => card.keywords || card.name).join('、');
+  const overallInterpretation = {
+    title: '整体能量解读',
+    content: `通过${spread.name}，我们看到您当前的能量场围绕着${overallThemes}等主题展开。${this.generateOverallGuidance(cards, question)}`
+  };
+
+  const guidance = {
+    title: '智慧指引',
+    content: this.generateTarotGuidance(cards, question)
+  };
+
+  const summary = {
+    title: '核心启示',
+    content: `${spread.name}为您揭示的核心信息是：${this.generateCoreSummary(cards)}。相信自己的直觉，按照内心的指引前行。`
+  };
+
+  return {
+    overallInterpretation,
+    cardInterpretations,
+    guidance,
+    summary
+  };
+}
+
+/**
+ * 将普通文本转换为结构化解读格式
+ */
+private static convertToStructuredInterpretation(
+  content: string,
+  cards: StoryTarotCard[],
+  spread: TarotSpread
+): StructuredTarotInterpretation {
+  const sections = content.split('\n\n');
+  
+  return {
+    overallInterpretation: {
+      title: '整体解读',
+      content: sections[0] || content.substring(0, 300)
+    },
+    cardInterpretations: cards.map((card, index) => ({
+      position: spread.positions[index]?.name || `位置${index + 1}`,
+      cardName: card.name,
+      interpretation: sections[index + 1] || `${card.name}在此位置带来${card.meaning}的能量。`
+    })),
+    guidance: {
+      title: '指导建议',
+      content: sections[sections.length - 2] || '请按照内心的直觉，相信自己的判断。'
+    },
+    summary: {
+      title: '核心启示',
+      content: sections[sections.length - 1] || '保持开放的心态，迎接生活的转变。'
+    }
+  };
+}
+
+/**
+ * 生成单张卡牌建议
+ */
+private static generateCardAdvice(card: StoryTarotCard): string {
+  const adviceMap: {[key: string]: string} = {
+    '愚者': '保持初心，勇敢踏出第一步',
+    '魔术师': '发挥个人才能，主动创造机会',
+    '女祭司': '倾听内心的声音，相信直觉',
+    '皇后': '展现母性的关怀，滋养身边的人',
+    '皇帝': '承担责任，以稳重的态度面对挑战',
+    '教皇': '寻求智慧的指导，遵循传统价值',
+    '恋人': '做出重要的选择，诚实面对内心',
+    '战车': '集中意志力，勇敢向前进',
+    '力量': '用内在的力量克服困难',
+    '隐者': '内省反思，寻找内在的答案',
+    '命运之轮': '接受变化，适应新的环境',
+    '正义': '公正公平，承担行为的后果',
+    '倒吊人': '换个角度思考，学会放下',
+    '死神': '接受结束，为新的开始做准备',
+    '节制': '保持平衡，以中庸之道行事',
+    '恶魔': '认清诱惑，获得内在的自由',
+    '塔': '突破旧有的框架，重建新的基础',
+    '星星': '保持希望，相信美好的未来',
+    '月亮': '面对内心的恐惧，探索潜意识',
+    '太阳': '保持乐观积极，散发正能量',
+    '审判': '反思过去，为重生做准备',
+    '世界': '完成重要的阶段，庆祝成就'
+  };
+
+  return adviceMap[card.name] || '跟随心中的指引，做真实的自己';
+}
+
+/**
+ * 生成整体指导
+ */
+private static generateOverallGuidance(cards: StoryTarotCard[], question: string): string {
+  const themes = cards.map(card => card.keywords || '成长').join('、');
+  const questionContext = question ? `针对您关于"${question}"的疑问，` : '';
+  
+  return `${questionContext}卡牌显示您正处在一个关于${themes}的重要时期。这个阶段需要您保持耐心和智慧，相信生活的安排都有其深层的意义。`;
+}
+
+/**
+ * 生成塔罗指导建议
+ */
+private static generateTarotGuidance(cards: StoryTarotCard[], question: string): string {
+  const cardCount = cards.length;
+  const firstCard = cards[0];
+  const lastCard = cards[cards.length - 1];
+  
+  let guidance = `通过这${cardCount}张牌，塔罗为您带来以下指引：\n\n`;
+  
+  guidance += `1. **当前状态**: ${firstCard.name}显示您现在${firstCard.meaning}，这是您的起点。\n`;
+  
+  if (cardCount > 1) {
+    guidance += `2. **发展方向**: ${lastCard.name}指向${lastCard.meaning}，这是您的目标方向。\n`;
+  }
+  
+  guidance += `\n建议您：保持开放的心态，相信内在的智慧，每一个挑战都是成长的机会。`;
+  
+  return guidance;
+}
+
+/**
+ * 生成核心总结
+ */
+private static generateCoreSummary(cards: StoryTarotCard[]): string {
+  const mainThemes = cards.slice(0, 2).map(card => card.keywords || card.name).join('与');
+  return `${mainThemes}的能量将指引您走向更高的智慧和成长`;
+} 
