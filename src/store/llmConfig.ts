@@ -4,8 +4,11 @@ import { LLMService, type LLMConfig } from '../services/LLMService'
 export interface LLMConfigState {
   config: LLMConfig
   isConfigured: boolean
+  isModalOpen: boolean
+  validationStatus: 'idle' | 'loading' | 'success' | 'error';
+  validationError: string | null;
   lastUpdated: Date | null
-  isLoading: boolean
+  isLoading: boolean // For saving operation
   error: string | null
 }
 
@@ -13,6 +16,9 @@ export const useLLMConfigStore = defineStore('llmConfig', {
   state: (): LLMConfigState => ({
     config: LLMService.getConfig(),
     isConfigured: false,
+    isModalOpen: false,
+    validationStatus: 'idle',
+    validationError: null,
     lastUpdated: null,
     isLoading: false,
     error: null
@@ -21,64 +27,74 @@ export const useLLMConfigStore = defineStore('llmConfig', {
   getters: {
     hasApiKey: (state) => !!state.config.apiKey,
     providerName: (state) => state.config.provider,
-    canUseAI: (state) => {
-      return !!(state.config.apiKey && state.config.provider)
-    },
+    canUseAI: (state) => !!(state.config.apiKey && state.config.provider),
     configStatus: (state) => {
       if (state.isLoading) return 'loading'
       if (state.error) return 'error'
-      if (state.config.apiKey && state.config.provider) return 'configured'
+      if (state.isConfigured) return 'configured'
       return 'unconfigured'
     }
   },
   
   actions: {
+    openModal() {
+      this.isModalOpen = true;
+    },
+
+    closeModal() {
+      this.isModalOpen = false;
+    },
+
+    resetValidationStatus() {
+      this.validationStatus = 'idle';
+      this.validationError = null;
+    },
+
+    async validateCurrentConfig(configToValidate: LLMConfig) {
+      this.validationStatus = 'loading';
+      this.validationError = null;
+      try {
+        const result = await LLMService.testConnection(configToValidate);
+        if (result.success) {
+          this.validationStatus = 'success';
+        } else {
+          this.validationStatus = 'error';
+          this.validationError = result.error || 'An unknown validation error occurred.';
+        }
+      } catch (error) {
+        this.validationStatus = 'error';
+        this.validationError = error instanceof Error ? error.message : 'A client-side error occurred during validation.';
+      }
+    },
+
     async updateConfig(newConfig: Partial<LLMConfig>) {
       this.isLoading = true
       this.error = null
       
       try {
-        // 更新本地状态
         this.config = { ...this.config, ...newConfig }
         this.lastUpdated = new Date()
-        
-        // 同步到LLMService
         LLMService.setConfig(this.config)
-        
-        // 手动保存到localStorage
         this.saveToStorage()
-        
-        // 简化：直接基于配置完整性设置状态
         this.isConfigured = !!(this.config.apiKey && this.config.provider)
-        
-        // 广播配置更新事件
         this.broadcastConfigUpdate()
         
-        console.log('✅ LLM配置更新成功:', {
+        console.log('✅ LLM config updated and saved.', {
           provider: this.config.provider,
-          hasApiKey: this.hasApiKey,
           isConfigured: this.isConfigured,
-          canUseAI: this.canUseAI
         })
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '配置更新失败'
-        console.error('❌ LLM配置更新失败:', error)
+        this.error = error instanceof Error ? error.message : 'Failed to update config'
+        console.error('❌ LLM config update failed:', error)
       } finally {
         this.isLoading = false
       }
     },
     
-    // 简化验证逻辑，确保与Store状态判断一致
-    async validateConfig(): Promise<boolean> {
-      return !!(this.config.apiKey && this.config.provider)
-    },
-    
     broadcastConfigUpdate() {
-      // 触发全局配置更新事件
       window.dispatchEvent(new CustomEvent('llm-config-updated', {
         detail: { 
           config: this.config, 
-          timestamp: this.lastUpdated,
           isConfigured: this.isConfigured,
           canUseAI: this.canUseAI
         }
@@ -97,8 +113,9 @@ export const useLLMConfigStore = defineStore('llmConfig', {
       this.isConfigured = false
       this.lastUpdated = null
       this.error = null
+      this.validationStatus = 'idle';
+      this.validationError = null;
       
-      // 同步到LLMService
       LLMService.setConfig(this.config)
       this.saveToStorage()
       this.broadcastConfigUpdate()
@@ -113,36 +130,28 @@ export const useLLMConfigStore = defineStore('llmConfig', {
         }
         localStorage.setItem('llm-config-store', JSON.stringify(storeData))
       } catch (error) {
-        console.warn('⚠️ 保存LLM配置到存储失败:', error)
+        console.warn('⚠️ Failed to save LLM config to storage:', error)
       }
     },
     
     async initializeFromStorage() {
       try {
-        // 从localStorage初始化配置
         const savedData = localStorage.getItem('llm-config-store')
         if (savedData) {
           const parsed = JSON.parse(savedData)
           if (parsed.config) {
-            this.config = parsed.config
-            // 重新计算配置状态，确保一致性
-            this.isConfigured = !!(this.config.apiKey && this.config.provider)
-            this.lastUpdated = parsed.lastUpdated ? new Date(parsed.lastUpdated) : null
+            this.config = { ...this.config, ...parsed.config };
+            this.isConfigured = !!(this.config.apiKey && this.config.provider);
+            this.lastUpdated = parsed.lastUpdated ? new Date(parsed.lastUpdated) : null;
             
-            // 同步到LLMService
             LLMService.setConfig(this.config)
             this.broadcastConfigUpdate()
             
-            console.log('🔄 从存储初始化LLM配置:', {
-              provider: this.config.provider,
-              hasApiKey: this.hasApiKey,
-              isConfigured: this.isConfigured,
-              canUseAI: this.canUseAI
-            })
+            console.log('🔄 Initialized LLM config from storage.')
           }
         }
       } catch (error) {
-        console.warn('⚠️ 从存储初始化LLM配置失败:', error)
+        console.warn('⚠️ Failed to initialize LLM config from storage:', error)
       }
     }
   }

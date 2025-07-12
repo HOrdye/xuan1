@@ -14,7 +14,7 @@
               开始体验
             </router-link>
             <button 
-              @click="showConfigModal = true"
+              @click="llmStore.openModal()"
               class="inline-block bg-white bg-opacity-20 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-1 border border-white border-opacity-30"
             >
               🤖 配置AI
@@ -163,17 +163,15 @@
     </div>
   </div>
   
-  <!-- LLM配置模态框 -->
-  <LLMConfigModal 
-    :show="showConfigModal" 
-    @close="showConfigModal = false"
-    @saved="onLLMConfigSaved"
-  />
+  <!-- LLM配置模态框 (已被移除) -->
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import LLMConfigModal from '../components/LLMConfigModal.vue';
+import { useLLMConfigStore } from '../store/llmConfig';
+
+// 使用LLM Store
+const llmStore = useLLMConfigStore();
 
 // 用户评价数据
 const userReviews = ref([
@@ -195,12 +193,7 @@ const userReviews = ref([
 ]);
 
 const showDropdown = ref(false);
-const showConfigModal = ref(false);
 
-function onLLMConfigSaved() {
-  console.log('✅ LLM配置已保存');
-  // 可以在这里添加一些成功提示或重新加载数据的逻辑
-}
 </script>
 
 <style scoped>
