@@ -100,7 +100,7 @@
     </div>
 
     <!-- 分析结果 -->
-    <div v-if="analysisResult" class="bg-white rounded-xl overflow-hidden shadow-md mb-6 transition-all duration-500" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
+    <div v-if="analysisResult" ref="dilemmaResultRef" class="bg-white rounded-xl overflow-hidden shadow-md mb-6 transition-all duration-500" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
       <div class="bg-gradient-to-r from-primary to-mystic p-4 text-white">
         <div class="flex justify-between items-center">
           <h3 class="text-lg font-medium">{{ analysisResult.question }}</h3>
@@ -284,13 +284,25 @@
         
         <!-- 操作按钮 -->
         <div class="flex justify-between items-center text-sm">
-          <div>
+          <div class="flex items-center space-x-4">
+            <SaveButton
+              :item="{ 
+                type: 'divination', 
+                question: `${optionA} vs ${optionB}`, 
+                result: analysisResult
+              }"
+              :title="`玄选两难 - ${analysisResult.question}`"
+              class="text-sm"
+            />
             <button class="text-gray-500 flex items-center">
               <i class="far fa-bookmark mr-1"></i> 收藏
             </button>
           </div>
-          <div class="flex">
-            <button class="text-gray-500 mr-4 flex items-center">
+          <div class="flex items-center space-x-4">
+            <button 
+              @click="isSharePanelOpen = true"
+              class="text-gray-500 flex items-center hover:text-primary transition-colors"
+            >
               <i class="fas fa-share-alt mr-1"></i> 分享
             </button>
             <button @click="resetForm" class="text-primary font-medium flex items-center">
@@ -348,6 +360,18 @@
 
     <!-- 调试面板 (仅开发模式) -->
     <LLMDebugPanel v-if="isDevelopment" />
+
+    <!-- SharePanel -->
+    <SharePanel
+      :is-open="isSharePanelOpen"
+      :target-ref="dilemmaResultRef"
+      :share-data="{
+        title: `玄选两难 - ${analysisResult?.question || ''}`,
+        text: '我在天玄Web进行了玄选两难分析，获得了易经的智慧指引！',
+        hashtags: ['玄选两难', '天玄Web', '易经智慧']
+      }"
+      @close="isSharePanelOpen = false"
+    />
   </div>
 </template>
 
@@ -356,6 +380,8 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { generateHexagram, AnalysisResult } from '../utils/hexagramGenerator';
 import { generateFortuneSeed } from '../utils/fortuneSeed';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
+import SaveButton from '../../../components/common/SaveButton.vue';
+import SharePanel from '../../../components/common/SharePanel.vue';
 import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';
 import { LLMService } from '../../../services/LLMService';
 
@@ -367,6 +393,10 @@ const showError = ref(false);
 const showResult = ref(false);
 const analysisResult = ref<AnalysisResult | null>(null);
 const showDropdown = ref(false);
+
+// 新增：分享功能相关
+const isSharePanelOpen = ref(false);
+const dilemmaResultRef = ref<HTMLElement | null>(null);
 
 // LLM加载状态
 const isGenerating = ref(false);

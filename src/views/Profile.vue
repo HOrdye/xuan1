@@ -14,8 +14,8 @@
             <i class="fas fa-user text-2xl text-primary"></i>
           </div>
           <div>
-            <h2 class="text-xl font-bold">天玄用户</h2>
-            <p class="text-sm opacity-80">注册时间：2024年4月24日</p>
+            <h2 class="text-xl font-bold">{{ userName }}</h2>
+            <p class="text-sm opacity-80">注册时间：{{ registrationDate }}</p>
           </div>
         </div>
       </div>
@@ -23,21 +23,24 @@
       <div class="p-4">
         <div class="grid grid-cols-3 gap-4 mb-4">
           <div class="text-center">
-            <div class="text-lg font-bold text-primary">12</div>
-            <div class="text-xs text-gray-500">决策记录</div>
+            <div class="text-lg font-bold text-primary">{{ userStats.divination_count }}</div>
+            <div class="text-xs text-gray-500">占卜记录</div>
           </div>
           <div class="text-center">
-            <div class="text-lg font-bold text-primary">56</div>
-            <div class="text-xs text-gray-500">运势查询</div>
+            <div class="text-lg font-bold text-primary">{{ userStats.total_count }}</div>
+            <div class="text-xs text-gray-500">总记录</div>
           </div>
           <div class="text-center">
-            <div class="text-lg font-bold text-primary">3</div>
-            <div class="text-xs text-gray-500">收藏卦象</div>
+            <div class="text-lg font-bold text-primary">{{ userStats.favorite_count }}</div>
+            <div class="text-xs text-gray-500">收藏数量</div>
           </div>
         </div>
         
         <div class="flex justify-end">
-          <button class="text-primary text-sm font-medium flex items-center">
+          <button 
+            @click="editProfile"
+            class="text-primary text-sm font-medium flex items-center hover:text-purple-700 transition-colors"
+          >
             编辑资料 <i class="fas fa-chevron-right ml-1 text-xs"></i>
           </button>
         </div>
@@ -51,7 +54,10 @@
       </div>
       
       <div>
-        <router-link to="/hexagram-test" class="flex items-center p-4 border-b">
+        <button 
+          @click="goToHexagramTest"
+          class="flex items-center p-4 border-b w-full text-left hover:bg-gray-50 transition-colors"
+        >
           <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
             <i class="fas fa-cog text-purple-500"></i>
           </div>
@@ -60,9 +66,12 @@
             <div class="text-xs text-gray-500 mt-1">测试和验证六十四卦算法效果</div>
           </div>
           <i class="fas fa-chevron-right text-gray-400"></i>
-        </router-link>
+        </button>
         
-        <div class="flex items-center p-4 border-b">
+        <button 
+          @click="goToHistory"
+          class="flex items-center p-4 border-b w-full text-left hover:bg-gray-50 transition-colors"
+        >
           <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
             <i class="fas fa-history text-blue-500"></i>
           </div>
@@ -71,9 +80,12 @@
             <div class="text-xs text-gray-500 mt-1">查看历史决策和运势查询</div>
           </div>
           <i class="fas fa-chevron-right text-gray-400"></i>
-        </div>
+        </button>
         
-        <div class="flex items-center p-4 border-b">
+        <button 
+          @click="goToFavorites"
+          class="flex items-center p-4 border-b w-full text-left hover:bg-gray-50 transition-colors"
+        >
           <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
             <i class="fas fa-bookmark text-green-500"></i>
           </div>
@@ -82,9 +94,12 @@
             <div class="text-xs text-gray-500 mt-1">查看收藏的卦象和运势</div>
           </div>
           <i class="fas fa-chevron-right text-gray-400"></i>
-        </div>
+        </button>
         
-        <div class="flex items-center p-4">
+        <button 
+          @click="goToNotifications"
+          class="flex items-center p-4 w-full text-left hover:bg-gray-50 transition-colors"
+        >
           <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
             <i class="fas fa-bell text-red-500"></i>
           </div>
@@ -93,7 +108,7 @@
             <div class="text-xs text-gray-500 mt-1">管理消息通知和提醒设置</div>
           </div>
           <i class="fas fa-chevron-right text-gray-400"></i>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -121,7 +136,77 @@
 </template>
 
 <script setup lang="ts">
-// 编写所需的脚本逻辑
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../store/userStore';
+import { UserStatsService, type UserStats } from '../services/userStatsService';
+// import { useUserPreferencesStore } from '../store/userPreferences'; // 暂未使用
+
+const router = useRouter();
+const userStore = useUserStore();
+// const userPreferences = useUserPreferencesStore(); // 暂未使用
+
+// 响应式数据
+const userStats = ref<UserStats>({
+  divination_count: 0,
+  fortune_count: 0,
+  tarot_count: 0,
+  total_count: 0,
+  favorite_count: 0,
+  last_activity: new Date().toISOString()
+});
+
+// 计算属性
+const userName = computed(() => userStore.username || '天玄用户');
+// const userEmail = computed(() => userStore.email || '未设置邮箱'); // 暂未使用
+const registrationDate = computed(() => {
+  if (userStore.currentUser?.created_at) {
+    return new Date(userStore.currentUser.created_at).toLocaleDateString('zh-CN');
+  }
+  return '2024年4月24日';
+});
+
+// 检查用户是否已登录，未登录则重定向
+onMounted(async () => {
+  await userStore.initialize();
+  if (!userStore.isAuthenticated) {
+    router.push('/');
+    return;
+  }
+  
+  // 加载用户统计数据
+  try {
+    const stats = await UserStatsService.getUserStats();
+    userStats.value = stats;
+  } catch (error) {
+    console.error('加载用户统计数据失败:', error);
+  }
+});
+
+// 编辑资料功能
+const editProfile = () => {
+  router.push('/profile/edit');
+};
+
+// 导航到历史记录
+const goToHistory = () => {
+  router.push('/history');
+};
+
+// 导航到六十四卦测试
+const goToHexagramTest = () => {
+  router.push('/dilemma/test');
+};
+
+// 导航到我的收藏
+const goToFavorites = () => {
+  router.push('/favorites');
+};
+
+// 导航到通知设置
+const goToNotifications = () => {
+  router.push('/settings/notifications');
+};
 </script>
 
 <style scoped>

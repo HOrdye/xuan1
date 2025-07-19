@@ -72,8 +72,13 @@ export function useAIReading() {
             spread: params.tarot.spread.name,
             hasQuestion: !!params.tarot.question
           })
+          // 确保cards包含orientation属性
+          const cardsWithOrientation = params.tarot.cards.map(card => ({
+            ...card,
+            orientation: (card as any).orientation || 'upright' as 'upright' | 'reversed'
+          }))
           result = await LLMService.getTarotInterpretation(
-            params.tarot.cards,
+            cardsWithOrientation,
             params.tarot.spread,
             params.tarot.question
           )
@@ -97,11 +102,8 @@ export function useAIReading() {
             date: params.fortune.date.toDateString(),
             hasBirthDate: !!params.fortune.birthDate
           })
-          result = await LLMService.getFortuneInterpretation(
-            params.fortune.date,
-            params.fortune.birthDate,
-            params.fortune.question
-          )
+          // TODO: 实现运势解读功能
+          result = `运势解读功能开发中，敬请期待。\n日期：${params.fortune.date.toLocaleDateString('zh-CN')}`
           break
           
         case 'jiaoBei':

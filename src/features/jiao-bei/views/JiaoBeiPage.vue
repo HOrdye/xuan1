@@ -42,7 +42,7 @@
       </div>
 
       <!-- 结果显示 -->
-      <div v-if="isThrowCompleted" class="space-y-6">
+      <div v-if="isThrowCompleted" ref="jiaobeResultRef" class="mt-8 space-y-6">
         <!-- 投掷结果 -->
         <div class="bg-white rounded-xl p-6 shadow-lg border border-amber-200">
           <h3 class="text-xl font-bold text-amber-800 mb-4 flex items-center">
@@ -96,6 +96,30 @@
           </div>
         </div>
 
+        <!-- Action Buttons -->
+        <div v-if="results.length > 0" class="mt-6 flex justify-center items-center space-x-4">
+          <SaveButton
+            :item="{ 
+              type: 'jiaoBei', 
+              question: question, 
+              result: {
+                results: results,
+                interpretation: interpretation
+              }
+            }"
+            :title="`笅杯占卜结果`"
+          />
+          <button
+            @click="isSharePanelOpen = true"
+            class="relative flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-amber-600 hover:bg-white/20 transition-all"
+            aria-label="分享笅杯结果"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.368a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+            </svg>
+          </button>
+        </div>
+
         <!-- 重新占卜按钮 -->
         <div class="text-center">
           <button
@@ -120,25 +144,41 @@
         </div>
       </div>
     </div>
+
+    <!-- SharePanel -->
+    <SharePanel
+      :is-open="isSharePanelOpen"
+      :target-ref="jiaobeResultRef"
+      :share-data="{
+        title: '笅杯占卜结果',
+        text: '我在天玄Web进行了笅杯占卜，获得了神明的指引！',
+        hashtags: ['笅杯占卜', '天玄Web', '神明指引']
+      }"
+      @close="isSharePanelOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useLLMConfigStore } from '../../store/llmConfig'
-import { useAIReading } from '../../composables/useAIReading'
+import { useLLMConfigStore } from '../../../store/llmConfig'
+import { useAIReading } from '../../../composables/useAIReading'
 import JiaoBeiAnimation from '../components/JiaoBeiAnimation.vue'
+import SaveButton from '../../../components/common/SaveButton.vue'
+import SharePanel from '../../../components/common/SharePanel.vue'
 
 // 全局状态
 const store = useLLMConfigStore()
 const aiReading = useAIReading()
 
 // 组件状态
-const question = ref('')
-const isThrowing = ref(false)
-const isThrowCompleted = ref(false)
 const results = ref<string[]>([])
 const interpretation = ref('')
+const question = ref('请神明指引我的方向') // 默认问题
+const isThrowing = ref(false)
+const isThrowCompleted = ref(false)
+const isSharePanelOpen = ref(false) // 分享面板状态
+const jiaobeResultRef = ref<HTMLElement | null>(null) // 笅杯结果容器引用
 
 // 开始投掷
 const startThrow = () => {

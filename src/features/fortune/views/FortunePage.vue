@@ -272,8 +272,45 @@
           />
         </div>
 
-        <!-- 现代化运势卡片 -->
-        <FortuneCard :fortune="fortune" />
+        <!-- 运势信笺展示 -->
+        <div ref="fortuneCardRef" class="mb-8">
+          <FortuneEnvelope 
+            :recipient-name="recipientName"
+            :envelope-color="envelopeColor"
+            :seal-symbol="sealSymbol"
+            :stamp-text="stampText"
+            :pattern="envelopePattern"
+            @opened="onEnvelopeOpened"
+            @reset="onEnvelopeReset"
+          >
+            <template #content>
+              <FortuneLetterContent :fortune="fortune" />
+            </template>
+          </FortuneEnvelope>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="mt-6 flex justify-center items-center space-x-4">
+          <SaveButton
+            :item="{ type: 'fortune', question: formData.question, result: fortune }"
+            :title="`今日运势 - ${fortune.date}`"
+          />
+          <button
+            @click="isSharePanelOpen = true"
+            class="relative flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
+            aria-label="分享运势结果"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.368a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+            </svg>
+          </button>
+          <button
+            @click="resetForm"
+            class="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+          >
+            重新占卜
+          </button>
+        </div>
       </div>
 
       <!-- 错误提示 -->
@@ -294,17 +331,31 @@
         </div>
       </div>
     </div>
+    <SharePanel
+      :is-open="isSharePanelOpen"
+      :target-ref="fortuneCardRef"
+      :share-data="{
+        title: `今日运势 - ${fortune?.date || ''}`,
+        text: `我在天玄Web获得了今日运势解读！`,
+        hashtags: ['今日运势', '天玄Web', '玄学助手']
+      }"
+      @close="isSharePanelOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue';
 import { useFortune } from '../composables/useFortune';
-import { useLLMConfigStore } from '../../../store/llmConfig';
-import { useAIReading } from '../../../composables/useAIReading';
+import { useUserStore } from '../../../store/userStore';
 import FortuneCard from '../components/FortuneCard.vue';
 import FortuneChallenge from '../components/FortuneChallenge.vue';
+import FortuneEnvelope from '../components/FortuneEnvelope.vue';
+import FortuneLetterContent from '../components/FortuneLetterContent.vue';
+import SaveButton from '../../../components/common/SaveButton.vue';
+import SharePanel from '../../../components/common/SharePanel.vue';
 import type { PersonalizedFortuneData } from '../types/fortune';
+import { LLMService } from '../../../services/LLMService';
 
 interface FortuneRequest {
   birthDate: string;
@@ -332,10 +383,58 @@ const formData = reactive<FortuneRequest>({
   question: ''
 });
 
-const { fortune, loading, error, generate } = useFortune();
+const { fortune, loading, error, generate, reset } = useFortune();
+const userStore = useUserStore();
+
+const fortuneCardRef = ref<HTMLElement | null>(null);
+const isSharePanelOpen = ref(false);
 const showError = ref(false);
 const loadingText = ref('正在分析中...');
-const analysisMode = ref('ai');
+const analysisMode = ref<'ai' | 'quick'>('ai');
+
+// 信笺相关状态
+const isEnvelopeOpened = ref(false);
+
+// 信笺个性化配置
+const recipientName = computed(() => {
+  if (userStore.isAuthenticated && userStore.currentUser) {
+    return userStore.currentUser.user_metadata?.username || '亲爱的朋友';
+  }
+  return '亲爱的朋友';
+});
+
+const envelopeColor = computed(() => {
+  const colors = ['purple', 'blue', 'pink', 'green', 'gold'];
+  const index = new Date().getDate() % colors.length;
+  return colors[index] as 'purple' | 'blue' | 'pink' | 'green' | 'gold';
+});
+
+const sealSymbol = computed(() => {
+  const symbols = ['✨', '🌟', '💫', '⭐', '🔮'];
+  const index = new Date().getHours() % symbols.length;
+  return symbols[index];
+});
+
+const stampText = computed(() => {
+  return `天玄运势 ${new Date().getFullYear()}`;
+});
+
+const envelopePattern = computed(() => {
+  const patterns = ['stars', 'flowers', 'geometric', 'none'];
+  const index = new Date().getDay() % patterns.length;
+  return patterns[index] as 'stars' | 'flowers' | 'geometric' | 'none';
+});
+
+// 信笺事件处理
+const onEnvelopeOpened = () => {
+  isEnvelopeOpened.value = true;
+  console.log('🎉 信笺已拆封');
+};
+
+const onEnvelopeReset = () => {
+  isEnvelopeOpened.value = false;
+  console.log('🔄 信笺已重新封装');
+};
 
 // 检查API配置状态
 const apiConfigStatus = computed(() => {
@@ -348,6 +447,29 @@ const apiConfigStatus = computed(() => {
     isConfigured: hasApiKey
   };
 });
+
+// 从用户资料填充信息
+const fillFromUserProfile = () => {
+  if (userStore.isAuthenticated && userStore.currentUser) {
+    const metadata = userStore.currentUser.user_metadata as any || {};
+    
+    // 填充生日
+    if (metadata.birthday && !formData.birthDate) {
+      formData.birthDate = metadata.birthday;
+      watchBirthDate(); // 自动填充生肖和星座
+    }
+    
+    // 填充性别
+    if (metadata.gender && !formData.gender) {
+      formData.gender = metadata.gender;
+    }
+    
+    console.log('✅ 已从用户资料填充信息:', {
+      birthday: metadata.birthday,
+      gender: metadata.gender
+    });
+  }
+};
 
 // 加载全局LLM配置
 onMounted(() => {
@@ -375,6 +497,9 @@ onMounted(() => {
   } else {
     console.log('📭 未找到全局LLM配置');
   }
+  
+  // 从用户资料填充信息
+  fillFromUserProfile();
 });
 
 // 获取当前日期和星期
@@ -484,7 +609,10 @@ const generateFortune = async () => {
       constellation: {
         name: formData.constellation,
         element: '未知',
-        luckyColor: '未知'
+        luckyColor: '未知',
+        traits: [],
+        characteristics: '',
+        advice: ''
       }
     };
     
@@ -508,11 +636,42 @@ const generateFortune = async () => {
 const handleUnlock = (type: 'challenge' | 'opportunity') => {
   if (!fortune.value) return;
   
+  // 添加解锁成功的反馈
+  const unlockMessage = type === 'challenge' ? '挑战解锁成功！' : '机遇解锁成功！';
+  console.log('🎉', unlockMessage);
+  
+  // 更新解锁状态
   if (type === 'challenge' && fortune.value.dailyChallenge) {
     fortune.value.dailyChallenge.isUnlocked = true;
   } else if (type === 'opportunity' && fortune.value.dailyOpportunity) {
     fortune.value.dailyOpportunity.isUnlocked = true;
   }
+  
+  // 可以在这里添加更多解锁后的逻辑，比如保存到本地存储
+  const unlockData = {
+    type,
+    timestamp: new Date().toISOString(),
+    date: fortune.value.date
+  };
+  
+  // 保存解锁记录到本地存储
+  const existingUnlocks = JSON.parse(localStorage.getItem('fortune-unlocks') || '[]');
+  existingUnlocks.push(unlockData);
+  localStorage.setItem('fortune-unlocks', JSON.stringify(existingUnlocks));
+};
+
+// 重置表单
+const resetForm = () => {
+  formData.birthDate = '';
+  formData.gender = 'male';
+  formData.zodiacSign = '';
+  formData.constellation = '';
+  formData.question = '';
+  showError.value = false;
+  error.value = '';
+  loadingText.value = '正在分析中...';
+  analysisMode.value = 'ai';
+  reset(); // 调用useFortune的reset
 };
 </script>
 

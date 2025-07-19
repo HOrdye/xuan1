@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <g id="sigil" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#a2f4ff">
+    <!-- Outer Rings -->
+    <g id="outer-rings" stroke-width="0.8">
+      <circle cx="100" cy="100" r="95" />
+      <circle cx="100" cy="100" r="92" />
+    </g>
+    
+    <!-- Hexagram - composed of two triangles -->
+    <g id="hexagram" stroke-width="1.5">
+      <!-- Triangle 1 (pointing up) -->
+      <path d="M 100,20 L 169.28,140 L 30.72,140 Z" />
+      <!-- Triangle 2 (pointing down) -->
+      <path d="M 100,180 L 30.72,60 L 169.28,60 Z" />
+    </g>
+
+    <!-- Inner Circle -->
+    <g id="inner-circle" stroke-width="1.2">
+      <circle cx="100" cy="100" r="40" />
+    </g>
+
+    <!-- Decorative Glyphs (simplified representations) -->
+    <g id="glyphs" stroke-width="1" opacity="0.8">
+        <path d="M 100,5 L 100,15" />
+        <path d="M 100,185 L 100,195" />
+        <path d="M 5,100 L 15,100" />
+        <path d="M 185,100 L 195,100" />
+
+        <path d="M 47,47 L 53,53" />
+        <path d="M 153,47 L 147,53" />
+        <path d="M 47,153 L 53,147" />
+        <path d="M 153,153 L 147,147" />
+    </g>
+  </g>
+</svg> 

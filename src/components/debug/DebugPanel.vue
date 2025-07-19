@@ -49,7 +49,7 @@ interface Props {
 }
 
 // 设置默认值
-const _props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   hexagram: null,
   currentImageUrl: '',
   imageLoaded: false,

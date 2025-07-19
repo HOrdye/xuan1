@@ -78,8 +78,7 @@ export function useFortune() {
         birthDate: personalData.birthDate?.toISOString().split('T')[0],
         zodiacSign: personalData.zodiac?.sign,
         question: personalData.question,
-        date: formatDate(today),
-        gender: personalData.gender
+        date: formatDate(today)
       };
 
       // 检查本地缓存

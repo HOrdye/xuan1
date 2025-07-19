@@ -74,6 +74,29 @@ export class LLMService {
   }
   
   static getConfig(): LLMConfig {
+    // 优先从EnvConfigManager获取最新配置，确保配置同步
+    const envConfig = {
+      provider: EnvConfigManager.getEnvVar('VITE_LLM_PROVIDER', this.config.provider) as any,
+      apiKey: EnvConfigManager.getEnvVar('VITE_LLM_API_KEY', this.config.apiKey),
+      baseURL: EnvConfigManager.getEnvVar('VITE_LLM_BASE_URL', this.config.baseURL),
+      model: EnvConfigManager.getEnvVar('VITE_LLM_MODEL', this.config.model),
+      temperature: this.config.temperature,
+      maxTokens: this.config.maxTokens
+    };
+    
+    // 如果环境配置有更新，同步到内部配置
+    if (envConfig.apiKey !== this.config.apiKey || 
+        envConfig.provider !== this.config.provider ||
+        envConfig.baseURL !== this.config.baseURL ||
+        envConfig.model !== this.config.model) {
+      this.config = { ...this.config, ...envConfig };
+      console.log('🔄 LLM配置已从环境同步:', {
+        provider: this.config.provider,
+        hasApiKey: !!this.config.apiKey,
+        model: this.config.model
+      });
+    }
+    
     return { ...this.config };
   }
 
@@ -413,7 +436,8 @@ ${cards.map(card => {
   }
 
   private static async callLLMAPI(prompt: string): Promise<LLMResponse> {
-    const { provider, apiKey, baseURL, model, temperature, maxTokens } = this.config;
+    // 获取最新配置，确保配置同步
+    const { provider, apiKey, baseURL, model, temperature, maxTokens } = this.getConfig();
     if (!apiKey) {
       throw new Error("LLM API key is not configured.");
     }
@@ -493,7 +517,9 @@ ${cards.map(card => {
 
   // --- Hexagram Service (Kept for other functionalities) ---
   static async getHexagramInterpretation(hexagram: Hexagram, question?: string): Promise<string> {
-    if (!this.config.apiKey) {
+    // 获取最新配置，确保配置同步
+    const config = this.getConfig();
+    if (!config.apiKey) {
       return this.getLocalHexagramInterpretation(hexagram, question);
     }
     const prompt = this.buildHexagramPrompt(hexagram, question);
@@ -508,7 +534,73 @@ ${cards.map(card => {
 
   private static buildHexagramPrompt(hexagram: Hexagram, question?: string): string {
     const questionText = question ? `\n\n用户问题: ${question}` : '';
-    return `请为以下易经卦象提供深入的现代解读：\n\n卦名: ${hexagram.name} (${hexagram.chineseName})\n卦象: ${hexagram.symbol}\n卦辞: ${hexagram.judgment}\n现代解读: ${hexagram.modernInterpretation}\n核心含义: ${hexagram.description}${questionText}\n\n请提供深入分析和建议。`;
+    
+    return `你是天玄Web的AI运势分析师，专门为用户提供专业、易懂、实用的运势解读。
+
+**分析任务**: 基于用户信息生成今日运势分析
+
+**用户信息**:
+- 卦象名称: ${hexagram.name} (${hexagram.chineseName})
+- 卦象符号: ${hexagram.symbol}
+- 卦辞: ${hexagram.judgment}
+- 现代解读: ${hexagram.modernInterpretation}
+- 核心含义: ${hexagram.description}${questionText}
+
+**重要提示**: 你必须严格按照以下JSON格式返回，不要包含任何其他文字、解释或markdown符号。
+
+**输出格式**:
+{
+  "overall": {
+    "level": "excellent|good|normal|bad|terrible",
+    "description": "整体运势的简洁描述（20字以内）",
+    "score": 85,
+    "analysis": "整体运势的详细分析（100字以内）"
+  },
+  "career": {
+    "level": "excellent|good|normal|bad|terrible", 
+    "description": "事业运势描述（15字以内）",
+    "score": 80,
+    "analysis": "事业方面的具体建议（80字以内）"
+  },
+  "wealth": {
+    "level": "excellent|good|normal|bad|terrible",
+    "description": "财运描述（15字以内）", 
+    "score": 75,
+    "analysis": "财运方面的具体建议（80字以内）"
+  },
+  "love": {
+    "level": "excellent|good|normal|bad|terrible",
+    "description": "感情运势描述（15字以内）",
+    "score": 90,
+    "analysis": "感情方面的具体建议（80字以内）"
+  },
+  "health": {
+    "level": "excellent|good|normal|bad|terrible",
+    "description": "健康运势描述（15字以内）",
+    "score": 85,
+    "analysis": "健康方面的具体建议（80字以内）"
+  },
+  "luckyElements": {
+    "colors": ["红色", "金色"],
+    "numbers": [6, 8],
+    "direction": "东南"
+  },
+  "dailyAdvice": {
+    "do": ["早起冲杯手冲咖啡，提升今日运势", "整理工位，布置开运小物件"],
+    "dont": ["熬夜爆肝，容易破财又伤身", "剁手冲动消费，钱包会破产"],
+    "special": "今日特别建议：保持积极心态，机会总在下一个路口"
+  },
+  "personalizedInsights": "基于您的具体情况，建议重点关注${question ? '您提到的问题' : '整体运势平衡'}，保持耐心和信心。"
+}
+
+**严格要求**:
+1. 只返回JSON格式，不要包含任何其他文字
+2. 不要使用markdown语法
+3. 不要添加解释或说明
+4. 确保JSON格式完全正确，包含所有必需的字段
+5. 所有字符串必须用双引号包围
+6. 数组和对象必须正确闭合
+7. 不要在JSON前后添加任何字符`;
   }
 }
 

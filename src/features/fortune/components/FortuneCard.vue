@@ -74,41 +74,11 @@
       </div>
 
       <!-- AI个性化分析（新增） -->
-      <div v-if="fortune.aiAnalysis && isAIAnalyzed" class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 mt-6 border border-purple-200">
-        <h3 class="text-lg font-semibold mb-4 text-purple-800 flex items-center">
-          <span class="mr-2">🤖</span>
-          AI深度分析
-        </h3>
-        
-        <!-- 个性化见解 -->
-        <div v-if="fortune.personalizedInsights" class="mb-4">
-          <h4 class="text-md font-medium text-purple-700 mb-2 flex items-center">
-            <span class="mr-2">💡</span>
-            个性化见解
-          </h4>
-          <div class="bg-white rounded-lg p-4 border border-purple-100">
-            <p class="text-gray-700 leading-relaxed">{{ fortune.personalizedInsights }}</p>
-          </div>
-        </div>
-        
-        <!-- 问题解答 -->
-        <div v-if="fortune.questionAnswer" class="mb-4">
-          <h4 class="text-md font-medium text-purple-700 mb-2 flex items-center">
-            <span class="mr-2">💭</span>
-            专属问题解答
-          </h4>
-          <div class="bg-white rounded-lg p-4 border border-purple-100">
-            <p class="text-gray-700 leading-relaxed">{{ fortune.questionAnswer }}</p>
-          </div>
-        </div>
-        
-        <!-- AI来源标识 -->
-        <div class="text-xs text-purple-500 mt-4 text-center">
-          <span class="inline-flex items-center">
-            <span class="mr-1">✨</span>
-            由AI智能分析生成，结合传统命理学与现代心理学
-          </span>
-        </div>
+      <div v-if="fortune?.aiAnalysis && isAIAnalyzed" class="mt-6">
+        <AIAnalysisDisplay 
+          :content="fortune.aiAnalysis || ''" 
+          :is-loading="false"
+        />
       </div>
 
       <!-- 每日建议 -->
@@ -131,6 +101,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { FortuneResult } from '../types/fortune';
+import AIAnalysisDisplay from './AIAnalysisDisplay.vue';
 
 const props = defineProps<{
   fortune: FortuneResult;
@@ -150,7 +121,8 @@ const formattedDate = computed(() => {
 
 // 获取整体运势表情
 const getOverallEmoji = () => {
-  const score = props.fortune.overall.energyScore || 0;
+  if (!props.fortune?.overall?.energyScore) return '⚡';
+  const score = props.fortune.overall.energyScore;
   if (score >= 90) return '🌟';
   if (score >= 80) return '⭐';
   if (score >= 70) return '✨';
@@ -182,11 +154,7 @@ const getAspectEmoji = (key: string) => {
 
 // 检查是否为AI分析结果
 const isAIAnalyzed = computed(() => {
-  return props.fortune.aiAnalysis && (
-    props.fortune.personalizedInsights || 
-    props.fortune.questionAnswer ||
-    (props.fortune.aiAnalysis.includes('AI') || props.fortune.aiAnalysis.includes('{"'))
-  )
+  return props.fortune?.aiAnalysis && props.fortune.aiAnalysis !== '';
 })
 
 // 获取幸运颜色样式

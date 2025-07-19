@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { LLMService, type LLMConfig } from '../services/LLMService'
+import { EnvConfigManager } from '../utils/envConfig'
 
 export interface LLMConfigState {
   config: LLMConfig
@@ -74,7 +75,16 @@ export const useLLMConfigStore = defineStore('llmConfig', {
       try {
         this.config = { ...this.config, ...newConfig }
         this.lastUpdated = new Date()
+        
+        // 同时更新LLMService和EnvConfigManager，确保配置同步
         LLMService.setConfig(this.config)
+        EnvConfigManager.setConfig({
+          VITE_LLM_PROVIDER: this.config.provider,
+          VITE_LLM_API_KEY: this.config.apiKey,
+          VITE_LLM_BASE_URL: this.config.baseURL,
+          VITE_LLM_MODEL: this.config.model
+        })
+        
         this.saveToStorage()
         this.isConfigured = !!(this.config.apiKey && this.config.provider)
         this.broadcastConfigUpdate()
@@ -116,7 +126,9 @@ export const useLLMConfigStore = defineStore('llmConfig', {
       this.validationStatus = 'idle';
       this.validationError = null;
       
+      // 同时清除LLMService和EnvConfigManager的配置
       LLMService.setConfig(this.config)
+      EnvConfigManager.clearConfig()
       this.saveToStorage()
       this.broadcastConfigUpdate()
     },
@@ -144,7 +156,14 @@ export const useLLMConfigStore = defineStore('llmConfig', {
             this.isConfigured = !!(this.config.apiKey && this.config.provider);
             this.lastUpdated = parsed.lastUpdated ? new Date(parsed.lastUpdated) : null;
             
+            // 同时初始化LLMService和EnvConfigManager
             LLMService.setConfig(this.config)
+            EnvConfigManager.setConfig({
+              VITE_LLM_PROVIDER: this.config.provider,
+              VITE_LLM_API_KEY: this.config.apiKey,
+              VITE_LLM_BASE_URL: this.config.baseURL,
+              VITE_LLM_MODEL: this.config.model
+            })
             this.broadcastConfigUpdate()
             
             console.log('🔄 Initialized LLM config from storage.')

@@ -353,7 +353,7 @@
           </div>
             
           <!-- Main Interpretation Sections -->
-          <div class="mt-12 space-y-6" v-if="mainInterpretation.length > 0">
+          <div ref="tarotResultRef" class="mt-12 space-y-6" v-if="mainInterpretation.length > 0">
             <div 
               v-for="(section, index) in mainInterpretation" 
               :key="index"
@@ -376,6 +376,31 @@
               </p>
             </div>
           </div>
+
+          <!-- Action Buttons -->
+          <div class="mt-8 flex justify-center items-center space-x-4">
+            <SaveButton
+              :item="{ 
+                type: 'tarot', 
+                question: question, 
+                result: {
+                  spread: selectedSpread?.name,
+                  cards: revealedCards,
+                  interpretation: mainInterpretation
+                }
+              }"
+              :title="`塔罗占卜 - ${selectedSpread?.name || ''}`"
+            />
+            <button
+              @click="isSharePanelOpen = true"
+              class="relative flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
+              aria-label="分享塔罗结果"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.368a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
           
@@ -388,6 +413,15 @@
       >
         <p class="text-base leading-relaxed">{{ tooltipContent }}</p>
       </div>
+
+      <!-- SharePanel -->
+      <SharePanel
+        :is-open="isSharePanelOpen"
+        :target-ref="tarotResultRef"
+        :share-data="tarotShareData"
+        :revealed-cards="revealedCards"
+        @close="isSharePanelOpen = false"
+      />
     </div>
   </div>
 </template>
@@ -397,6 +431,8 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { storyTarotDeck, type StoryTarotCard } from '../utils/storyTarotData';
 import { classicSpreads, type TarotSpread, type TarotPosition } from '../utils/tarotInterpretation';
 import { LLMService, type InterpretationSection } from '../../../services/LLMService';
+import SaveButton from '../../../components/common/SaveButton.vue';
+import SharePanel from '../../../components/common/SharePanel.vue';
 import anime from 'animejs/lib/anime.es.js';
 import * as THREE from 'three';
 
@@ -475,6 +511,7 @@ type Stage = 'intro' | 'spreadSelection' | 'shuffling' | 'drawing' | 'reveal';
 const currentStage = ref<Stage>('intro');
 const selectedSpread = ref<TarotSpread | null>(null);
 const userQuestion = ref('');
+const question = computed(() => userQuestion.value); // 为了兼容SaveButton组件
 const positions = ref<string[]>([]);
 const drawnCards = ref<StoryTarotCard[]>([]);
 const revealedCards = ref<RevealedCard[]>([]);
@@ -483,11 +520,89 @@ const displayedDeck = ref<{id: number, drawn: boolean}[]>([]);
 
 const mainInterpretation = ref<InterpretationSection[]>([]);
 const isRevealing = ref(false);
+const isSharePanelOpen = ref(false); // 新增：分享面板状态
 
 const barrageArea = ref<HTMLElement | null>(null);
 const questionInput = ref<HTMLTextAreaElement | null>(null);
+const tarotResultRef = ref<HTMLElement | null>(null); // 新增：塔罗结果容器引用
 
 const isReadyToReveal = computed(() => selectedSpread.value && drawnCards.value.length === selectedSpread.value.positions.length);
+
+// 新增：个性化塔罗分享内容生成
+const tarotShareData = computed(() => {
+  if (!selectedSpread.value || revealedCards.value.length === 0) {
+    return {
+      title: `塔罗占卜 - ${selectedSpread.value?.name || ''}`,
+      text: `我在天玄Web进行了塔罗占卜，获得了深刻的启示！`,
+      hashtags: ['塔罗占卜', '天玄Web', '玄学指引']
+    };
+  }
+
+  // 提取卡牌信息
+  const cardNames = revealedCards.value.map(card => {
+    const orientation = card.orientation === 'reversed' ? '逆位' : '正位';
+    return `${card.name}(${orientation})`;
+  }).join('、');
+
+  // 提取核心洞察语句 - 改进逻辑
+  const keyInsights = mainInterpretation.value
+    .filter(section => section.title && section.summary)
+    .map(section => {
+      // 清理和格式化摘要内容
+      let summary = section.summary.replace(/^\s*[•\-\*]\s*/, '').trim();
+      // 确保以句号结尾
+      if (!summary.match(/[。！？]$/)) {
+        summary += '。';
+      }
+      return summary;
+    })
+    .filter(insight => insight.length > 15 && insight.length < 120) // 调整长度范围
+    .slice(0, 2); // 最多取两个核心洞察
+
+  // 提取建设性建议 - 改进正则表达式
+  const constructiveAdvice = mainInterpretation.value
+    .map(section => section.content)
+    .join(' ')
+    .replace(/\n+/g, ' ') // 替换换行符为空格
+    .match(/(?:建议|应该|可以|不妨|值得|推荐|最好|试着|尝试|考虑)[^。！？]*[。！？]/g) // 改进匹配模式
+    ?.filter(advice => advice.length > 10 && advice.length < 80) // 过滤长度
+    ?.slice(0, 1)?.[0] || '';
+
+  // 生成个性化分享文案
+  let shareText = `🔮 塔罗占卜结果分享\n\n`;
+  
+  // 添加问题（如果有）
+  if (userQuestion.value && userQuestion.value.trim()) {
+    const question = userQuestion.value.trim();
+    shareText += `💭 咨询问题：${question}${question.match(/[？?]$/) ? '' : '？'}\n\n`;
+  }
+  
+  // 添加牌阵和卡牌信息
+  shareText += `🎴 ${selectedSpread.value.name}\n`;
+  shareText += `✨ 抽到的卡牌：${cardNames}\n\n`;
+  
+  // 添加核心洞察
+  if (keyInsights.length > 0) {
+    shareText += `🌟 核心洞察：\n`;
+    keyInsights.forEach(insight => {
+      shareText += `• ${insight}\n`;
+    });
+    shareText += `\n`;
+  }
+  
+  // 添加建设性建议
+  if (constructiveAdvice) {
+    shareText += `💡 指导建议：${constructiveAdvice}\n\n`;
+  }
+  
+  shareText += `通过天玄Web获得了深刻的塔罗指引，感谢宇宙的智慧！✨`;
+
+  return {
+    title: `塔罗占卜 - ${selectedSpread.value.name}`,
+    text: shareText,
+    hashtags: ['塔罗占卜', '天玄Web', '玄学指引', '塔罗解读', '心灵成长']
+  };
+});
 
 function goToSpreadSelection() { currentStage.value = 'spreadSelection'; }
 function goBackToIntro() { currentStage.value = 'intro'; }
@@ -567,11 +682,13 @@ function initCelestialAnimation() {
       canvas: threeCanvasRef.value, 
       antialias: true, 
       alpha: true,
-      premultipliedAlpha: false
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true
     });
     threeRenderer.setSize(width, height);
     threeRenderer.setPixelRatio(window.devicePixelRatio);
     threeRenderer.setClearColor(0x000000, 0);
+    threeRenderer.autoClear = true;
 
     // --- 质感修复：忠实复刻预览图 ---
 
@@ -718,6 +835,10 @@ function startCelestialTimeline() {
 // [新增] 3D场景渲染循环
 function animateCelestialScene() {
   if (!threeScene || !threeCamera || !threeRenderer) return;
+
+  // 确保渲染器状态正确 - 完全透明背景
+  threeRenderer.setClearColor(0x000000, 0);
+  threeRenderer.clear(true, true, false);
 
   // 更新放射状流星位置
   if (threeShootingStars) {
@@ -869,17 +990,31 @@ const showCardTooltip = (card: RevealedCard, event: MouseEvent) => {
 
     let top = cardRect.top - containerRect.top + cardRect.height + 10;
     let left = cardRect.left - containerRect.left + cardRect.width / 2;
+    let transform = 'translateX(-50%)';
 
     // Check if tooltip would go off-screen vertically
     if (top + tooltipEl.offsetHeight > containerRect.height) {
       top = cardRect.top - containerRect.top - tooltipEl.offsetHeight - 10;
     }
 
+    // Check if tooltip would go off-screen horizontally (right side)
+    const tooltipHalfWidth = tooltipEl.offsetWidth / 2;
+    if (left + tooltipHalfWidth > containerRect.width) {
+      left = containerRect.width - tooltipEl.offsetWidth - 10;
+      transform = 'translateX(0)';
+    }
+    
+    // Check if tooltip would go off-screen horizontally (left side)
+    if (left - tooltipHalfWidth < 0) {
+      left = 10;
+      transform = 'translateX(0)';
+    }
+
     tooltipStyle.value = {
       position: 'absolute',
       top: `${top}px`,
       left: `${left}px`,
-      transform: 'translateX(-50%)'
+      transform: transform
     };
   });
 };
@@ -1107,6 +1242,9 @@ function createGlowTexture() {
   const context = canvas.getContext('2d');
   
   if (context) {
+    // 确保canvas背景透明
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    
     const gradient = context.createRadialGradient(
       canvas.width / 2,
       canvas.height / 2,
@@ -1124,7 +1262,10 @@ function createGlowTexture() {
     context.fillRect(0, 0, canvas.width, canvas.height);
   }
   
-  return new THREE.CanvasTexture(canvas);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  texture.flipY = false; // 防止纹理翻转造成的显示问题
+  return texture;
 }
 
 function createSunTexture() {
@@ -1818,6 +1959,12 @@ html {
   width: 100%;
   height: 100%;
   z-index: 1;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  opacity: 1;
+  mix-blend-mode: normal;
 }
 
 .revelation-content {

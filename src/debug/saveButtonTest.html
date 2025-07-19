@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaveButton Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #4f46e5;
+        }
+        
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        
+        .error {
+            color: #ff6b6b;
+        }
+        
+        .success {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <h1>SaveButton 功能测试</h1>
+    
+    <div class="test-section">
+        <h2>LocalStorage 测试</h2>
+        <button onclick="testLocalStorage()">测试 LocalStorage 基本功能</button>
+        <button onclick="clearLocalStorage()">清空 LocalStorage</button>
+        <div id="localStorage-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>HistoryService 测试</h2>
+        <button onclick="testHistoryService()">测试 HistoryService</button>
+        <button onclick="testAddItem()">添加测试项目</button>
+        <button onclick="testGetHistory()">获取历史记录</button>
+        <div id="historyService-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>数据模拟</h2>
+        <button onclick="createTestTarotData()">创建测试塔罗数据</button>
+        <div id="tarotData-result" class="result"></div>
+    </div>
+
+    <script>
+        // 模拟 historyService 的核心功能
+        const HISTORY_STORAGE_KEY = 'tianxuan_history';
+        
+        function testLocalStorage() {
+            const result = document.getElementById('localStorage-result');
+            try {
+                // 测试基本读写
+                const testData = { test: 'value', timestamp: Date.now() };
+                localStorage.setItem('test_key', JSON.stringify(testData));
+                const retrieved = JSON.parse(localStorage.getItem('test_key'));
+                
+                if (retrieved.test === 'value') {
+                    result.innerHTML = '<span class="success">✅ LocalStorage 基本功能正常</span>\n';
+                    result.innerHTML += `存储数据: ${JSON.stringify(testData)}\n`;
+                    result.innerHTML += `读取数据: ${JSON.stringify(retrieved)}`;
+                } else {
+                    result.innerHTML = '<span class="error">❌ LocalStorage 读写异常</span>';
+                }
+                
+                localStorage.removeItem('test_key');
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ LocalStorage 错误: ${error.message}</span>`;
+            }
+        }
+        
+        function clearLocalStorage() {
+            localStorage.removeItem(HISTORY_STORAGE_KEY);
+            localStorage.removeItem('test_key');
+            document.getElementById('localStorage-result').innerHTML = '<span class="success">✅ LocalStorage 已清空</span>';
+        }
+        
+        function testHistoryService() {
+            const result = document.getElementById('historyService-result');
+            try {
+                // 获取现有历史记录
+                const existing = localStorage.getItem(HISTORY_STORAGE_KEY);
+                result.innerHTML = `当前历史记录: ${existing || '空'}\n`;
+                
+                if (existing) {
+                    const parsed = JSON.parse(existing);
+                    result.innerHTML += `解析后项目数: ${parsed.length}\n`;
+                    result.innerHTML += `项目详情: ${JSON.stringify(parsed, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 测试失败: ${error.message}</span>`;
+            }
+        }
+        
+        function testAddItem() {
+            const result = document.getElementById('historyService-result');
+            try {
+                const testItem = {
+                    id: `test_${Date.now()}`,
+                    type: 'tarot',
+                    title: '测试塔罗占卜',
+                    date: new Date().toISOString(),
+                    question: '这是一个测试问题吗？',
+                    result: {
+                        spread: 'Test Spread',
+                        cards: [{name: '愚者', orientation: 'upright'}],
+                        interpretation: [{title: '测试解读', content: '这是测试内容'}]
+                    }
+                };
+                
+                // 模拟添加逻辑
+                const existing = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+                existing.unshift(testItem);
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(existing));
+                
+                result.innerHTML = '<span class="success">✅ 测试项目已添加</span>\n';
+                result.innerHTML += `项目ID: ${testItem.id}\n`;
+                result.innerHTML += `当前总数: ${existing.length}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 添加失败: ${error.message}</span>`;
+            }
+        }
+        
+        function testGetHistory() {
+            const result = document.getElementById('historyService-result');
+            try {
+                const history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+                result.innerHTML = `<span class="success">✅ 历史记录获取成功</span>\n`;
+                result.innerHTML += `项目数量: ${history.length}\n\n`;
+                
+                if (history.length > 0) {
+                    result.innerHTML += '最近的项目:\n';
+                    history.slice(0, 3).forEach((item, index) => {
+                        result.innerHTML += `${index + 1}. ${item.title} (${item.type})\n`;
+                        result.innerHTML += `   问题: ${item.question || '无'}\n`;
+                        result.innerHTML += `   时间: ${new Date(item.date).toLocaleString()}\n\n`;
+                    });
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 获取失败: ${error.message}</span>`;
+            }
+        }
+        
+        function createTestTarotData() {
+            const result = document.getElementById('tarotData-result');
+            
+            const tarotData = {
+                type: 'tarot',
+                question: '我的未来会如何？',
+                result: {
+                    spread: 'Three Card Spread',
+                    cards: [
+                        {
+                            name: '愚者',
+                            imageUrl: '/public/static/tarot/- 00_fool_jpg (愚者).png',
+                            orientation: 'upright',
+                            position: '过去'
+                        },
+                        {
+                            name: '魔术师',
+                            imageUrl: '/public/static/tarot/- 01_magician_jpg (魔术师).png', 
+                            orientation: 'upright',
+                            position: '现在'
+                        },
+                        {
+                            name: '女祭司',
+                            imageUrl: '/public/static/tarot/- 02_high_priestess_jpg (女祭司).png',
+                            orientation: 'reversed',
+                            position: '未来'
+                        }
+                    ],
+                    interpretation: [
+                        {
+                            icon: '🌟',
+                            title: '整体运势',
+                            summary: '您正处于人生的转折点，充满无限可能。',
+                            content: '愚者代表新的开始，魔术师象征着您拥有实现目标的能力，而逆位的女祭司提醒您要相信内在直觉。这是一个充满机遇的时期，但需要保持谨慎和智慧。'
+                        }
+                    ]
+                }
+            };
+            
+            result.innerHTML = `<span class="success">✅ 测试塔罗数据已创建</span>\n\n`;
+            result.innerHTML += `数据结构验证:\n`;
+            result.innerHTML += `- 类型: ${tarotData.type}\n`;
+            result.innerHTML += `- 问题: ${tarotData.question}\n`;
+            result.innerHTML += `- 牌阵: ${tarotData.result.spread}\n`;
+            result.innerHTML += `- 卡牌数量: ${tarotData.result.cards.length}\n`;
+            result.innerHTML += `- 解读段落: ${tarotData.result.interpretation.length}\n\n`;
+            result.innerHTML += `完整数据:\n${JSON.stringify(tarotData, null, 2)}`;
+        }
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            console.log('📋 SaveButton 测试页面已加载');
+            console.log('🔧 可用的测试功能:');
+            console.log('  - LocalStorage 基本功能测试');
+            console.log('  - HistoryService 模拟测试');
+            console.log('  - 塔罗数据结构验证');
+        };
+    </script>
+</body>
+</html> 

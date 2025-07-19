@@ -65,6 +65,51 @@ const routes: Array<RouteRecordRaw> = [
       title: '个人中心 - 天玄Web'
     }
   },
+  // 编辑个人信息
+  {
+    path: '/profile/edit',
+    name: 'ProfileEdit',
+    component: () => import('../views/ProfileEdit.vue'),
+    meta: {
+      title: '编辑个人信息 - 天玄Web'
+    }
+  },
+  // 历史记录页面
+  {
+    path: '/history',
+    name: 'History',
+    component: () => import('../views/HistoryPage.vue'),
+    meta: {
+      title: '历史记录 - 天玄Web'
+    }
+  },
+  // 历史记录详情页面
+  {
+    path: '/history/detail',
+    name: 'HistoryDetail',
+    component: () => import('../views/HistoryDetail.vue'),
+    meta: {
+      title: '解读详情 - 天玄Web'
+    }
+  },
+  // 收藏页面
+  {
+    path: '/favorites',
+    name: 'Favorites',
+    component: () => import('../views/Favorites.vue'),
+    meta: {
+      title: '我的收藏 - 天玄Web'
+    }
+  },
+  // 通知设置页面
+  {
+    path: '/settings/notifications',
+    name: 'NotificationSettings',
+    component: () => import('../views/NotificationSettings.vue'),
+    meta: {
+      title: '通知设置 - 天玄Web'
+    }
+  },
   // 简单测试页面
   {
     path: '/hexagram-simple-test',
