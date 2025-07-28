@@ -155,6 +155,7 @@ const routes: Array<RouteRecordRaw> = [
       title: '塔罗占卜 - 天玄Web'
     }
   },
+
   // 通配符路由，重定向到404
   {
     path: '/:catchAll(.*)',

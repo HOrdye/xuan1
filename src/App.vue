@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-gradient-to-b from-indigo-100 to-white flex flex-col">
+    <div class="min-h-screen flex flex-col">
       <!-- 使用功能完整的导航栏组件 -->
       <AppNavbar />
       

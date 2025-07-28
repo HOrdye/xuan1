@@ -1,13 +1,18 @@
 <template>
-  <div class="p-4 pb-20">
-    <!-- 页面标题 -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">玄选两难</h1>
-      <p class="text-sm text-gray-600 mt-2">输入你面临的两个选择，让易经六十四卦为你指点迷津</p>
-    </div>
+  <div class="dilemma-page min-h-screen relative">
+    <!-- 神秘背景 -->
+    <MysticalBackground />
+    
+    <!-- 页面内容 -->
+    <div class="relative z-10 p-4 pb-20">
+      <!-- 页面标题 -->
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-white mb-2 mystical-glow">⚯ 玄选两难</h1>
+        <p class="text-purple-200 text-lg">输入你面临的两个选择，让易经六十四卦为你指点迷津</p>
+      </div>
 
     <!-- 功能入口导航 -->
-    <div class="mb-6 bg-white rounded-xl p-4 shadow-sm">
+    <div class="mb-6 bg-white/90 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/30">
       <div class="flex flex-col md:flex-row md:justify-between gap-4">
         <div class="flex items-center">
           <div class="relative inline-block"
@@ -52,8 +57,8 @@
     </div>
 
     <!-- 选项输入区 -->
-    <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
-      <h3 class="text-gray-800 font-medium mb-4">输入你的两个选择</h3>
+    <div class="bg-white/90 backdrop-blur-xl rounded-xl p-4 mb-6 shadow-lg border border-white/30">
+      <h3 class="text-gray-800 font-semibold mb-4 text-lg">输入你的两个选择</h3>
       
       <!-- 选项A输入 -->
       <div class="mb-4">
@@ -100,7 +105,7 @@
     </div>
 
     <!-- 分析结果 -->
-    <div v-if="analysisResult" class="bg-white rounded-xl overflow-hidden shadow-md mb-6 transition-all duration-500" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
+    <div v-if="analysisResult" class="bg-white/95 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl mb-6 transition-all duration-500 border border-white/40" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
       <div class="bg-gradient-to-r from-primary to-mystic p-4 text-white">
         <div class="flex justify-between items-center">
           <h3 class="text-lg font-medium">{{ analysisResult.question }}</h3>
@@ -346,6 +351,7 @@
       }"
       @close="isSharePanelOpen = false"
     />
+    </div>
   </div>
 </template>
 
@@ -356,6 +362,7 @@ import { generateFortuneSeed } from '../utils/fortuneSeed';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
 import SaveButton from '../../../components/common/SaveButton.vue';
 import SharePanel from '../../../components/common/SharePanel.vue';
+import MysticalBackground from '../../../components/common/MysticalBackground.vue';
 import { LLMService } from '../../../services/LLMService';
 
 // 表单数据

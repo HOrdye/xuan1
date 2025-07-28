@@ -1,14 +1,19 @@
 <template>
-  <div class="p-4 pb-20">
+  <div class="divination-page min-h-screen relative">
+    <!-- 神秘背景 -->
+    <MysticalBackground />
+    
+    <!-- 页面内容 -->
+    <div class="relative z-10 p-4 pb-20">
     <!-- 页面标题 -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">六十四卦占卜</h1>
-      <p class="text-sm text-gray-600 mt-2">选择一种传统占卜方法来获取卦象指引</p>
+      <h1 class="text-3xl font-bold text-white mb-2 mystical-glow">☰ 六十四卦占卜</h1>
+      <p class="text-purple-200 text-lg">选择一种传统占卜方法来获取卦象指引</p>
     </div>
 
 
     <!-- 占卜方法选择 -->
-    <div v-if="!divinationStarted" class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+    <div v-if="!divinationStarted" class="bg-white/90 backdrop-blur-xl rounded-xl p-4 mb-6 shadow-lg border border-white/30">
       <h3 class="text-gray-800 font-medium mb-4">选择占卜方法</h3>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -60,7 +65,7 @@
     </div>
     
     <!-- 占卜问题输入 -->
-    <div v-if="selectedMethod && !divinationStarted" class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+    <div v-if="selectedMethod && !divinationStarted" class="bg-white/90 backdrop-blur-xl rounded-xl p-4 mb-6 shadow-lg border border-white/30">
       <h3 class="text-gray-800 font-medium mb-4">明确你的问题</h3>
       
       <div class="mb-4">
@@ -150,6 +155,7 @@
       :progress="loadingProgress" 
       :stage="loadingStage"
     />
+    </div>
   </div>
 </template>
 
@@ -161,6 +167,7 @@ import { coinDivination, plumBlossomDivination, randomDivination } from '../util
 import CoinDivinationAnimation from '../components/CoinDivinationAnimation.vue';
 import DivinationResult from '../components/DivinationResult.vue';
 import LLMConfigPanel from '../components/LLMConfigPanel.vue';
+import MysticalBackground from '../../../components/common/MysticalBackground.vue';
 import { generateHexagramFromLines } from '../utils/hexagramGenerator';
 import { LLMService } from '../../../services/LLMService';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';

@@ -3,14 +3,9 @@
   <div class="cursor" id="cursor"></div>
   <div class="cursor-follower" id="cursorFollower"></div>
 
-  <!-- 测试元素 -->
-  <div id="test-element" style="position: fixed; top: 0; left: 0; z-index: 10000; background: red; color: white; padding: 10px;">
-    Test Element
-  </div>
 
-  <div class="min-h-screen bg-dark text-white overflow-x-hidden">
-    <!-- 背景效果 -->
-    <!-- 背景效果 -->
+
+  <div class="min-h-screen text-white overflow-x-hidden relative">
     <div class="mystical-bg"></div>
     <div class="floating-particles" id="particles"></div>
     
@@ -78,7 +73,7 @@
       <!-- To be or not to be -->
       <div class="feature-card" @click="navigateTo('/dilemma')">
         <div class="feature-icon">
-          <i class="fas fa-balance-scale"></i>
+          ⚖️
         </div>
         <h3 class="feature-title">To be or not to be</h3>
         <p class="feature-description">
@@ -91,7 +86,7 @@
       <!-- 今日运势 -->
       <div class="feature-card" @click="navigateTo('/fortune')">
         <div class="feature-icon">
-          <i class="fas fa-star"></i>
+          ⭐
         </div>
         <h3 class="feature-title">今天我左眼皮在跳</h3>
         <p class="feature-description">
@@ -104,7 +99,7 @@
       <!-- 掐指一算 -->
       <div class="feature-card" @click="navigateTo('/dilemma/divination')">
         <div class="feature-icon">
-          <i class="fas fa-yin-yang"></i>
+          ☯️
         </div>
         <h3 class="feature-title">待我掐指一算</h3>
         <p class="feature-description">
@@ -117,7 +112,7 @@
       <!-- 笅杯占卜 -->
       <div class="feature-card" @click="navigateTo('/dilemma/divination?method=jiaobei')">
         <div class="feature-icon">
-          <i class="fas fa-dice"></i>
+          🎲
         </div>
         <h3 class="feature-title">我跟关圣帝君请示过</h3>
         <p class="feature-description">
@@ -130,7 +125,7 @@
       <!-- 塔罗牌阵 -->
       <div class="feature-card" @click="navigateTo('/tarot')">
         <div class="feature-icon">
-          <i class="fas fa-magic"></i>
+          ✨
         </div>
         <h3 class="feature-title">塔罗牌阵</h3>
         <p class="feature-description">
@@ -143,7 +138,7 @@
       <!-- 六十四卦 -->
       <div class="feature-card" @click="navigateTo('/hexagrams')">
         <div class="feature-icon">
-          <i class="fas fa-book"></i>
+          📚
         </div>
         <h3 class="feature-title">六十四卦图鉴</h3>
         <p class="feature-description">
@@ -211,7 +206,15 @@ const createParticles = () => {
 // 创建星辰效果
 const createBrightStars = () => {
   const container = document.getElementById('starsContainer');
-  if (!container) return;
+  if (!container) {
+    console.warn('Stars container not found');
+    return;
+  }
+  
+  console.log('Creating bright stars...');
+  
+  // 清空容器
+  container.innerHTML = '';
   
   const starCount = 120;
   
@@ -233,6 +236,8 @@ const createBrightStars = () => {
     container.appendChild(starEl);
   });
   
+  console.log(`Created ${constellationStars.length} constellation stars`);
+  
   // 添加随机背景星
   for (let i = 0; i < starCount - constellationStars.length; i++) {
     const star = document.createElement('div');
@@ -247,6 +252,12 @@ const createBrightStars = () => {
     
     container.appendChild(star);
   }
+  
+  console.log(`Created ${starCount} total stars`);
+  
+  // 验证星辰元素是否正确创建
+  const createdStars = container.querySelectorAll('.star-bright');
+  console.log(`Verified ${createdStars.length} stars in DOM`);
   
   // 添加星座连线
   const lines = [
@@ -278,21 +289,30 @@ const startBackgroundAnimation = () => {
   const taijiContainer = document.getElementById('taijiContainer');
   const starsContainer = document.getElementById('starsContainer');
   
-  if (!taijiContainer || !starsContainer) return;
+  if (!taijiContainer || !starsContainer) {
+    console.warn('Background containers not found');
+    return;
+  }
   
-  // 初始状态
+  // 确保容器存在且正确
+  console.log('Background containers found:', { taijiContainer, starsContainer });
+  
+  // 初始状态 - 显示太极
   taijiContainer.classList.add('active');
+  console.log('Initial state: Taiji active');
   
-  // 每10秒切换一次
+  // 每8秒切换一次
   setInterval(() => {
     if (taijiContainer.classList.contains('active')) {
       taijiContainer.classList.remove('active');
       starsContainer.classList.add('active');
+      console.log('Switched to Stars, container classes:', starsContainer.className);
     } else {
       taijiContainer.classList.add('active');
       starsContainer.classList.remove('active');
+      console.log('Switched to Taiji, container classes:', taijiContainer.className);
     }
-  }, 10000);
+  }, 8000);
 };
 
 // 魔法光标逻辑
@@ -318,6 +338,8 @@ const handleMouseMove = (e: MouseEvent) => {
 };
 
 onMounted(() => {
+  console.log('Home.vue mounted, initializing...');
+  
   cursor = document.getElementById('cursor');
   cursorFollower = document.getElementById('cursorFollower');
   
@@ -325,9 +347,23 @@ onMounted(() => {
   animationFrameId = requestAnimationFrame(updateCursor);
   document.addEventListener('mousemove', handleMouseMove);
   
+  // 初始化背景效果 - 确保顺序正确
   createParticles();
   createBrightStars();
-  startBackgroundAnimation();
+  
+  // 延迟启动背景动画，确保DOM完全渲染
+  setTimeout(() => {
+    startBackgroundAnimation();
+    
+    // 确保星辰能够显示
+    setTimeout(() => {
+      const starsContainer = document.getElementById('starsContainer');
+      if (starsContainer) {
+        console.log('Ensuring stars are visible...');
+        starsContainer.classList.add('active');
+      }
+    }, 1000);
+  }, 100);
   
   // 卡片悬停效果
   const featureCards = document.querySelectorAll('.feature-card');
@@ -360,19 +396,19 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-/* 年轻化设计系统 */
+<style>
+/* 使用全局CSS变量，避免重复定义 */
 :root {
   --primary-purple: #8b5cf6;
   --primary-pink: #ec4899;
   --primary-gold: #f59e0b;
   --bg-dark: #0f0f23;
-  --bg-card: rgba(255, 255, 255, 0.05);
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
-  --accent-glow: rgba(139, 92, 246, 0.5);
-  --gradient-primary: linear-gradient(135deg, #8b5cf6, #ec4899);
-  --gradient-gold: linear-gradient(135deg, #f59e0b, #fbbf24);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --gradient-primary: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+  --gradient-gold: linear-gradient(135deg, var(--primary-gold), #fbbf24);
+  --accent-glow: var(--primary-purple);
 }
 
 /* 魔法光标 */
@@ -407,10 +443,11 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-    linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
-  z-index: -1; /* 与预览文件保持一致 */
+    radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+  z-index: -1; /* 作为基础背景层 */
+  pointer-events: none; /* 不阻止交互 */
 }
 
 /* 完美太极图案 */
@@ -422,13 +459,14 @@ onUnmounted(() => {
   width: 150px;
   height: 150px;
   opacity: 0;
-  z-index: 1;
+  z-index: 10;
   transition: opacity 2s ease-in-out;
   filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.3));
+  pointer-events: none; /* 不阻止交互 */
 }
 
 .taiji-svg-container.active {
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .taiji-svg {
@@ -449,14 +487,15 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* 与太极图案保持相同的层级 */
+  z-index: 5; /* 确保星辰在渐变背景之上，太极之下 */
   overflow: hidden;
   opacity: 0;
   transition: opacity 2s ease-in-out;
+  pointer-events: none; /* 不阻止交互 */
 }
 
 .constellation-container.active {
-  opacity: 0.6;
+  opacity: 1 !important;
 }
 
 .star-bright {
@@ -464,24 +503,25 @@ onUnmounted(() => {
   background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, 0.8) 40%, transparent 70%);
   border-radius: 50%;
   animation: starTwinkle 3s ease-in-out infinite;
+  z-index: 6;
 }
 
 .star-bright.small {
-  width: 3px;
-  height: 3px;
-  box-shadow: 0 0 8px #ffffff, 0 0 15px #ffffff;
+  width: 4px;
+  height: 4px;
+  box-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff;
 }
 
 .star-bright.medium {
-  width: 5px;
-  height: 5px;
-  box-shadow: 0 0 12px #ffffff, 0 0 25px #ffffff;
+  width: 6px;
+  height: 6px;
+  box-shadow: 0 0 15px #ffffff, 0 0 30px #ffffff;
 }
 
 .star-bright.large {
-  width: 7px;
-  height: 7px;
-  box-shadow: 0 0 15px #ffffff, 0 0 35px #ffffff;
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 20px #ffffff, 0 0 40px #ffffff;
 }
 
 .star-bright.extra {
@@ -525,6 +565,7 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
   overflow: hidden;
+  z-index: 1;
 }
 
 .particle {
@@ -562,6 +603,8 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   padding: 2rem;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .hero-content {
@@ -619,6 +662,8 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
   transition: transform 0.2s ease;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .daily-challenge::before {
@@ -672,6 +717,9 @@ onUnmounted(() => {
   max-width: 1200px;
   margin: 4rem auto;
   padding: 0 2rem;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .feature-card {
