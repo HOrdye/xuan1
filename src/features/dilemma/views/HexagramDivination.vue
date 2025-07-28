@@ -6,8 +6,6 @@
       <p class="text-sm text-gray-600 mt-2">选择一种传统占卜方法来获取卦象指引</p>
     </div>
 
-    <!-- LLM配置面板 -->
-    <LLMConfigPanel />
 
     <!-- 占卜方法选择 -->
     <div v-if="!divinationStarted" class="bg-white rounded-xl p-4 mb-6 shadow-sm">
@@ -152,20 +150,6 @@
       :progress="loadingProgress" 
       :stage="loadingStage"
     />
-
-    <!-- 动画测试按钮 (仅开发模式) -->
-    <div v-if="isDevelopment" class="dev-controls">
-      <button 
-        @click="testLLMAnimation" 
-        class="test-animation-btn"
-        :disabled="isGenerating"
-      >
-        {{ isGenerating ? '测试进行中...' : '🎭 测试LLM动画效果' }}
-      </button>
-    </div>
-
-    <!-- 调试面板 (仅开发模式) -->
-    <LLMDebugPanel v-if="isDevelopment" />
   </div>
 </template>
 
@@ -180,7 +164,6 @@ import LLMConfigPanel from '../components/LLMConfigPanel.vue';
 import { generateHexagramFromLines } from '../utils/hexagramGenerator';
 import { LLMService } from '../../../services/LLMService';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
-import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';
 
 // 选择的占卜方法
 const selectedMethod = ref<DivinationMethod | null>(null);
@@ -200,12 +183,19 @@ onMounted(() => {
   }
   
   // 订阅LLMService的加载状态变化
-  unsubscribeFromLLM = LLMService.onLoadingStateChange((state) => {
+  const unsubscribeFn = LLMService.onLoadingStateChange((state) => {
     console.log('🔄 收到LLM状态变化:', state);
     isGenerating.value = state.isLoading;
     loadingProgress.value = state.progress;
     loadingStage.value = state.stage;
+    
+    // 添加完成状态处理
+    if (state.stage === 'completed') {
+      isGenerating.value = false;
+      loadingProgress.value = '';
+    }
   });
+  unsubscribeFromLLM = unsubscribeFn as unknown as UnsubscribeFn;
 });
 
 onUnmounted(() => {
@@ -236,10 +226,8 @@ const loadingStage = ref<'preparing' | 'calling' | 'processing' | 'completed' | 
 // 订阅LLM服务的加载状态
 let unsubscribeFromLLM: (() => void) | null = null;
 
-// 开发模式检测
-const isDevelopment = computed(() => {
-  return process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
-})
+// 显式声明取消订阅函数类型
+type UnsubscribeFn = () => void;
 
 // 占卜结果
 const divinationResult = ref<AnalysisResult | null>(null);
@@ -305,13 +293,18 @@ async function startDivination() {
         }
         
         try {
-          // 使用LLM服务获取解读内容
+          // 使用LLM服务获取解读内容 (修复参数格式)
           const analysis = await LLMService.getHexagramInterpretation(
             coinResult.hexagram,
             changingLinesCoin,
             relatedHexagram,
             question.value
           );
+          
+          // 确保LLM返回有效结果
+          if (!analysis) {
+            throw new Error('AI解读返回空结果');
+          }
           
           divinationResult.value = {
             hexagram: coinResult.hexagram,
@@ -323,17 +316,27 @@ async function startDivination() {
             results: coinResult.results
           };
         } catch (llmError) {
-          console.error('LLM解读失败，使用基本解读:', llmError);
-          // 使用基本解读作为备用
+          console.error('LLM解读失败:', llmError);
+          // 创建明确的错误状态结果
           divinationResult.value = {
             hexagram: coinResult.hexagram,
             changingLines: changingLinesCoin,
             relatedHexagram,
-            analysis: coinResult.hexagram.meaning || coinResult.hexagram.overall || '占卜结果已生成，详细解读加载中...',
+            analysis: {
+              title: '解读失败',
+              summary: 'AI服务暂时无法提供解读，请稍后再试',
+              detailed: `错误信息: ${llmError instanceof Error ? llmError.message : String(llmError)}`,
+              advice: '您可以尝试重新占卜或检查网络连接',
+              changingLinesAnalysis: []
+            },
             question: question.value,
             method: 'coin',
             results: coinResult.results
           };
+          // 确保重置加载状态
+          isGenerating.value = false;
+          loadingProgress.value = '';
+          loadingStage.value = 'preparing';
         }
         
         coinResults.value = coinResult;
@@ -348,33 +351,48 @@ async function startDivination() {
         }
         
         try {
-        // 使用LLM服务获取解读内容
-        const plumAnalysis = await LLMService.getHexagramInterpretation(
-          plumResult.hexagram,
-          [], // 梅花易数没有变爻
-          null,
-          question.value
-        );
-        
-        divinationResult.value = {
-          hexagram: plumResult.hexagram,
-          changingLines: [],
-          relatedHexagram: null,
-          analysis: plumAnalysis,
-          question: question.value,
-          method: 'plumBlossom'
-        };
-        } catch (llmError) {
-          console.error('LLM解读失败，使用基本解读:', llmError);
-          // 使用基本解读作为备用
+          // 使用LLM服务获取解读内容 (修复参数格式)
+          const plumAnalysis = await LLMService.getHexagramInterpretation(
+            plumResult.hexagram,
+            [], // 梅花易数没有变爻
+            null,
+            question.value
+          );
+          
+          // 确保LLM返回有效结果
+          if (!plumAnalysis) {
+            throw new Error('AI解读返回空结果');
+          }
+          
           divinationResult.value = {
             hexagram: plumResult.hexagram,
             changingLines: [],
             relatedHexagram: null,
-            analysis: plumResult.hexagram.meaning || plumResult.hexagram.overall || '占卜结果已生成，详细解读加载中...',
+            analysis: plumAnalysis,
             question: question.value,
             method: 'plumBlossom'
           };
+        } catch (llmError) {
+          console.error('LLM解读失败:', llmError);
+          // 创建明确的错误状态结果
+          divinationResult.value = {
+            hexagram: plumResult.hexagram,
+            changingLines: [],
+            relatedHexagram: null,
+            analysis: {
+              title: '解读失败',
+              summary: 'AI服务暂时无法提供解读，请稍后再试',
+              detailed: `错误信息: ${llmError instanceof Error ? llmError.message : String(llmError)}`,
+              advice: '您可以尝试重新占卜或检查网络连接',
+              changingLinesAnalysis: []
+            },
+            question: question.value,
+            method: 'plumBlossom'
+          };
+          // 确保重置加载状态
+          isGenerating.value = false;
+          loadingProgress.value = '';
+          loadingStage.value = 'preparing';
         }
         
         plumBlossomResult.value = plumResult;
@@ -401,6 +419,10 @@ async function startDivination() {
     restartDivination();
   } finally {
     isLoading.value = false;
+    // 确保重置所有加载状态
+    isGenerating.value = false;
+    loadingProgress.value = '';
+    loadingStage.value = 'preparing';
   }
 }
 
@@ -429,46 +451,6 @@ function restartDivination() {
   question.value = '';
   selectedMethod.value = null;
 }
-
-// 测试LLM动画效果
-const testLLMAnimation = async () => {
-  console.log('🎭 开始测试LLM动画效果 (HexagramDivination)');
-  
-  // 手动触发状态更新，模拟LLM调用流程
-  const stages = [
-    { stage: 'preparing' as const, progress: '正在准备AI解读...', duration: 1000 },
-    { stage: 'calling' as const, progress: '正在连接AI服务...', duration: 1500 },
-    { stage: 'processing' as const, progress: 'AI正在思考您的问题...', duration: 2000 },
-    { stage: 'completed' as const, progress: '解读完成', duration: 500 }
-  ];
-  
-  // 开始测试
-  isGenerating.value = true;
-  
-  try {
-    for (const stageInfo of stages) {
-      loadingStage.value = stageInfo.stage;
-      loadingProgress.value = stageInfo.progress;
-      
-      console.log(`🔄 测试阶段: ${stageInfo.stage} - ${stageInfo.progress}`);
-      
-      await new Promise(resolve => setTimeout(resolve, stageInfo.duration));
-    }
-    
-    console.log('✅ LLM动画测试完成');
-  } catch (error) {
-    console.error('❌ LLM动画测试失败:', error);
-    loadingStage.value = 'error';
-    loadingProgress.value = '测试过程中出现错误';
-  } finally {
-    // 结束测试
-    setTimeout(() => {
-      isGenerating.value = false;
-      loadingProgress.value = '';
-      loadingStage.value = 'preparing';
-    }, 1000);
-  }
-};
 </script>
 
 <style scoped>
@@ -486,4 +468,4 @@ const testLLMAnimation = async () => {
 .test-animation-btn:disabled {
   @apply bg-gray-500;
 }
-</style> 
+</style>

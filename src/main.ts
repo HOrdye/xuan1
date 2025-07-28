@@ -8,6 +8,7 @@ import { useLLMConfigStore } from './store/llmConfig';
 
 // 导入样式
 import './assets/tailwind.css';
+import './assets/global.css';
 
 // 创建Pinia实例
 const pinia = createPinia();

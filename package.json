@@ -1,17 +1,44 @@
 {
   "name": "tianxuan-web",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "一个专为90后、00后年轻人打造的玄学决策助手网页应用",
   "author": "TianXuan Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/tianxuan-web.git"
+  },
+  "keywords": [
+    "vue",
+    "typescript",
+    "tailwindcss",
+    "易经",
+    "占卜",
+    "塔罗牌",
+    "玄学",
+    "决策助手"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "check": "npm outdated",
     "lint": "eslint src --ext .js,.vue,.ts",
-    "clean:deps": "rm -rf node_modules && npm install"
+    "clean:deps": "rm -rf node_modules && npm install",
+    "git:status": "git status",
+    "git:add": "git add .",
+    "git:commit": "git commit -m",
+    "git:push": "git push origin",
+    "git:pull": "git pull origin",
+    "git:log": "git log --oneline -10",
+    "git:check": ".\\scripts\\check-git-status.bat",
+    "git:init": ".\\scripts\\execute-git-control.bat",
+    "git:simple": ".\\scripts\\simple-git-init.bat",
+    "git:ps": "powershell -ExecutionPolicy Bypass -File .\\scripts\\git-init.ps1",
+    "git:commit-msg": ".\\scripts\\git-commit.bat",
+    "git:release": ".\\scripts\\create-release.bat"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",

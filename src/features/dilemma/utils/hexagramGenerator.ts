@@ -126,7 +126,7 @@ const trigrams: Trigram[] = [
  * @param method 起卦方式，可以是时间、随机等
  * @returns 1表示阳爻，0表示阴爻
  */
-function generateLine(method: 'time' | 'random' = 'random'): {line: number, changing: boolean} {
+function generateLine(method: 'time' | 'random' = 'random'): {line: 0 | 1, changing: boolean} {
   if (method === 'time') {
     // 基于当前时间生成爻
     const now = new Date();
@@ -195,13 +195,21 @@ function adjustGenerationMethod(
 /**
  * 根据爻组合查找卦象
  */
-function findHexagram(lines: number[]): Hexagram | null {
+function findHexagram(inputLines: (0 | 1)[] | number[]): Hexagram | null {
   // 检查数据是否已加载
   if (!isDataLoaded || hexagramsData.length === 0) {
     console.error('🚨 findHexagram: 卦象数据尚未加载完成');
     console.log('📊 数据状态:', { isDataLoaded, dataCount: hexagramsData.length });
     throw new Error('卦象数据尚未加载完成，请稍后再试');
   }
+  
+  // 确保所有爻都是0或1
+  const lines: (0 | 1)[] = inputLines.map(line => {
+    if (line === 0) return 0;
+    if (line === 1) return 1;
+    const num = Number(line);
+    return num > 0 ? 1 : 0;
+  }) as (0 | 1)[];
   
   if (!lines || lines.length !== 6) {
     console.error('🚨 findHexagram: 爻组合无效:', lines);
@@ -210,57 +218,30 @@ function findHexagram(lines: number[]): Hexagram | null {
   
   console.log('🔍 findHexagram: 开始查找卦象', { lines, linesString: lines.join('') });
   
-  // 确保所有爻都是0或1
-  const normalizedLines = lines.map(line => {
-    if (line === 0) return 0;
-    if (line === 1) return 1;
-    // 如果是其他值，转换为数字再判断
-    const num = Number(line);
-    return num > 0 ? 1 : 0;
-  });
-  
-  console.log('🔄 findHexagram: 标准化后的爻组合:', normalizedLines);
+  console.log('🔄 findHexagram: 标准化后的爻组合:', lines);
   
   // 从hexagrams.json查找匹配的卦象
   const hexagram = hexagramsData.find((h, index) => {
-    if (!h) {
-      console.warn(`⚠️ 卦象数据为空: index ${index}`);
+    if (!h || !h.lines || !Array.isArray(h.lines) || h.lines.length !== 6) {
+      console.warn(`⚠️ 跳过无效卦象数据: index ${index}`, h);
       return false;
     }
     
-    if (!h.lines) {
-      console.warn(`⚠️ 卦象 ${h.name || 'unknown'} 缺少 lines 字段`);
-      return false;
-    }
-    
-    if (!Array.isArray(h.lines)) {
-      console.warn(`⚠️ 卦象 ${h.name} 的 lines 不是数组:`, h.lines);
-      return false;
-    }
-    
-    if (h.lines.length !== 6) {
-      console.warn(`⚠️ 卦象 ${h.name} 的 lines 长度不是6: ${h.lines.length}`);
-      return false;
-    }
-    
-    // 标准化卦象数据的爻
-    const hexagramLines = h.lines.map(line => {
-      if (line === 0) return 0;
-      if (line === 1) return 1;
-      const num = Number(line);
-      return num > 0 ? 1 : 0;
-    });
-    
-    // 逐一比较每个爻
-    const isMatch = hexagramLines.every((line, index) => line === normalizedLines[index]);
+    // 直接比较原始数据，避免标准化导致的数据不一致
+      const isMatch = h.lines.every((line, index) => {
+        const actualLine = lines[index];
+        // 确保双方都是 (0 | 1) 类型
+        const normalizedLine = Number(line) > 0 ? 1 : 0;
+        const normalizedActualLine = actualLine;
+        return normalizedLine === normalizedActualLine;
+      });
     
     if (isMatch) {
       console.log('✅ findHexagram: 找到匹配卦象:', { 
         name: h.name, 
         chineseName: h.chineseName || h.name,
         sequence: h.sequence, 
-        hexagramLines: hexagramLines.join(''),
-        searchLines: normalizedLines.join(''),
+        searchLines: lines.join(''),
         originalHexagramLines: h.lines,
         originalSearchLines: lines
       });
@@ -273,8 +254,7 @@ function findHexagram(lines: number[]): Hexagram | null {
     console.error('❌ findHexagram: 未找到匹配的卦象');
     console.log('📋 详细调试信息:', {
       searchLines: lines,
-      normalizedSearchLines: normalizedLines,
-      searchLinesString: normalizedLines.join(''),
+      searchLinesString: lines.join(''),
       availableCount: hexagramsData.length,
       firstFewHexagrams: hexagramsData.slice(0, 5).map((h, index) => ({
         index,
@@ -290,14 +270,14 @@ function findHexagram(lines: number[]): Hexagram | null {
     const similarHexagrams = hexagramsData.filter(h => {
       if (!h || !h.lines || !Array.isArray(h.lines) || h.lines.length !== 6) return false;
       
-             const hexagramLines = h.lines.map(line => {
-         if (line === 0) return 0;
-         if (line === 1) return 1;
-         const num = Number(line);
-         return num > 0 ? 1 : 0;
-       });
+      const hexagramLines = h.lines.map(line => {
+        if (line === 0) return 0;
+        if (line === 1) return 1;
+        const num = Number(line);
+        return num > 0 ? 1 : 0;
+      });
       
-      const matchCount = hexagramLines.filter((line, index) => line === normalizedLines[index]).length;
+      const matchCount = hexagramLines.filter((line, index) => line === lines[index]).length;
       return matchCount >= 4; // 至少4爻匹配
     });
     
@@ -307,24 +287,26 @@ function findHexagram(lines: number[]): Hexagram | null {
         chineseName: h.chineseName || h.name,
         sequence: h.sequence,
         lines: h.lines.join(''),
-                 matchCount: h.lines.filter((line, index) => {
-           const normalizedLine = line === 0 ? 0 : 1;
-           return normalizedLine === normalizedLines[index];
-         }).length
+        matchCount: h.lines.filter((line, index) => {
+          const normalizedLine = line === 0 ? 0 : 1;
+          return normalizedLine === lines[index];
+        }).length
       })));
     }
     
     // 尝试模糊匹配
     console.log('🔄 尝试二进制字符串匹配...');
-    const searchBinary = normalizedLines.join('');
+    const searchBinary = lines.join('');
     const binaryMatch = hexagramsData.find(h => {
       if (!h || !h.lines) return false;
-             const hexagramBinary = h.lines.map(line => {
-         if (line === 0) return 0;
-         if (line === 1) return 1;
-         const num = Number(line);
-         return num > 0 ? 1 : 0;
-       }).join('');
+        const hexagramBinary = h.lines.map(line => {
+          // 标准化为 0 或 1，确保处理数字和字符串
+          const normalizedLine = String(line); // 先转换为字符串
+          if (normalizedLine === '0') return '0';
+          if (normalizedLine === '1') return '1';
+          const num = Number(normalizedLine);
+          return num > 0 ? '1' : '0';
+        }).join('');
       
       return hexagramBinary === searchBinary;
     });
@@ -337,6 +319,23 @@ function findHexagram(lines: number[]): Hexagram | null {
       return binaryMatch;
     }
     
+    // 最后尝试：忽略爻的顺序，只比较爻的组合
+    const searchSet = new Set(lines.map(String)); // 转换为字符串集合
+    const similarHexagram = hexagramsData.find(h => {
+      if (!h || !h.lines || !Array.isArray(h.lines)) return false;
+      const hexagramSet = new Set(h.lines.map(line => String(line)));
+      return (
+        hexagramSet.size === searchSet.size && 
+        [...hexagramSet].every(val => searchSet.has(val))
+      );
+    });
+    
+    if (similarHexagram) {
+      console.log('⚠️ 使用相似卦象作为替代:', similarHexagram.name);
+      return similarHexagram;
+    }
+    
+    console.error('❌ 所有匹配尝试均失败');
     return null;
   }
   
@@ -557,10 +556,7 @@ function analyzeOptionText(option: string, optionType: 'A' | 'B'): number {
   const activeKeywords = ['开始', '尝试', '挑战', '改变', '创新', '进取', '主动', '争取', '突破', '发展'];
   // 稳定性关键词  
   const stableKeywords = ['保持', '继续', '稳定', '等待', '观察', '坚持', '维持', '守护', '巩固', '安全'];
-  // 积极性关键词
-  const positiveKeywords = ['好', '优秀', '成功', '希望', '机会', '提升', '进步', '收益', '有利'];
-  // 消极性关键词
-  const negativeKeywords = ['困难', '风险', '问题', '失败', '损失', '不确定', '担心', '害怕'];
+  // 移除运势相关关键词检测
   
   // 检查主动性
   const activeCount = activeKeywords.filter(keyword => option.includes(keyword)).length;
@@ -572,11 +568,7 @@ function analyzeOptionText(option: string, optionType: 'A' | 'B'): number {
     score += stableCount * 3 - activeCount * 2;
   }
   
-  // 检查积极性
-  const positiveCount = positiveKeywords.filter(keyword => option.includes(keyword)).length;
-  const negativeCount = negativeKeywords.filter(keyword => option.includes(keyword)).length;
-  
-  score += positiveCount * 2 - negativeCount * 2;
+  // 移除运势评分逻辑
   
   // 文本长度因素（适中的长度更好）
   const length = option.length;
@@ -762,35 +754,41 @@ function generateEnhancedLocalAnalysis(
   
   let analysis = '';
   
-  // 1. 卦象基本解读
-  analysis += `根据${hexagramName}卦的启示，`;
+  // 1. 完整卦象解读（核心修复）
+  analysis += `【${hexagramName}卦解读】\n`;
+  analysis += `卦象：${hexagram.symbol || '无'}，序号：${hexagram.sequence}\n`;
   
-  if (hexagram.modernInterpretation) {
-    analysis += `${hexagram.modernInterpretation}。`;
-  } else if (hexagram.meaning) {
-    analysis += `${hexagram.meaning}。`;
-  } else {
-    analysis += `当前形势需要您保持${attrs.attribute || '平衡与智慧'}。`;
+  // 显示卦辞
+  if (hexagram.judgment) {
+    analysis += `卦辞：${hexagram.judgment}\n`;
   }
+  
+  // 显示现代解读
+  if (hexagram.modernInterpretation) {
+    analysis += `现代解读：${hexagram.modernInterpretation}\n`;
+  } else if (hexagram.meaning) {
+    analysis += `含义：${hexagram.meaning}\n`;
+  }
+  
+  // 显示卦象属性
+  analysis += `属性：${attrs.attribute || '无'}，性质：${attrs.nature || '无'}\n`;
   
   // 2. 变卦分析
   if (relatedHexagram && changingLines.length > 0) {
-    analysis += ` 卦象变化显示，从${hexagramName}卦变至${relatedHexagram.chineseName}卦，`;
-    analysis += `表明情况正在发生转变，需要适应新的环境和机遇。`;
+    analysis += `\n【变卦分析】\n`;
+    analysis += `本卦 ${hexagramName} → 变卦 ${relatedHexagram.chineseName}\n`;
+    analysis += `变化爻位：${changingLines.map(pos => pos + 1).join(', ')}爻\n`;
+    analysis += `含义：${getHexagramWisdom(relatedHexagram.chineseName)}`;
   }
   
-  // 3. 具体选择建议
-  analysis += ` 对于您面临的选择，`;
-  
+  // 3. 决策建议（与卦象解读分离）
+  analysis += `\n【决策建议】\n`;
   if (recommendation === 'A') {
-    analysis += `建议选择"${optionA}"。这个选择更符合当前卦象的能量指向，`;
-    analysis += `能够顺应${hexagramName}卦所代表的${attrs.attribute || '发展趋势'}。`;
+    analysis += `建议选择"${optionA}"，因与${hexagramName}卦的能量更契合。`;
   } else if (recommendation === 'B') {
-    analysis += `建议选择"${optionB}"。这个选择更契合当前卦象的智慧指引，`;
-    analysis += `有助于发挥${hexagramName}卦所蕴含的${attrs.attribute || '潜在优势'}。`;
+    analysis += `建议选择"${optionB}"，因符合${hexagramName}卦的指引。`;
   } else {
-    analysis += `两个选择各有优劣，建议您综合考虑个人情况和内心感受。`;
-    analysis += `${hexagramName}卦提醒我们，有时候最好的选择来自于内心的智慧。`;
+    analysis += `两个选项各有依据，请结合自身情况慎重选择。`;
   }
   
   // 4. 变爻指导
@@ -804,10 +802,6 @@ function generateEnhancedLocalAnalysis(
       analysis += `需要保持灵活性和适应能力。`;
     }
   }
-  
-  // 5. 实用建议
-  analysis += ` 无论选择哪条路，都要记住${hexagramName}卦的核心智慧：`;
-  analysis += getHexagramWisdom(hexagramName);
   
   console.log('🏠 本地分析生成完成，长度:', analysis.length);
   
@@ -899,7 +893,7 @@ export function calculateHexagramAttributes(hexagram: Hexagram): {
 }
 
 // 新增generateHexagramFromLines函数
-export async function generateHexagramFromLines(lines: number[]): Promise<Hexagram | null> {
+export async function generateHexagramFromLines(lines: (0 | 1)[]): Promise<Hexagram | null> {
   console.log('🎯 generateHexagramFromLines: 开始处理', { lines, isDataLoaded });
   
   // 确保数据已加载，最多等待5秒
@@ -968,18 +962,19 @@ export async function generateHexagramFromLines(lines: number[]): Promise<Hexagr
     // 如果数据尚未加载完成，返回一个临时卦象
     if (!isDataLoaded && hexagramsData.length === 0) {
       console.warn('🔄 generateHexagramFromLines: 返回临时卦象');
-      return {
-        number: 1,
-        sequence: 1,
-        name: '临时卦象',
-        chineseName: '临时',
-        symbol: '?',
-        lines: lines,
-        meaning: '数据加载中...',
-        judgment: '请稍后重试...',
-        yao_texts: Array(6).fill(''),
-        trigrams: { upper: 'Unknown', lower: 'Unknown' }
-      };
+  return {
+    number: 1,
+    sequence: 1,
+    name: '临时卦象',
+    chineseName: '临时',
+    symbol: '?',
+    lines: lines as (0 | 1)[], // 确保类型匹配
+    meaning: '数据加载中...',
+    judgment: '请稍后重试...',
+    yao_texts: Array(6).fill(''),
+    trigrams: { upper: 'Unknown', lower: 'Unknown' },
+    modernInterpretation: '现代解读数据加载中...'
+  };
     }
     
     throw error;
@@ -1014,7 +1009,7 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
   await ensureDataLoaded();
   
   // 使用种子生成六爻
-  const lines: number[] = [];
+  const lines: (0 | 1)[] = [];
   const results: number[] = [];
   const changingLines: number[] = [];
   
@@ -1032,8 +1027,13 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
     
     // 生成当前爻
     const lineResult = generateLine(method);
+    // 直接使用lineResult.line，它已经是0 | 1类型
     lines.push(lineResult.line);
-    results.push(lineResult.line === 1 ? (lineResult.changing ? 9 : 7) : (lineResult.changing ? 6 : 8));
+    // 修正：使用正确的爻值（6、7、8、9）而不是0/1
+    const numericValue = lineResult.line === 1 ? 
+      (lineResult.changing ? 9 : 7) : 
+      (lineResult.changing ? 6 : 8);
+    results.push(numericValue);
     
     // 如果是变爻，记录位置
     if (lineResult.changing) {
@@ -1041,8 +1041,8 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
     }
   }
   
-  // 查找对应的卦象
-  const currentHexagram = await generateHexagramFromLines(lines);
+  // 查找对应的卦象 - 使用原始爻值（0或1）组成的数组
+  const currentHexagram = await generateHexagramFromLines(lines as (0 | 1)[]);
   
   if (!currentHexagram) {
     throw new Error('生成卦象失败');
@@ -1051,7 +1051,8 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
   // 如果有变爻，计算变卦
   let relatedHexagram: Hexagram | undefined = undefined;
   if (changingLines.length > 0) {
-    const relatedLines = [...lines];
+    // 创建变卦的爻数组 - 基于原始爻值（0或1）
+    const relatedLines: (0 | 1)[] = lines.map(line => line as 0 | 1);
     changingLines.forEach(lineIndex => {
       relatedLines[lineIndex] = relatedLines[lineIndex] === 1 ? 0 : 1;
     });
@@ -1079,4 +1080,4 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
     analysis: analysisResult.analysis,
     results: results
   };
-} 
+}

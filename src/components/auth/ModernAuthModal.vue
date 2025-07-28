@@ -93,7 +93,7 @@
                   v-model="formData.email"
                   type="email"
                   required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="请输入您的邮箱"
                   :disabled="isLoading"
                 />
@@ -107,7 +107,7 @@
                 <input
                   v-model="formData.username"
                   type="text"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="请输入用户名"
                   :disabled="isLoading"
                 />
@@ -123,7 +123,7 @@
                     v-model="formData.password"
                     :type="showPassword ? 'text' : 'password'"
                     required
-                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="请输入密码"
                     :disabled="isLoading"
                   />
@@ -147,7 +147,7 @@
                   v-model="formData.confirmPassword"
                   type="password"
                   required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="请再次输入密码"
                   :disabled="isLoading"
                 />
@@ -447,4 +447,4 @@ const handleEmailLogin = () => {
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.7);
 }
-</style> 
+</style>

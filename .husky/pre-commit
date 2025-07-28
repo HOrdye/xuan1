@@ -1,0 +1,12 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 运行代码检查..."
+
+# 运行ESLint检查
+npm run lint
+
+# 检查TypeScript类型
+npx vue-tsc --noEmit
+
+echo "✅ 代码检查完成" 

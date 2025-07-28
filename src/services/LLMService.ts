@@ -53,13 +53,6 @@ const DEFAULT_CONFIG: LLMConfig = {
   maxTokens: 4000
 };
 
-console.log('🔧 LLM Service 初始化配置:', {
-  provider: DEFAULT_CONFIG.provider,
-  hasApiKey: !!DEFAULT_CONFIG.apiKey,
-  baseURL: DEFAULT_CONFIG.baseURL || '使用默认',
-  model: DEFAULT_CONFIG.model
-});
-
 export class LLMService {
   private static config: LLMConfig = DEFAULT_CONFIG;
   private static loadingCallbacks: ((state: LLMLoadingState) => void)[] = [];
@@ -173,8 +166,15 @@ export class LLMService {
     }
   }
   
-  static onLoadingStateChange(callback: (state: LLMLoadingState) => void) {
+  static onLoadingStateChange(callback: (state: LLMLoadingState) => void): () => void {
     this.loadingCallbacks.push(callback);
+    // 返回取消订阅函数
+    return () => {
+      const index = this.loadingCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.loadingCallbacks.splice(index, 1);
+      }
+    };
   }
   
   static offLoadingStateChange(callback: (state: LLMLoadingState) => void) {
@@ -436,171 +436,170 @@ ${cards.map(card => {
   }
 
   private static async callLLMAPI(prompt: string): Promise<LLMResponse> {
-    // 获取最新配置，确保配置同步
     const { provider, apiKey, baseURL, model, temperature, maxTokens } = this.getConfig();
-    if (!apiKey) {
-      throw new Error("LLM API key is not configured.");
-    }
+    if (!apiKey) throw new Error("LLM API key is not configured.");
     
-    let effectiveBaseURL = baseURL;
-    let effectiveModel = model;
-
-    switch(provider) {
-        case 'openai':
-            effectiveBaseURL = effectiveBaseURL || 'https://api.openai.com/v1';
-            effectiveModel = effectiveModel || 'gpt-4-turbo-preview';
-            break;
-        case 'claude':
-            effectiveBaseURL = effectiveBaseURL || 'https://api.anthropic.com/v1';
-            effectiveModel = effectiveModel || 'claude-3-opus-20240229';
-            break;
-        case 'deepseek':
-            effectiveBaseURL = effectiveBaseURL || 'https://api.deepseek.com/v1';
-            effectiveModel = effectiveModel || 'deepseek-chat';
-            break;
-        case 'qianwen':
-            effectiveBaseURL = effectiveBaseURL || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
-            effectiveModel = effectiveModel || 'qwen-turbo';
-            break;
-        case 'custom':
-        default:
-            if (!effectiveBaseURL) {
-                throw new Error("Custom LLM provider requires a baseURL to be set.");
-            }
-            break;
-    }
+    // 配置服务商参数（简化switch结构）
+    const [effectiveBaseURL, effectiveModel] = (() => {
+      switch(provider) {
+        case 'openai': return [baseURL || 'https://api.openai.com/v1', model || 'gpt-4-turbo-preview'];
+        case 'claude': return [baseURL || 'https://api.anthropic.com/v1', model || 'claude-3-opus-20240229'];
+        case 'deepseek': return [baseURL || 'https://api.deepseek.com/v1', model || 'deepseek-chat'];
+        case 'qianwen': return [baseURL || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', model || 'qwen-turbo'];
+        default: 
+          if (!baseURL) throw new Error("Custom LLM provider requires baseURL");
+          return [baseURL, model || 'default'];
+      }
+    })();
 
     const endpoint = provider === 'qianwen' ? effectiveBaseURL : `${effectiveBaseURL}/chat/completions`;
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    };
-
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
     const body = JSON.stringify({
       model: effectiveModel,
-          messages: [{ role: 'user', content: prompt }],
-          temperature,
-          max_tokens: maxTokens
+      messages: [{ role: 'user', content: prompt }],
+      temperature,
+      max_tokens: maxTokens
     });
 
     try {
-      this.updateLoadingState({ isLoading: true, progress: '正在与AI建立连接...', stage: 'calling' });
+      this.updateLoadingState({ isLoading: true, progress: '正在连接AI服务...', stage: 'calling' });
+      
+      // 添加15秒超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      
       const response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-        body
-    });
-    
-    if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('LLM API Error:', response.status, errorBody);
-        throw new Error(`LLM API request failed with status ${response.status}: ${errorBody}`);
-    }
-    
-    const data = await response.json();
-      this.updateLoadingState({ isLoading: true, progress: '正在处理AI的回应...', stage: 'processing' });
-
+        method: 'POST',
+        headers,
+        body,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API响应错误: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      this.updateLoadingState({ isLoading: true, progress: '解析AI响应...', stage: 'processing' });
+      
       return {
         content: data.choices[0].message.content,
-        usage: {
+        usage: data.usage ? {
           promptTokens: data.usage.prompt_tokens,
           completionTokens: data.usage.completion_tokens,
           totalTokens: data.usage.total_tokens
-        }
+        } : undefined
       };
     } catch (error) {
-      console.error('Failed to call LLM API:', error);
-      throw error;
+      // 健壮的错误处理
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('AI服务响应超时，请稍后重试');
+        }
+        throw new Error(`服务调用失败: ${error.message}`);
+      }
+      throw new Error('服务调用失败: 未知网络错误');
     }
   }
 
-  // --- Hexagram Service (Kept for other functionalities) ---
-  static async getHexagramInterpretation(hexagram: Hexagram, question?: string): Promise<string> {
+  // --- 易经卦象解读服务 ---
+  static async getHexagramInterpretation(
+    hexagram: Hexagram,
+    changingLines: number[] = [],
+    relatedHexagram: Hexagram | null = null,
+    question?: string
+  ): Promise<string> {
     // 获取最新配置，确保配置同步
     const config = this.getConfig();
-    if (!config.apiKey) {
-      return this.getLocalHexagramInterpretation(hexagram, question);
-    }
-    const prompt = this.buildHexagramPrompt(hexagram, question);
-    const response = await this.callLLMAPI(prompt);
-    return response.content || 'AI未能返回有效的解读内容。';
-  }
-
-  private static getLocalHexagramInterpretation(hexagram: Hexagram, question?: string): string {
-    const questionText = question ? `\n\n**您的问题**: ${question}` : '';
-    return `## ${hexagram.name} (${hexagram.chineseName})\n\n**卦象**: ${hexagram.symbol}\n**卦辞**: ${hexagram.judgment}\n**现代解读**: ${hexagram.modernInterpretation}\n**核心含义**: ${hexagram.description}\n\n**人生启示**: \n${hexagram.modernInterpretation || '此卦提醒我们要顺应自然规律，以智慧和耐心面对人生的挑战与机遇。'}\n\n**建议**: \n根据这一卦象，建议您保持内心的平静与智慧，相信事物的发展都有其规律。${questionText}\n\n愿这一卦象为您带来智慧与指引。🙏`;
-  }
-
-  private static buildHexagramPrompt(hexagram: Hexagram, question?: string): string {
-    const questionText = question ? `\n\n用户问题: ${question}` : '';
     
-    return `你是天玄Web的AI运势分析师，专门为用户提供专业、易懂、实用的运势解读。
+    // 本地解读作为备用方案
+    if (!config.apiKey) {
+      return this.getLocalHexagramInterpretation(hexagram, changingLines, relatedHexagram, question);
+    }
+    
+    // 开始加载状态
+    this.updateLoadingState({ isLoading: true, progress: '正在准备卦象解读...', stage: 'preparing' });
+    
+    try {
+      // 创建专业的卦象解读提示
+      const prompt = this.buildHexagramInterpretationPrompt(hexagram, changingLines, relatedHexagram, question);
+      
+      this.updateLoadingState({ isLoading: true, progress: '正在生成AI解读...', stage: 'calling' });
+      const response = await this.callLLMAPI(prompt);
+      
+      this.updateLoadingState({ isLoading: true, progress: '正在解析解读内容...', stage: 'processing' });
+      
+      // 完成加载状态
+      this.updateLoadingState({ isLoading: false, progress: '解读完成', stage: 'completed' });
+      
+      // 返回纯文本解读内容
+      return response.content || this.getLocalHexagramInterpretation(hexagram, changingLines, relatedHexagram, question);
+    } catch (error) {
+      console.error('❌ 卦象解读失败:', error);
+      this.updateLoadingState({ isLoading: false, progress: '解读失败，使用本地解读', stage: 'error' });
+      return this.getLocalHexagramInterpretation(hexagram, changingLines, relatedHexagram, question);
+    }
+  }
 
-**分析任务**: 基于用户信息生成今日运势分析
+  private static getLocalHexagramInterpretation(
+    hexagram: Hexagram,
+    changingLines: number[],
+    relatedHexagram: Hexagram | null,
+    question?: string
+  ): string {
+    const questionText = question ? `\n\n**您的问题**: ${question}` : '';
+    const changingLinesText = changingLines.length > 0 
+      ? `\n**变爻位置**: ${changingLines.map(i => i + 1).join('、')}爻`
+      : '';
+    const relatedHexagramText = relatedHexagram 
+      ? `\n**变卦**: ${relatedHexagram.name} (${relatedHexagram.chineseName})` 
+      : '';
+    
+    return `## ${hexagram.name} (${hexagram.chineseName})\n\n` +
+           `**卦象**: ${hexagram.symbol}\n` +
+           `**卦辞**: ${hexagram.judgment}\n` +
+           `**象辞**: ${hexagram.image}\n` +
+           `**彖辞**: ${hexagram.tuan}\n` +
+           `${changingLinesText}${relatedHexagramText}\n\n` +
+           `**现代解读**: \n${hexagram.modernInterpretation || '此卦提醒我们要顺应自然规律，以智慧和耐心面对人生的挑战与机遇。'}\n\n` +
+           `**核心启示**: \n${hexagram.description}${questionText}`;
+  }
 
-**用户信息**:
-- 卦象名称: ${hexagram.name} (${hexagram.chineseName})
+  private static buildHexagramInterpretationPrompt(
+    hexagram: Hexagram,
+    changingLines: number[],
+    relatedHexagram: Hexagram | null,
+    question?: string
+  ): string {
+    // 构建专业卦象解读提示
+    return `你是易经研究专家，拥有20年解卦经验，精通《周易》原文和历代注疏。
+请基于专业易学知识，为用户提供深入的卦象解读。
+
+**卦象信息**:
+- 主卦: ${hexagram.name} (${hexagram.chineseName})
 - 卦象符号: ${hexagram.symbol}
 - 卦辞: ${hexagram.judgment}
+- 象辞: ${hexagram.image}
+- 彖辞: ${hexagram.tuan}
 - 现代解读: ${hexagram.modernInterpretation}
-- 核心含义: ${hexagram.description}${questionText}
+- 核心含义: ${hexagram.description}
+${changingLines.length > 0 ? `- 变爻位置: ${changingLines.map(i => `${i + 1}爻`).join(', ')}` : ''}
+${relatedHexagram ? `- 变卦: ${relatedHexagram.name} (${relatedHexagram.chineseName})` : ''}
 
-**重要提示**: 你必须严格按照以下JSON格式返回，不要包含任何其他文字、解释或markdown符号。
+**用户问题**: 
+${question || '未提供具体问题'}
 
-**输出格式**:
-{
-  "overall": {
-    "level": "excellent|good|normal|bad|terrible",
-    "description": "整体运势的简洁描述（20字以内）",
-    "score": 85,
-    "analysis": "整体运势的详细分析（100字以内）"
-  },
-  "career": {
-    "level": "excellent|good|normal|bad|terrible", 
-    "description": "事业运势描述（15字以内）",
-    "score": 80,
-    "analysis": "事业方面的具体建议（80字以内）"
-  },
-  "wealth": {
-    "level": "excellent|good|normal|bad|terrible",
-    "description": "财运描述（15字以内）", 
-    "score": 75,
-    "analysis": "财运方面的具体建议（80字以内）"
-  },
-  "love": {
-    "level": "excellent|good|normal|bad|terrible",
-    "description": "感情运势描述（15字以内）",
-    "score": 90,
-    "analysis": "感情方面的具体建议（80字以内）"
-  },
-  "health": {
-    "level": "excellent|good|normal|bad|terrible",
-    "description": "健康运势描述（15字以内）",
-    "score": 85,
-    "analysis": "健康方面的具体建议（80字以内）"
-  },
-  "luckyElements": {
-    "colors": ["红色", "金色"],
-    "numbers": [6, 8],
-    "direction": "东南"
-  },
-  "dailyAdvice": {
-    "do": ["早起冲杯手冲咖啡，提升今日运势", "整理工位，布置开运小物件"],
-    "dont": ["熬夜爆肝，容易破财又伤身", "剁手冲动消费，钱包会破产"],
-    "special": "今日特别建议：保持积极心态，机会总在下一个路口"
-  },
-  "personalizedInsights": "基于您的具体情况，建议重点关注${question ? '您提到的问题' : '整体运势平衡'}，保持耐心和信心。"
-}
+**解读要求**:
+1. 首先解析主卦的核心含义，结合卦辞、象辞和彖辞进行深入分析
+2. 对变爻进行逐爻解释（若有变爻），说明其象征意义
+3. 分析变卦的含义（若有变卦），以及与主卦的关系
+4. 结合用户问题，给出具体的启示和建议
+5. 保持专业、客观的解读风格，避免运势预测类内容
+6. 使用清晰的中文段落结构，总字数控制在300-500字之间
 
-**严格要求**:
-1. 只返回JSON格式，不要包含任何其他文字
-2. 不要使用markdown语法
-3. 不要添加解释或说明
-4. 确保JSON格式完全正确，包含所有必需的字段
-5. 所有字符串必须用双引号包围
-6. 数组和对象必须正确闭合
-7. 不要在JSON前后添加任何字符`;
+请直接返回解读文本，无需额外格式说明。`;
   }
 }
 

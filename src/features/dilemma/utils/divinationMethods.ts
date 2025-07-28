@@ -4,7 +4,6 @@
  */
 
 import { Hexagram, Trigram, AnalysisResult, CoinResult, PlumBlossomResult, SixCoinsResult, PlumBlossomParams } from '../types';
-// import { generateHexagram } from './hexagramGenerator';
 import { loadAllHexagrams } from './loadHexagrams';
 import { Random } from '../utils/Random';
 
@@ -14,7 +13,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Heaven',
     chineseName: '乾',
     symbol: '☰',
-    lines: [1, 1, 1],
+    lines: [1, 1, 1] as (0 | 1)[],
     meaning: '象征天，代表刚健、创造、积极进取。',
     nature: '天',
     attribute: '刚健'
@@ -23,7 +22,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Lake',
     chineseName: '兑',
     symbol: '☱',
-    lines: [1, 1, 0],
+    lines: [1, 1, 0] as (0 | 1)[],
     meaning: '象征泽，代表喜悦、交流、柔顺。',
     nature: '泽',
     attribute: '喜悦'
@@ -32,7 +31,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Fire',
     chineseName: '离',
     symbol: '☲',
-    lines: [1, 0, 1],
+    lines: [1, 0, 1] as (0 | 1)[],
     meaning: '象征火，代表明丽、依附、文明。',
     nature: '火',
     attribute: '明丽'
@@ -41,7 +40,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Thunder',
     chineseName: '震',
     symbol: '☳',
-    lines: [1, 0, 0],
+    lines: [1, 0, 0] as (0 | 1)[],
     meaning: '象征雷，代表行动、激发、奋进。',
     nature: '雷',
     attribute: '动'
@@ -50,7 +49,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Wind',
     chineseName: '巽',
     symbol: '☴',
-    lines: [0, 1, 1],
+    lines: [0, 1, 1] as (0 | 1)[],
     meaning: '象征风，代表渗透、顺从、进取。',
     nature: '风',
     attribute: '入'
@@ -59,7 +58,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Water',
     chineseName: '坎',
     symbol: '☵',
-    lines: [0, 1, 0],
+    lines: [0, 1, 0] as (0 | 1)[],
     meaning: '象征水，代表险阻、智慧、流动。',
     nature: '水',
     attribute: '陷'
@@ -68,7 +67,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Mountain',
     chineseName: '艮',
     symbol: '☶',
-    lines: [0, 0, 1],
+    lines: [0, 0, 1] as (0 | 1)[],
     meaning: '象征山，代表静止、止步、稳重。',
     nature: '山',
     attribute: '止'
@@ -77,7 +76,7 @@ const TRIGRAMS: Trigram[] = [
     name: 'Earth',
     chineseName: '坤',
     symbol: '☷',
-    lines: [0, 0, 0],
+    lines: [0, 0, 0] as (0 | 1)[],
     meaning: '象征地，代表顺从、包容、承载。',
     nature: '地',
     attribute: '顺'
@@ -180,7 +179,7 @@ export async function coinDivination(): Promise<SixCoinsResult> {
   }
 
   // 修正：将6/7/8/9转换为0/1数组
-  const lines = results.map(val => (val % 2 === 1 ? 1 : 0));
+  const lines = results.map(val => (val % 2 === 1 ? 1 : 0)) as (0 | 1)[];
 
   try {
     // 计算卦象
@@ -199,12 +198,14 @@ export async function coinDivination(): Promise<SixCoinsResult> {
       number: 1,
       sequence: 1,
       name: lines.join(''),
+      chineseName: lines.join(''),
       symbol: '?',
       lines: lines,
       meaning: '临时卦象，数据加载中...',
       judgment: '请稍后重试...',
       yao_texts: ['', '', '', '', '', ''],
-      trigrams: { upper: 'Unknown', lower: 'Unknown' }
+      trigrams: { upper: 'Unknown', lower: 'Unknown' },
+      modernInterpretation: '数据加载中，请稍后重试...'
     };
 
   return {
@@ -273,12 +274,14 @@ export async function plumBlossomDivination(params: PlumBlossomParams): Promise<
       number: 1,
       sequence: 1,
       name: '临时卦象',
+      chineseName: '临时卦象',
       symbol: '?',
-      lines: [...lowerTrigram.lines, ...upperTrigram.lines],
+      lines: [...lowerTrigram.lines, ...upperTrigram.lines] as (0 | 1)[],
       meaning: '临时卦象，数据加载中...',
       judgment: '请稍后重试...',
       yao_texts: ['', '', '', '', '', ''],
-      trigrams: { upper: upperTrigram.name, lower: lowerTrigram.name }
+      trigrams: { upper: upperTrigram.name, lower: lowerTrigram.name },
+      modernInterpretation: '数据加载中，请稍后重试...'
     };
   
   return {
@@ -307,13 +310,13 @@ export async function randomDivination(question: string): Promise<AnalysisResult
   const random = new Random(seed);
   
   // 生成六爻
-  const lines: number[] = [];
+  const lines: (0 | 1)[] = [];
   const changingLines: number[] = [];
   
   for (let i = 0; i < 6; i++) {
     // 生成爻值（6-9）
     const value = random.nextInt(0, 3) + 6;
-    lines.push(value % 2);
+    lines.push(value % 2 === 1 ? 1 : 0);
     
     // 判断是否为变爻（6或9）
     if (value === 6 || value === 9) {
@@ -342,12 +345,14 @@ export async function randomDivination(question: string): Promise<AnalysisResult
       number: 1,
       sequence: 1,
       name: '临时卦象',
+      chineseName: '临时卦象',
       symbol: '?',
       lines: lines,
       meaning: '临时卦象，数据加载中...',
       judgment: '请稍后重试...',
       yao_texts: ['', '', '', '', '', ''],
-      trigrams: { upper: 'Unknown', lower: 'Unknown' }
+      trigrams: { upper: 'Unknown', lower: 'Unknown' },
+      modernInterpretation: '数据加载中，请稍后重试...'
     };
     
     return {
@@ -363,11 +368,7 @@ export async function randomDivination(question: string): Promise<AnalysisResult
 /**
  * 辅助函数：计算卦象
  */
-function calculateHexagram(lines: number[]): Hexagram {
-  // 将六爻转换为卦象
-  // const upperTrigram = lines.slice(3).join('');
-  // const lowerTrigram = lines.slice(0, 3).join('');
-  
+function calculateHexagram(lines: (0 | 1)[]): Hexagram {
   // 查找对应的卦象
   const hexagram = findHexagramFromDatabase(lines);
   return hexagram;
@@ -412,7 +413,7 @@ function generateAnalysis(hexagram: Hexagram, relatedHexagram: Hexagram | null, 
 /**
  * 从数据库中查找卦象
  */
-function findHexagramFromDatabase(lines: number[]): Hexagram {
+function findHexagramFromDatabase(lines: (0 | 1)[]): Hexagram {
   // 检查数据是否已加载
   if (!isDataLoaded || hexagramsData.length === 0) {
     // 触发数据加载，但仍返回一个基础卦象以避免错误
@@ -426,17 +427,14 @@ function findHexagramFromDatabase(lines: number[]): Hexagram {
       number: 1, // 临时序号
       sequence: 1,
       name: lines.join(''),
+      chineseName: lines.join(''),
       symbol: '?',
       lines: lines,
       meaning: '卦象数据加载中...',
       judgment: '卦象数据加载中...',
       yao_texts: ['', '', '', '', '', ''],
       trigrams: { upper: 'Unknown', lower: 'Unknown' },
-      nature: lines.join(''),
-      description: '卦象数据加载中...',
-      overall: '正在连接易经数据库...',
-      tuan_text: '',
-      xiang_text: ''
+      modernInterpretation: '数据加载中，请稍后重试...'
     };
   }
   
@@ -479,8 +477,9 @@ function findHexagramFromDatabase(lines: number[]): Hexagram {
     number: 1,
     sequence: 1,
     name: '乾',
+    chineseName: '乾',
     symbol: '䷀',
-    lines: [1, 1, 1, 1, 1, 1],
+    lines: [1, 1, 1, 1, 1, 1] as (0 | 1)[],
     meaning: '乾为天，刚健中正',
     judgment: '元亨利贞。君子自强不息。',
     yao_texts: [
@@ -492,11 +491,7 @@ function findHexagramFromDatabase(lines: number[]): Hexagram {
       '亢龙有悔。'
     ],
     trigrams: { upper: 'Heaven', lower: 'Heaven' },
-    nature: '乾上乾下',
-    description: '元，亨，利，贞。',
-    overall: '刚健、积极进取',
-    tuan_text: '大哉乾元，万物资始，乃统天。',
-    xiang_text: '天行健，君子以自强不息。'
+    modernInterpretation: '当前形势利于开创新局面，适合主动出击，但需注意量力而行，谨防过度自信。'
   };
 }
 
@@ -510,6 +505,6 @@ function calculateTrigram(number: number, _isUpper: boolean): Trigram {
 
 // 添加combineTrigrams函数
 function combineTrigrams(upperTrigram: Trigram, lowerTrigram: Trigram): Hexagram {
-  const lines = [...lowerTrigram.lines, ...upperTrigram.lines];
+  const lines = [...lowerTrigram.lines, ...upperTrigram.lines] as (0 | 1)[];
   return findHexagramFromDatabase(lines);
-} 
+}

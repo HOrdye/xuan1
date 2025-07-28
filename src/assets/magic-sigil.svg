@@ -1,1 +1,25 @@
- 
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <g id="sigil" stroke-linecap="round" stroke-linejoin="round">
+    <g id="outer-rings" stroke="#a2f4ff" stroke-width="1.2" fill="none">
+      <circle class="ring-1" cx="100" cy="100" r="90" />
+      <circle class="ring-2" cx="100" cy="100" r="85" />
+    </g>
+    <g id="star-lines" stroke="#a2f4ff" stroke-width="1" fill="none">
+      <!-- Outer connections of the nonagon -->
+      <path d="M 100,10 L 158.78,61.22"/> <path d="M 158.78,61.22 L 187.7,138.78"/>
+      <path d="M 187.7,138.78 L 128.06,189.02"/> <path d="M 128.06,189.02 L 41.22,189.02"/>
+      <path d="M 41.22,189.02 L 12.3,138.78"/> <path d="M 12.3,138.78 L 41.22,61.22"/>
+      <path d="M 41.22,61.22 L 100,10"/>
+      <!-- Inner star connections -->
+      <path d="M 100,10 L 187.7,138.78"/> <path d="M 187.7,138.78 L 41.22,61.22"/>
+      <path d="M 41.22,61.22 L 128.06,189.02"/> <path d="M 128.06,189.02 L 12.3,138.78"/>
+      <path d="M 12.3,138.78 L 158.78,61.22"/> <path d="M 158.78,61.22 L 41.22,189.02"/>
+      <path d="M 41.22,189.02 L 100,10"/>
+    </g>
+    <g id="center-piece" stroke="#a2f4ff" stroke-width="1.2" fill="none">
+       <circle cx="100" cy="100" r="12" />
+       <path d="M 100 88 A 12 12 0 0 1 100 112" />
+       <path d="M 100 88 A 12 12 0 0 0 100 112" />
+    </g>
+  </g>
+</svg> 

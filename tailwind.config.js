@@ -14,6 +14,7 @@ export default {
         'accent': '#f59e0b', // 金黄色
         'background': '#f8fafc',
         'surface': '#ffffff',
+        'dark': '#0f0f23', // 暗色背景
       },
       fontFamily: {
         sans: ['Noto Sans SC', 'sans-serif'],
@@ -35,4 +36,4 @@ export default {
     },
   },
   plugins: [],
-} 
+}

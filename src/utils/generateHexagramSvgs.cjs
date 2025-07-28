@@ -12,7 +12,8 @@ if (!fs.existsSync(staticHexagramsDir)) {
 // 读取卦象数据
 const hexagramsPath = path.join(__dirname, '../../public/hexagrams.json');
 console.log(`尝试从以下路径加载卦象数据: ${hexagramsPath}`);
-const hexagramsJson = require(hexagramsPath);
+  const hexagramsData = fs.readFileSync(hexagramsPath, 'utf8');
+  const hexagramsJson = JSON.parse(hexagramsData);
 
 // 生成SVG文件
 let count = 0;
@@ -25,9 +26,15 @@ for (const key in hexagramsJson) {
     continue;
   }
   
-  // 使用序号作为文件名
-  const fileName = `${sequence}.svg`;
+  // 使用序号作为文件名，确保序号是数字类型
+  const fileName = `${Number(sequence)}.svg`;
   const staticFilePath = path.join(staticHexagramsDir, fileName);
+  
+  // 确保卦象序号存在
+  if (isNaN(sequence)) {
+    console.warn(`卦象序号无效: ${sequence} (${name})`);
+    continue;
+  }
   
   // 处理卦象名称，确保只有中文部分
   let pureName = name;
@@ -53,8 +60,8 @@ for (const key in hexagramsJson) {
     pureName = `第${sequence}卦`;
   }
   
-  // 生成SVG内容 - 更健壮的版本
-  const svgContent = generateBetterSvg(lines, sequence.toString());
+  // 生成SVG内容 - 更健壮的版本 (确保序列号是数字)
+  const svgContent = generateBetterSvg(lines, Number(sequence));
   
   // 只写入到静态目录
   fs.writeFileSync(staticFilePath, svgContent, 'utf8');
@@ -113,4 +120,4 @@ function generateBetterSvg(lines, number) {
   
   svg += '</svg>';
   return svg;
-} 
+}

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天玄Web UI设计方案对比</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .design-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .design-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .preview-container {
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .preview-1 {
+            background: linear-gradient(135deg, #1a1a2e, #0a0a0a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .preview-2 {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a1a;
+        }
+
+        .preview-3 {
+            background: #0f0f23;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ffff;
+        }
+
+        .preview-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .preview-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .preview-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .design-info {
+            padding: 2rem;
+        }
+
+        .design-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .design-description {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .features-list {
+            list-style: none;
+        }
+
+        .features-list li {
+            padding: 0.3rem 0;
+            color: #555;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .demo-button {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 1rem;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .demo-button:hover {
+            background: #0056b3;
+        }
+
+        .recommendation {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .recommendation h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>天玄Web UI设计方案</h1>
+        <p>三种现代化设计风格的详细对比，请选择最适合您项目的方案</p>
+    </div>
+
+    <div class="comparison-grid">
+        <!-- 神秘科技风 -->
+        <div class="design-card">
+            <div class="preview-container" onclick="window.open('modern-ui-preview-1.html', '_blank')">
+                <div class="preview-1">
+                    <div class="preview-content">
+                        <div class="preview-title">神秘科技风</div>
+                        <div class="preview-subtitle">深色主题 + 霓虹光效</div>
+                    </div>
+                </div>
+            </div>
+            <div class="design-info">
+                <h3 class="design-title">方案一：神秘科技风</h3>
+                <p class="design-description">
+                    灵感来源于科幻电影和赛博朋克美学，采用深色背景配合霓虹色彩，营造神秘而现代的氛围。适合年轻用户群体，突出科技感。
+                </p>
+                
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #0a0a0a"></div>
+                    <div class="color-swatch" style="background: #1a1a2e"></div>
+                    <div class="color-swatch" style="background: #00d4ff"></div>
+                    <div class="color-swatch" style="background: #ff00ff"></div>
+                </div>
+
+                <ul class="features-list">
+                    <li>深色主题，护眼舒适</li>
+                    <li>霓虹渐变效果</li>
+                    <li>粒子动画背景</li>
+                    <li>玻璃拟态卡片</li>
+                    <li>响应式设计</li>
+                    <li>悬停动效丰富</li>
+                </ul>
+
+                <a href="modern-ui-preview-1.html" class="demo-button" target="_blank">查看完整演示</a>
+            </div>
+        </div>
+
+        <!-- 极简禅意风 -->
+        <div class="design-card">
+            <div class="preview-container" onclick="window.open('modern-ui-preview-2.html', '_blank')">
+                <div class="preview-2">
+                    <div class="preview-content">
+                        <div class="preview-title">极简禅意风</div>
+                        <div class="preview-subtitle">留白设计 + 微妙动画</div>
+                    </div>
+                </div>
+            </div>
+            <div class="design-info">
+                <h3 class="design-title">方案二：极简禅意风</h3>
+                <p class="design-description">
+                    遵循Apple设计哲学，大量留白配合精致动画，体现东方禅意美学。适合追求品质感的用户，突出专业性和可信度。
+                </p>
+                
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #fafafa"></div>
+                    <div class="color-swatch" style="background: #f5f7fa"></div>
+                    <div class="color-swatch" style="background: #1a1a1a"></div>
+                    <div class="color-swatch" style="background: #666"></div>
+                </div>
+
+                <ul class="features-list">
+                    <li>极简留白设计</li>
+                    <li>柔和渐变背景</li>
+                    <li>圆形功能入口</li>
+                    <li>优雅字体排版</li>
+                    <li>微妙交互动画</li>
+                    <li>极致用户体验</li>
+                </ul>
+
+                <a href="modern-ui-preview-2.html" class="demo-button" target="_blank">查看完整演示</a>
+            </div>
+        </div>
+
+        <!-- 未来玄学风 -->
+        <div class="design-card">
+            <div class="preview-container" onclick="window.open('modern-ui-preview-3.html', '_blank')">
+                <div class="preview-3">
+                    <div class="preview-content">
+                        <div class="preview-title">未来玄学风</div>
+                        <div class="preview-subtitle">玻璃拟态 + 粒子效果</div>
+                    </div>
+                </div>
+            </div>
+            <div class="design-info">
+                <h3 class="design-title">方案三：未来玄学风</h3>
+                <p class="design-description">
+                    融合科幻元素与玄学主题，采用全息投影效果和3D交互，创造沉浸式未来体验。适合科技爱好者，突出创新性和前瞻性。
+                </p>
+                
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #0f0f23"></div>
+                    <div class="color-swatch" style="background: #00ffff"></div>
+                    <div class="color-swatch" style="background: #ff00ff"></div>
+                    <div class="color-swatch" style="background: #8a2be2"></div>
+                </div>
+
+                <ul class="features-list">
+                    <li>3D全息效果</li>
+                    <li>自定义光标</li>
+                    <li>网格动态背景</li>
+                    <li>数据流动画</li>
+                    <li>沉浸式交互</li>
+                    <li>未来科技质感</li>
+                </ul>
+
+                <a href="modern-ui-preview-3.html" class="demo-button" target="_blank">查看完整演示</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="recommendation">
+        <h3>🎯 设计建议</h3>
+        <p>
+            <strong>推荐方案：神秘科技风（方案一）</strong><br>
+            该方案在保持专业性的同时，很好地平衡了神秘感和现代感，特别适合玄学类应用。
+            深色主题有助于用户专注占卜体验，霓虹效果增强了视觉吸引力，同时保持了良好的可读性。
+        </p>
+    </div>
+
+    <script>
+        // 添加悬停效果
+        document.querySelectorAll('.preview-container').forEach(container => {
+            container.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+            });
+            
+            container.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

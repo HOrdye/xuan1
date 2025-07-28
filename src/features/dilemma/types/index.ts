@@ -8,36 +8,35 @@ export interface Hexagram {
   number: number;
   sequence: number;
   symbol: string;
-  lines: number[];
-  meaning: string; // 通常指整体含义或彖传、象传的综合
-  judgment: string; // 卦辞 (彖辞)
+  lines: (0 | 1)[];
+  judgment: string; // 卦辞
+  image?: string; // 象辞
+  tuan?: string; // 彖辞
+  meaning: string; // 卦象含义 (兼容旧字段)
   yao_texts: string[]; // 六爻的爻辞
   trigrams: { upper: string; lower: string };
-  svg_path?: string; // 添加 SVG 路径字段
-  attribute?: string; // 添加属性字段
-  element?: string; // 五行属性改为可选
-  tuan_text?: string; // 彖辞
-  xiang_text?: string; // 象辞
-  chineseName?: string; // 中文名 (如果name字段可能是其他语言)
-  modernInterpretation?: string;
+  svg_path?: string; 
+  attribute?: string; 
+  element?: string; 
+  chineseName: string; // 中文名 (改为必填)
+  modernInterpretation: string; // 现代解读 (改为必填)
   detailedAnalysis?: {
     overallLuck?: string;
     career?: string;
     love?: string;
     health?: string;
   };
-  // 为兼容HexagramDisplay.vue增加可选字段
-  nature?: string; // 卦性，如刚健、柔顺等
-  description?: string; // 卦辞的另一种可能存放处，或更详细的描述
-  overall?: string; // 综合解读
-  imageUrl?: string; // 卦象图像URL
+  nature?: string; 
+  description?: string; 
+  overall?: string; 
+  imageUrl?: string; 
 }
 
 export interface Trigram {
   name: string; // 英文名
   chineseName: string; // 中文名
   symbol: string; // 卦符号
-  lines: number[]; // 三爻
+  lines: (0 | 1)[]; // 三爻
   meaning?: string; // 卦意
   nature: string; // 天、泽、火等
   attribute: string; // 刚健、喜悦等
@@ -47,7 +46,13 @@ export interface AnalysisResult {
   hexagram: Hexagram | null;
   changingLines: number[];
   relatedHexagram: Hexagram | null;
-  analysis: string;
+  analysis: string | {
+    title: string;
+    summary: string;
+    detailed: string;
+    advice: string;
+    changingLinesAnalysis: any[];
+  };
   question?: string; 
   method?: string; 
   optionA?: string;
@@ -108,4 +113,4 @@ export interface DivinationSession {
     plumBlossomResult?: PlumBlossomResult;
   };
   timestamp: number;
-} 
+}

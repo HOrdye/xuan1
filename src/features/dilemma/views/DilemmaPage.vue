@@ -100,7 +100,7 @@
     </div>
 
     <!-- 分析结果 -->
-    <div v-if="analysisResult" ref="dilemmaResultRef" class="bg-white rounded-xl overflow-hidden shadow-md mb-6 transition-all duration-500" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
+    <div v-if="analysisResult" class="bg-white rounded-xl overflow-hidden shadow-md mb-6 transition-all duration-500" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
       <div class="bg-gradient-to-r from-primary to-mystic p-4 text-white">
         <div class="flex justify-between items-center">
           <h3 class="text-lg font-medium">{{ analysisResult.question }}</h3>
@@ -284,25 +284,13 @@
         
         <!-- 操作按钮 -->
         <div class="flex justify-between items-center text-sm">
-          <div class="flex items-center space-x-4">
-            <SaveButton
-              :item="{ 
-                type: 'divination', 
-                question: `${optionA} vs ${optionB}`, 
-                result: analysisResult
-              }"
-              :title="`玄选两难 - ${analysisResult.question}`"
-              class="text-sm"
-            />
+          <div>
             <button class="text-gray-500 flex items-center">
               <i class="far fa-bookmark mr-1"></i> 收藏
             </button>
           </div>
-          <div class="flex items-center space-x-4">
-            <button 
-              @click="isSharePanelOpen = true"
-              class="text-gray-500 flex items-center hover:text-primary transition-colors"
-            >
+          <div class="flex">
+            <button class="text-gray-500 mr-4 flex items-center">
               <i class="fas fa-share-alt mr-1"></i> 分享
             </button>
             <button @click="resetForm" class="text-primary font-medium flex items-center">
@@ -347,20 +335,6 @@
       :stage="loadingStage"
     />
 
-    <!-- 动画测试按钮 (仅开发模式) -->
-    <div v-if="isDevelopment" class="dev-controls">
-      <button 
-        @click="testLLMAnimation" 
-        class="test-animation-btn"
-        :disabled="isGenerating"
-      >
-        {{ isGenerating ? '测试进行中...' : '🎭 测试LLM动画效果' }}
-      </button>
-    </div>
-
-    <!-- 调试面板 (仅开发模式) -->
-    <LLMDebugPanel v-if="isDevelopment" />
-
     <!-- SharePanel -->
     <SharePanel
       :is-open="isSharePanelOpen"
@@ -382,7 +356,6 @@ import { generateFortuneSeed } from '../utils/fortuneSeed';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
 import SaveButton from '../../../components/common/SaveButton.vue';
 import SharePanel from '../../../components/common/SharePanel.vue';
-import LLMDebugPanel from '../../../debug/LLMDebugPanel.vue';
 import { LLMService } from '../../../services/LLMService';
 
 // 表单数据
@@ -847,61 +820,8 @@ const getFinalWisdom = (result: any): string => {
   // 没有找到特定卦象的智慧，提供通用智慧
   return `${hexagramName}卦提示我们：${hexagram.modernInterpretation || hexagram.judgment || '万事万物皆有其时，顺应天时地利人和，方能获得成功'}。`;
 };
-
-// 测试LLM动画效果
-const testLLMAnimation = async () => {
-  console.log('🎭 开始测试LLM动画效果');
-  
-  // 手动触发状态更新，模拟LLM调用流程
-  const stages = [
-    { stage: 'preparing' as const, progress: '正在准备AI解读...', duration: 1000 },
-    { stage: 'calling' as const, progress: '正在连接AI服务...', duration: 1500 },
-    { stage: 'processing' as const, progress: 'AI正在思考您的问题...', duration: 2000 },
-    { stage: 'completed' as const, progress: '解读完成', duration: 500 }
-  ];
-  
-  // 开始测试
-  isGenerating.value = true;
-  
-  try {
-    for (const stageInfo of stages) {
-      loadingStage.value = stageInfo.stage;
-      loadingProgress.value = stageInfo.progress;
-      
-      console.log(`🔄 测试阶段: ${stageInfo.stage} - ${stageInfo.progress}`);
-      
-      await new Promise(resolve => setTimeout(resolve, stageInfo.duration));
-    }
-    
-    console.log('✅ LLM动画测试完成');
-  } catch (error) {
-    console.error('❌ LLM动画测试失败:', error);
-    loadingStage.value = 'error';
-    loadingProgress.value = '测试过程中出现错误';
-  } finally {
-    // 结束测试
-    setTimeout(() => {
-      isGenerating.value = false;
-      loadingProgress.value = '';
-      loadingStage.value = 'preparing';
-    }, 1000);
-  }
-};
 </script>
 
 <style scoped>
 /* 添加任何需要的样式 */
-.dev-controls {
-  @apply mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600;
-}
-
-.test-animation-btn {
-  @apply px-4 py-2 bg-purple-600 text-white rounded-lg font-medium 
-         hover:bg-purple-700 transition-colors duration-200
-         disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-.test-animation-btn:disabled {
-  @apply bg-gray-500;
-}
 </style> 

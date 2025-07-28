@@ -83,14 +83,22 @@
         </div>
       </div>
       
-      <!-- 卦象信息 -->
-      <div class="hexagram-info" :class="[`animate-ink-flow-${hexagramKey}`]">
+    <!-- 卦象信息 -->
+    <div class="hexagram-info" :class="[`animate-ink-flow-${hexagramKey}`]">
+      <template v-if="isValidHexagram">
         <h3 class="hexagram-name">{{ formatHexagramName(hexagram.name) }}卦</h3>
         <div class="hexagram-meta">
           <span class="meta-item">{{ hexagram.nature ?? '' }}</span>
           <span v-if="hexagram.element" class="meta-item">{{ hexagram.element }}属性</span>
           <span class="meta-item">第{{ hexagram.sequence ?? '' }}卦</span>
         </div>
+      </template>
+      <template v-else>
+        <h3 class="hexagram-name">卦象数据加载失败</h3>
+        <div class="hexagram-meta">
+          <span class="meta-item">请检查数据源</span>
+        </div>
+      </template>
         
         <!-- 卦辞 -->
         <div v-if="showDescription" class="hexagram-description">
@@ -98,16 +106,10 @@
           <p class="description-text">{{ formatDescription(hexagram.judgment || hexagram.description || hexagram.meaning || '无卦辞') }}</p>
         </div>
 
-        <!-- 彖辞 -->
-        <div v-if="showTuanText && hexagram.tuan_text" class="hexagram-tuan">
-          <h4 class="tuan-title">彖辞</h4>
-          <p class="tuan-text">{{ formatDescription(hexagram.tuan_text) }}</p>
-        </div>
-
-        <!-- 象辞 -->
-        <div v-if="showXiangText && hexagram.xiang_text" class="hexagram-xiang">
+        <!-- 象辞（使用image字段） -->
+        <div v-if="showXiangText && hexagram.image" class="hexagram-xiang">
           <h4 class="xiang-title">象辞</h4>
-          <p class="xiang-text">{{ formatDescription(hexagram.xiang_text) }}</p>
+          <p class="xiang-text">{{ formatDescription(hexagram.image) }}</p>
         </div>
         
         <!-- 卦象解读 -->
@@ -177,72 +179,27 @@ const hexagramLines = computed(() => {
   return [0, 0, 0, 0, 0, 0]; // 默认六爻全阴
 });
 
-// 计算图像URL，处理可能的错误情况
-const computedImageUrl = computed(() => {
-  // 仅在调试模式打印当前卦象数据
-  if (props.debug) {
-    console.log(`【DEBUG】卦象数据:`, props.hexagram ? 
-      { name: props.hexagram.name, sequence: props.hexagram.sequence, lines: props.hexagram.lines } : 
-      '无卦象数据');
-  }
-  
-  // 特殊情况处理
-  if (imageLoadError.value && currentPathIndex.value >= imagePaths.value.length - 1) {
-    if (props.debug) console.log('【DEBUG】所有路径尝试失败，使用备用显示方式');
-    return null; // 所有路径都尝试失败，返回null使用备用显示
-  }
-  
-  if (props.imageUrl) {
-    if (props.debug) console.log('【DEBUG】使用传入的URL:', props.imageUrl);
-    return props.imageUrl; // 优先使用传入的imageUrl
-  }
-  
-  if (props.hexagram && props.hexagram.imageUrl) {
-    if (props.debug) console.log('【DEBUG】使用卦象内置URL:', props.hexagram.imageUrl);
-    return props.hexagram.imageUrl; // 如果卦象有图像URL，使用它
-  }
-  
-  if (props.hexagram && props.hexagram.sequence) {
-    // 如果路径数组为空，初始化可能的路径
-    if (imagePaths.value.length === 0) {
-      const sequence = props.hexagram.sequence;
-      // 使用正确的路径格式，添加前导斜杠
-      imagePaths.value = [
-        `/static/hexagrams/${sequence}.svg`
-      ];
-      if (props.debug) console.log(`【DEBUG】使用图像路径:`, imagePaths.value[0]);
-    }
-    
-    return imagePaths.value[currentPathIndex.value];
-  }
-  
-  if (props.debug) console.log('【DEBUG】未找到有效的卦象图像路径');
-  return null; // 没有可用的图像URL
+// 检查卦象数据是否有效
+const isValidHexagram = computed(() => {
+  return props.hexagram && 
+         props.hexagram.sequence && 
+         props.hexagram.name && 
+         Array.isArray(props.hexagram.lines);
 });
 
-// 处理图像加载错误
-const handleImageError = () => {
-  if (props.debug) {
-    console.log(`【DEBUG】图像加载失败: ${imagePaths.value[currentPathIndex.value]}`);
+// 计算图像URL，处理可能的错误情况
+  const computedImageUrl = computed(() => {
+    if (imageLoadError.value) return null;
     
-    // 检查图像元素状态
-    nextTick(() => {
-      const imgElements = document.querySelectorAll('.hexagram-image-wrapper img');
-      console.log(`【DEBUG】找到 ${imgElements.length} 个图像元素`);
-      if (imgElements.length > 0) {
-        const img = imgElements[0] as HTMLImageElement;
-        console.log('【DEBUG】图像元素详情:', {
-          src: img.src,
-          width: img.width,
-          height: img.height,
-          style: img.getAttribute('style'),
-          displayMode: window.getComputedStyle(img).display
-        });
-      }
-    });
-  }
-  
-  // 将尝试切换到备用显示（使用爻线绘制）
+    if (props.hexagram?.sequence) {
+      return `/static/hexagrams/${props.hexagram.sequence}.svg`;
+    }
+    
+    return null;
+  });
+
+// 处理图像加载错误 - 简化逻辑
+const handleImageError = () => {
   imageLoadError.value = true;
 };
 
@@ -298,68 +255,14 @@ watch(() => props.imageUrl, () => {
   imageLoadError.value = false; // 重置图像错误状态
 });
 
-// 加载所有可能的URL，查看哪个能加载成功
-const loadAllPossibleUrls = () => {
-  if (!props.hexagram || !props.hexagram.sequence) return;
-  
-  const sequence = props.hexagram.sequence;
-  // 尝试多种可能的路径格式
-  const allPaths = [
-    `/static/hexagrams/${sequence}.svg`,
-    `static/hexagrams/${sequence}.svg`,
-    `./static/hexagrams/${sequence}.svg`,
-    `../static/hexagrams/${sequence}.svg`,
-    `../../static/hexagrams/${sequence}.svg`,
-    `/hexagrams/${sequence}.svg`,
-    `hexagrams/${sequence}.svg`
-  ];
-  
-  console.log(`【DEBUG-SCAN】开始扫描卦象 ${sequence} 的所有可能路径:`, allPaths);
-  
-  // 创建一个隐藏的测试区域
-  const testDiv = document.createElement('div');
-  testDiv.style.position = 'absolute';
-  testDiv.style.visibility = 'hidden';
-  testDiv.style.pointerEvents = 'none';
-  document.body.appendChild(testDiv);
-  
-  let loadedCount = 0;
-  
-  // 测试每个路径
-  allPaths.forEach((path, index) => {
-    const img = new Image();
-    img.onload = () => {
-      loadedCount++;
-      console.log(`【DEBUG-SCAN】✅ 路径可用 [${index+1}/${allPaths.length}]: ${path}`);
-      // 如果当前图像加载失败，但找到了可用路径，则使用它
-      if (imageLoadError.value) {
-        console.log(`【DEBUG-SCAN】找到可用路径，重置图像加载`);
-        imageLoadError.value = false;
-        imagePaths.value = [path];
-        currentPathIndex.value = 0;
-      }
-    };
-    img.onerror = () => {
-      console.log(`【DEBUG-SCAN】❌ 路径无效 [${index+1}/${allPaths.length}]: ${path}`);
-    };
-    img.src = path;
-    testDiv.appendChild(img);
-  });
-  
-  // 清理测试元素
-  setTimeout(() => {
-    document.body.removeChild(testDiv);
-    console.log(`【DEBUG-SCAN】扫描完成，${loadedCount}/${allPaths.length} 个路径可用`);
-  }, 3000);
-};
 
 // 组件挂载时初始化
 onMounted(() => {
   resetAnimation();
   if (props.debug) {
     console.log('组件已挂载，初始化动画状态');
-    // 启动路径扫描
-    setTimeout(loadAllPossibleUrls, 500);
+    // 由于已简化图像加载逻辑，不再需要扫描多个路径
+    console.log('【DEBUG】使用统一路径加载卦象图像');
   }
 });
 
@@ -374,6 +277,11 @@ const formatHexagramName = (name: string | undefined): string => {
   if (formattedName.includes('Hexagram')) {
     const num = formattedName.match(/\d+/);
     return num ? `第${num[0]}` : '';
+  }
+  
+  // 处理纯英文名称的情况
+  if (!/[一-龠]/.test(formattedName)) {
+    return '';
   }
   
   return formattedName;
@@ -1297,4 +1205,4 @@ const formatDescription = (text: string): string => {
   color: #555;
   text-align: justify;
 }
-</style> 
+</style>

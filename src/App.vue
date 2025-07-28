@@ -9,25 +9,18 @@
       
       <footer class="p-4 text-center text-gray-400 text-xs">© 2024 天玄 Web</footer>
       <GlobalLLMConfig />
-      
-      <!-- 开发调试面板 -->
-      <AuthDebugPanel v-if="isDev" />
     </div>
   </template>
   
   <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted } from 'vue';
 import anime from 'animejs';
 import GlobalLLMConfig from './components/GlobalLLMConfig.vue';
 import AppNavbar from './components/AppNavbar.vue';
-import AuthDebugPanel from './components/debug/AuthDebugPanel.vue';
 import { useLLMConfigStore } from './store/llmConfig';
 
 // 初始化全局LLM配置Store
 const llmStore = useLLMConfigStore();
-
-// 检查是否为开发模式
-const isDev = computed(() => import.meta.env.DEV);
 
 onMounted(async () => {
   // 初始化LLM配置

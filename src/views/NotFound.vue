@@ -15,13 +15,6 @@
         >
           返回首页
         </router-link>
-        
-        <router-link 
-          :to="{ name: 'VisualAnalysisNetwork' }" 
-          class="px-6 py-3 bg-white text-primary font-medium rounded-lg border border-primary hover:bg-primary/5 transition"
-        >
-          进入视觉分析
-        </router-link>
       </div>
     </div>
     
@@ -41,4 +34,4 @@
 
 <style scoped>
 /* 额外的样式可以在这里添加 */
-</style> 
+</style>
