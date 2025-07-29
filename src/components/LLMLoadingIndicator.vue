@@ -61,11 +61,11 @@ const currentTipIndex = ref(0)
 const stageTitle = computed(() => {
   switch (props.stage) {
     case 'preparing':
-      return '🎯 正在准备'
+      return '🔮 正在掐指一算'
     case 'calling':
       return '🌐 连接AI模型'
     case 'processing':
-      return '🧠 AI思考中'
+      return '🧠 AI正在思考'
     case 'completed':
       return '✨ 解读完成'
     case 'error':
@@ -102,7 +102,11 @@ const tips = [
   '观其所由，察其所安...',
   '天行健，君子以自强不息...',
   '厚德载物，包容万象...',
-  '变化无穷，唯德动天...'
+  '变化无穷，唯德动天...',
+  '玄学不是迷信，是生活的调味剂...',
+  '让古老的智慧为你的困惑指点迷津...',
+  '选择困难？让玄学来帮你...',
+  '不是迷信，是生活的调味剂...'
 ]
 
 const currentTip = computed(() => tips[currentTipIndex.value])
@@ -152,13 +156,14 @@ watch(() => props.isLoading, (newVal) => {
 }
 
 .llm-loading-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
   padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
   text-align: center;
   max-width: 400px;
   width: 90%;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 /* 八卦动画 */
@@ -275,7 +280,7 @@ watch(() => props.isLoading, (newVal) => {
 
 /* 文本样式 */
 .loading-text {
-  color: white;
+  color: #1a1a2e;
   margin-bottom: 1.5rem;
 }
 
@@ -283,12 +288,14 @@ watch(() => props.isLoading, (newVal) => {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: #1a1a2e;
 }
 
 .loading-progress {
   font-size: 0.9rem;
-  opacity: 0.9;
+  opacity: 0.8;
   margin-bottom: 0.5rem;
+  color: #4a5568;
 }
 
 .loading-dots {
@@ -300,7 +307,7 @@ watch(() => props.isLoading, (newVal) => {
 .loading-dots span {
   width: 6px;
   height: 6px;
-  background: white;
+  background: #8b5cf6;
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out both;
 }
@@ -333,8 +340,9 @@ watch(() => props.isLoading, (newVal) => {
 
 .tip-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #4a5568;
   font-style: italic;
+  font-weight: 500;
 }
 
 /* 动画 */

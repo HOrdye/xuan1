@@ -1,356 +1,371 @@
 <template>
-  <div class="dilemma-page min-h-screen relative">
-    <!-- 神秘背景 -->
-    <MysticalBackground />
+  <div class="dilemma-page min-h-screen relative overflow-hidden">
+    <!-- 动态背景 -->
+    <div class="dynamic-background">
+      <div class="energy-waves"></div>
+      <div class="floating-elements"></div>
+      <div class="gradient-overlay"></div>
+    </div>
     
     <!-- 页面内容 -->
-    <div class="relative z-10 p-4 pb-20">
-      <!-- 页面标题 -->
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2 mystical-glow">⚯ 玄选两难</h1>
-        <p class="text-purple-200 text-lg">输入你面临的两个选择，让易经六十四卦为你指点迷津</p>
-      </div>
-
-    <!-- 功能入口导航 -->
-    <div class="mb-6 bg-white/90 backdrop-blur-xl rounded-xl p-4 shadow-lg border border-white/30">
-      <div class="flex flex-col md:flex-row md:justify-between gap-4">
-        <div class="flex items-center">
-          <div class="relative inline-block"
-               @mouseenter="showDropdown = true"
-               @mouseleave="showDropdown = false">
-            <div class="flex items-center text-primary font-medium cursor-pointer">
-              <span class="mr-2">⚯</span>
-              <span>易经占卜</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div v-if="showDropdown" class="absolute left-0 w-40 bg-white rounded-md shadow-lg py-1 z-10"
-                 @mouseenter="showDropdown = true"
-                 @mouseleave="showDropdown = false">
-              <router-link 
-                to="/dilemma/divination" 
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                铜钱占卜法
-              </router-link>
-              <router-link 
-                to="/dilemma/divination?method=plumBlossom" 
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                梅花易数法
-              </router-link>
-              <router-link 
-                to="/dilemma/divination?method=random" 
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                随机起卦法
-              </router-link>
-            </div>
-          </div>
-        </div>
-
-        <router-link to="/dilemma/test" class="flex items-center text-gray-600 hover:text-primary transition">
-          <span>测试模式</span>
-        </router-link>
-      </div>
-    </div>
-
-    <!-- 选项输入区 -->
-    <div class="bg-white/90 backdrop-blur-xl rounded-xl p-4 mb-6 shadow-lg border border-white/30">
-      <h3 class="text-gray-800 font-semibold mb-4 text-lg">输入你的两个选择</h3>
-      
-      <!-- 选项A输入 -->
-      <div class="mb-4">
-        <label class="block text-sm text-gray-600 mb-2">选项A</label>
-        <input 
-          v-model="optionA" 
-          type="text" 
-          placeholder="例如：接受现在的工作" 
-          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition"
-          :class="{'border-red-300': showError && !optionA}"
-        >
-        <p v-if="showError && !optionA" class="text-red-500 text-xs mt-1">请输入选项A</p>
-      </div>
-      
-      <!-- 选项B输入 -->
-      <div class="mb-6">
-        <label class="block text-sm text-gray-600 mb-2">选项B</label>
-        <input 
-          v-model="optionB" 
-          type="text" 
-          placeholder="例如：跳槽到新公司" 
-          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition"
-          :class="{'border-red-300': showError && !optionB}"
-        >
-        <p v-if="showError && !optionB" class="text-red-500 text-xs mt-1">请输入选项B</p>
-      </div>
-      
-      <!-- 操作按钮 -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center">
-          <label class="inline-flex items-center cursor-pointer">
-            <input v-model="useMultipleAlgorithms" type="checkbox" class="sr-only peer">
-            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            <span class="ml-2 text-sm text-gray-600">多算法综合分析</span>
-          </label>
-        </div>
-        <button 
-          @click="startAnalysis" 
-          class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition"
-        >
-          开始分析
-        </button>
-      </div>
-    </div>
-
-    <!-- 分析结果 -->
-    <div v-if="analysisResult" class="bg-white/95 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl mb-6 transition-all duration-500 border border-white/40" :class="{'opacity-100': showResult, 'opacity-0': !showResult}">
-      <div class="bg-gradient-to-r from-primary to-mystic p-4 text-white">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-medium">{{ analysisResult.question }}</h3>
-          <div class="flex space-x-1">
-            <span class="text-xs px-2 py-0.5 bg-white bg-opacity-20 rounded-full">{{ analysisResult.method }}</span>
+    <div class="relative z-50 p-4 pb-20 pt-20">
+      <!-- 页面标题区域 -->
+      <div class="hero-section mb-8">
+        <div class="title-container">
+          <h1 class="main-title mystical-glow">
+            <span class="title-icon">⚯</span>
+            <span class="title-text">To be or not to be</span>
+          </h1>
+          <p class="subtitle">选择困难症终极解决方案<br>输入你的困惑，让玄学给你点灵感</p>
+          <div class="title-decoration">
+            <div class="decoration-line"></div>
+            <div class="decoration-symbol">⚖️</div>
+            <div class="decoration-line"></div>
           </div>
         </div>
       </div>
-      
-      <div class="p-5">
-        <!-- 六爻图显示 (如果有) -->
-        <div v-if="analysisResult.hexagram" class="bg-gray-50 p-4 rounded-lg mb-4 text-center">
-          <div class="mb-2 font-bold text-gray-700">{{ analysisResult.hexagram.chineseName }} - {{ analysisResult.hexagram.name }}</div>
-          <div class="text-3xl my-2">{{ analysisResult.hexagram.symbol }}</div>
-          <div class="flex flex-col items-center">
-            <div v-for="(line, index) in analysisResult.hexagram.lines.slice().reverse()" :key="index" class="my-1">
-              <div v-if="line === 1" class="w-16 h-2 bg-primary rounded-full"></div>
-              <div v-else-if="line === 0" class="flex space-x-1">
-                <div class="w-7 h-2 bg-primary rounded-full"></div>
-                <div class="w-7 h-2 bg-primary rounded-full"></div>
-              </div>
-            </div>
+
+      <!-- 功能入口导航 - 已移除测试模式 -->
+      <!-- <div class="navigation-container">
+        <div class="nav-content">
+          <div class="nav-left">
           </div>
-          <div class="mt-2 text-sm text-gray-500">{{ analysisResult.hexagram.meaning }}</div>
-          
-          <!-- 变爻显示 -->
-          <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="mt-3 pt-3 border-t border-gray-200">
-            <div class="text-xs text-gray-500 mb-2">变爻：
-              <span v-for="(line, index) in analysisResult.changingLines" :key="index">
-                第{{ line + 1 }}爻{{ index < analysisResult.changingLines.length - 1 ? '、' : '' }}
-              </span>
-            </div>
-            <div v-if="analysisResult.relatedHexagram" class="text-xs text-gray-700 mt-1">
-              变卦：{{ analysisResult.relatedHexagram.name }}（{{ analysisResult.relatedHexagram.symbol }}）—— {{ analysisResult.relatedHexagram.meaning }}
-            </div>
-          </div>
+        </div>
+      </div> -->
+
+      <!-- 选项输入区 -->
+      <div class="options-container">
+        <div class="section-header">
+          <h3 class="section-title">纠结时刻，玄学来救场</h3>
+          <p class="section-description">把两个让你头大的选择丢进来，让古老的智慧给你指条明路</p>
         </div>
         
-        <!-- 结果分析 -->
-        <div class="flex items-start mb-5">
-          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-lightbulb text-primary"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-gray-700">建议选择：
-              <span v-if="analysisResult.recommendation === 'A'" class="text-primary font-medium">{{ optionA }}</span>
-              <span v-else-if="analysisResult.recommendation === 'B'" class="text-primary font-medium">{{ optionB }}</span>
-              <span v-else class="text-yellow-600 font-medium">{{ analysisResult.recommendation }}</span>
-            </p>
-            <p class="text-sm text-gray-500 mt-2">{{ analysisResult.analysis }}</p>
-          </div>
-        </div>
-        
-        <!-- 新增: 详细分析部分 -->
-        <div class="mb-5 bg-gray-50 p-4 rounded-lg">
-          <h4 class="font-medium text-gray-700 mb-3 flex items-center">
-            <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs mr-2">易</span>
-            卦象详解
-          </h4>
-          
-          <!-- 卦象详细解读 -->
-          <div class="mb-4">
-            <div class="text-sm text-gray-600">
-              <p class="mb-2"><span class="font-medium">卦象解读：</span> 
-                {{ analysisResult.hexagram?.judgment || analysisResult.hexagram?.modernInterpretation || '' }}
-              </p>
-              
-              <!-- 卦象基本属性 -->
-              <div class="grid grid-cols-2 gap-4 my-3">
-                <div class="text-xs bg-white p-2 rounded border border-gray-100">
-                  <span class="font-medium text-gray-500">特性：</span>
-                  <span>{{ getHexagramAttribute(analysisResult.hexagram) }}</span>
-                </div>
-                <div class="text-xs bg-white p-2 rounded border border-gray-100">
-                  <span class="font-medium text-gray-500">代表：</span>
-                  <span>{{ getHexagramNature(analysisResult.hexagram) }}</span>
-                </div>
+        <div class="options-grid">
+          <!-- 选项A输入 -->
+          <div class="option-card">
+            <div class="option-header">
+              <div class="option-icon">
+                <span class="icon-text">A</span>
               </div>
-              
-              <!-- 卦辞 -->
-              <p class="text-xs bg-white p-2 rounded border border-gray-100 mb-2">
-                <span class="font-medium text-gray-500">卦辞：</span>
-                {{ analysisResult.hexagram?.judgment || '无' }}
-              </p>
+              <h4 class="option-title">第一个选择</h4>
             </div>
+            <div class="input-wrapper">
+              <input 
+                v-model="optionA" 
+                type="text" 
+                placeholder="比如：继续当社畜 vs 裸辞追梦" 
+                class="option-input"
+                :class="{'input-error': showError && !optionA}"
+              >
+              <div class="input-focus-border"></div>
+            </div>
+            <p v-if="showError && !optionA" class="error-message">别纠结了，先填第一个选择吧</p>
           </div>
           
-          <!-- 变爻分析 -->
-          <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="mb-4">
-            <h5 class="font-medium text-sm text-gray-600 mb-1">变爻分析</h5>
-            <div class="text-xs text-gray-600 bg-white p-3 rounded border border-gray-100">
-              <p class="mb-2">本次卦象有 {{ analysisResult.changingLines.length }} 个变爻，
-                表示处于<span class="text-primary">转变期</span>，从
-                <span class="font-medium">{{ analysisResult.hexagram?.chineseName }}</span>卦
-                变为<span class="font-medium">{{ analysisResult.relatedHexagram?.chineseName }}</span>卦。
-              </p>
-              
-              <div v-for="(line, idx) in analysisResult.changingLines" :key="idx" class="mb-2 pb-2 border-b border-dashed border-gray-100 last:border-0">
-                <p class="font-medium">第{{ line + 1 }}爻变化：</p>
-                <p class="text-gray-500">{{ getChangingLineInterpretation(line, analysisResult.hexagram?.chineseName) }}</p>
+          <!-- 选项B输入 -->
+          <div class="option-card">
+            <div class="option-header">
+              <div class="option-icon">
+                <span class="icon-text">B</span>
               </div>
+              <h4 class="option-title">第二个选择</h4>
             </div>
-          </div>
-          
-          <!-- 选项深入分析 -->
-          <div class="mb-4">
-            <h5 class="font-medium text-sm text-gray-600 mb-1">选项分析</h5>
-            
-            <div class="bg-white rounded border border-gray-100 overflow-hidden mb-2">
-              <div class="p-2 border-b border-gray-100">
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-sm">选项A: {{ optionA }}</span>
-                  <span class="text-xs py-1 px-2 bg-gray-100 rounded-full">
-                    匹配度: {{ analysisResult.optionA_score }}%
-                  </span>
-                </div>
-              </div>
-              <div class="p-2 text-xs text-gray-600">
-                <p>{{ analysisResult.optionA_analysis }}</p>
-                <p class="mt-2 text-gray-500">
-                  <span class="font-medium">优点：</span>
-                  {{ getOptionStrengths(analysisResult, 'A') }}
-                </p>
-                <p class="mt-1 text-gray-500">
-                  <span class="font-medium">注意点：</span>
-                  {{ getOptionCautions(analysisResult, 'A') }}
-                </p>
-              </div>
-              <div class="h-1 bg-gray-100">
-                <div class="bg-primary h-1" :style="`width: ${analysisResult.optionA_score}%`"></div>
-              </div>
+            <div class="input-wrapper">
+              <span class="vs-text">VS</span>
             </div>
-            
-            <div class="bg-white rounded border border-gray-100 overflow-hidden">
-              <div class="p-2 border-b border-gray-100">
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-sm">选项B: {{ optionB }}</span>
-                  <span class="text-xs py-1 px-2 bg-gray-100 rounded-full">
-                    匹配度: {{ analysisResult.optionB_score }}%
-                  </span>
-                </div>
-              </div>
-              <div class="p-2 text-xs text-gray-600">
-                <p>{{ analysisResult.optionB_analysis }}</p>
-                <p class="mt-2 text-gray-500">
-                  <span class="font-medium">优点：</span>
-                  {{ getOptionStrengths(analysisResult, 'B') }}
-                </p>
-                <p class="mt-1 text-gray-500">
-                  <span class="font-medium">注意点：</span>
-                  {{ getOptionCautions(analysisResult, 'B') }}
-                </p>
-              </div>
-              <div class="h-1 bg-gray-100">
-                <div class="bg-primary h-1" :style="`width: ${analysisResult.optionB_score}%`"></div>
-              </div>
+            <div class="input-wrapper">
+              <input 
+                v-model="optionB" 
+                type="text" 
+                placeholder="比如：今晚吃火锅 vs 减肥健身" 
+                class="option-input"
+                :class="{'input-error': showError && !optionB}"
+              >
+              <div class="input-focus-border"></div>
             </div>
-          </div>
-        </div>
-        
-        <!-- 综合建议 -->
-        <div class="mb-5 p-4 bg-white rounded-lg border border-primary/10">
-          <h4 class="font-medium text-gray-700 mb-3 flex items-center">
-            <i class="fas fa-lightbulb text-primary mr-2"></i>
-            综合建议
-          </h4>
-          <div class="text-sm text-gray-600">
-            <p class="mb-2">基于本次卦象解析，对于"{{ optionA }} vs {{ optionB }}"的抉择，给您的综合建议是：</p>
-            <ul class="list-disc pl-5 space-y-1 text-xs">
-              <li v-if="analysisResult.hexagram">{{ getLLMAdvice(1, analysisResult) }}</li>
-              <li v-if="analysisResult.hexagram">{{ getLLMAdvice(2, analysisResult) }}</li>
-              <li v-if="analysisResult.hexagram">{{ getLLMAdvice(3, analysisResult) }}</li>
-            </ul>
-            
-            <div class="mt-3 p-2 bg-primary/5 rounded text-sm">
-              <p class="font-medium text-primary">易经智慧总结：</p>
-              <p class="text-xs text-gray-600 mt-1">{{ getFinalWisdom(analysisResult) }}</p>
-            </div>
+            <p v-if="showError && !optionB" class="error-message">第二个选择也别忘了哦</p>
           </div>
         </div>
         
         <!-- 操作按钮 -->
-        <div class="flex justify-between items-center text-sm">
-          <div>
-            <button class="text-gray-500 flex items-center">
-              <i class="far fa-bookmark mr-1"></i> 收藏
-            </button>
+        <div class="action-section">
+          <div class="analysis-toggle">
+            <label class="toggle-switch">
+              <input v-model="useMultipleAlgorithms" type="checkbox" class="toggle-input">
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">开启玄学Plus模式</span>
+            </label>
           </div>
-          <div class="flex">
-            <button class="text-gray-500 mr-4 flex items-center">
-              <i class="fas fa-share-alt mr-1"></i> 分享
-            </button>
-            <button @click="resetForm" class="text-primary font-medium flex items-center">
-              重新选择 <i class="fas fa-redo-alt ml-1"></i>
-            </button>
+          <button 
+            @click="startAnalysis" 
+            class="analyze-button"
+            :class="{'analyze-button-loading': isGenerating}"
+          >
+            <span v-if="isGenerating" class="loading-content">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">分析中...</span>
+            </span>
+            <span v-else class="button-content">
+              <span class="button-icon">🔮</span>
+              <span class="button-text">让玄学给你答案</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 分析结果 -->
+      <div v-if="analysisResult" class="result-container" :class="{'result-visible': showResult}">
+        <div class="result-header">
+          <div class="result-title">
+            <h3 class="result-question">{{ analysisResult.question }}</h3>
+            <div class="result-method">
+              <span class="method-badge">{{ analysisResult.method }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="result-content">
+          <!-- 六爻图显示 -->
+          <div v-if="analysisResult.hexagram" class="hexagram-display">
+            <div class="hexagram-header">
+              <h4 class="hexagram-name">{{ analysisResult.hexagram.chineseName }} - {{ analysisResult.hexagram.name }}</h4>
+              <div class="hexagram-symbol">{{ analysisResult.hexagram.symbol }}</div>
+            </div>
+            
+            <div class="hexagram-lines">
+              <div v-for="(line, index) in analysisResult.hexagram.lines.slice().reverse()" :key="index" class="line-container">
+                <div v-if="line === 1" class="yang-line"></div>
+                <div v-else-if="line === 0" class="yin-line">
+                  <div class="yin-segment"></div>
+                  <div class="yin-segment"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="hexagram-meaning">{{ analysisResult.hexagram.meaning }}</div>
+            
+            <!-- 变爻显示 -->
+            <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="changing-lines">
+              <div class="changing-header">
+                <span class="changing-title">变爻：</span>
+                <span v-for="(line, index) in analysisResult.changingLines" :key="index" class="changing-line">
+                  第{{ line + 1 }}爻{{ index < analysisResult.changingLines.length - 1 ? '、' : '' }}
+                </span>
+              </div>
+              <div v-if="analysisResult.relatedHexagram" class="related-hexagram">
+                <span class="related-title">变卦：</span>
+                <span class="related-name">{{ analysisResult.relatedHexagram.name }}（{{ analysisResult.relatedHexagram.symbol }}）</span>
+                <span class="related-meaning">—— {{ analysisResult.relatedHexagram.meaning }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 结果分析 -->
+          <div class="analysis-section">
+            <div class="recommendation-card">
+              <div class="recommendation-header">
+                <div class="recommendation-icon">💡</div>
+                <h4 class="recommendation-title">玄学建议</h4>
+              </div>
+              <div class="recommendation-content">
+                <span v-if="analysisResult.recommendation === 'A'" class="recommended-option">{{ optionA }}</span>
+                <span v-else-if="analysisResult.recommendation === 'B'" class="recommended-option">{{ optionB }}</span>
+                <span v-else class="balanced-option">{{ analysisResult.recommendation }}</span>
+              </div>
+              <p class="recommendation-analysis">{{ analysisResult.analysis }}</p>
+            </div>
+          </div>
+          
+          <!-- 详细分析部分 -->
+          <div class="detailed-analysis">
+            <div class="analysis-header">
+              <span class="analysis-icon">易</span>
+                              <h4 class="analysis-title">卦象解读</h4>
+            </div>
+            
+            <!-- 卦象详细解读 -->
+            <div class="hexagram-details">
+              <div class="detail-item">
+                <span class="detail-label">卦象解读：</span>
+                <span class="detail-content">{{ analysisResult.hexagram?.judgment || analysisResult.hexagram?.modernInterpretation || '' }}</span>
+              </div>
+              
+              <!-- 卦象基本属性 -->
+              <div class="attributes-grid">
+                <div class="attribute-card">
+                  <span class="attribute-label">特性：</span>
+                  <span class="attribute-value">{{ getHexagramAttribute(analysisResult.hexagram) }}</span>
+                </div>
+                <div class="attribute-card">
+                  <span class="attribute-label">代表：</span>
+                  <span class="attribute-value">{{ getHexagramNature(analysisResult.hexagram) }}</span>
+                </div>
+              </div>
+              
+              <!-- 卦辞 -->
+              <div class="judgment-card">
+                <span class="judgment-label">卦辞：</span>
+                <span class="judgment-content">{{ analysisResult.hexagram?.judgment || '无' }}</span>
+              </div>
+            </div>
+            
+            <!-- 变爻分析 -->
+            <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="changing-analysis">
+              <h5 class="changing-analysis-title">变爻分析</h5>
+              <div class="changing-analysis-content">
+                <p class="changing-summary">本次卦象有 {{ analysisResult.changingLines.length }} 个变爻，
+                  表示处于<span class="highlight">转变期</span>，从
+                  <span class="hexagram-name">{{ analysisResult.hexagram?.chineseName }}</span>卦
+                  变为<span class="hexagram-name">{{ analysisResult.relatedHexagram?.chineseName }}</span>卦。
+                </p>
+                
+                <div v-for="(line, idx) in analysisResult.changingLines" :key="idx" class="changing-line-analysis">
+                  <p class="line-title">第{{ line + 1 }}爻变化：</p>
+                  <p class="line-interpretation">{{ getChangingLineInterpretation(line, analysisResult.hexagram?.chineseName) }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 选项深入分析 -->
+            <div class="options-analysis">
+              <h5 class="options-analysis-title">选项分析</h5>
+              
+              <div class="option-analysis-card">
+                <div class="option-analysis-header">
+                  <span class="option-label">选项A: {{ optionA }}</span>
+                  <span class="option-score">匹配度: {{ analysisResult.optionA_score }}%</span>
+                </div>
+                <div class="option-analysis-content">
+                  <p class="option-description">{{ analysisResult.optionA_analysis }}</p>
+                  <div class="option-details">
+                    <p class="option-strengths">
+                      <span class="detail-label">优点：</span>
+                      {{ getOptionStrengths(analysisResult, 'A') }}
+                    </p>
+                    <p class="option-cautions">
+                      <span class="detail-label">注意点：</span>
+                      {{ getOptionCautions(analysisResult, 'A') }}
+                    </p>
+                  </div>
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill" :style="`width: ${analysisResult.optionA_score}%`"></div>
+                </div>
+              </div>
+              
+              <div class="option-analysis-card">
+                <div class="option-analysis-header">
+                  <span class="option-label">选项B: {{ optionB }}</span>
+                  <span class="option-score">匹配度: {{ analysisResult.optionB_score }}%</span>
+                </div>
+                <div class="option-analysis-content">
+                  <p class="option-description">{{ analysisResult.optionB_analysis }}</p>
+                  <div class="option-details">
+                    <p class="option-strengths">
+                      <span class="detail-label">优点：</span>
+                      {{ getOptionStrengths(analysisResult, 'B') }}
+                    </p>
+                    <p class="option-cautions">
+                      <span class="detail-label">注意点：</span>
+                      {{ getOptionCautions(analysisResult, 'B') }}
+                    </p>
+                  </div>
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill" :style="`width: ${analysisResult.optionB_score}%`"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 综合建议 -->
+          <div class="comprehensive-advice">
+            <div class="advice-header">
+              <span class="advice-icon">💡</span>
+              <h4 class="advice-title">综合建议</h4>
+            </div>
+            <div class="advice-content">
+              <p class="advice-intro">基于本次卦象解析，对于"{{ optionA }} vs {{ optionB }}"的抉择，给您的综合建议是：</p>
+              <ul class="advice-list">
+                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(1, analysisResult) }}</li>
+                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(2, analysisResult) }}</li>
+                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(3, analysisResult) }}</li>
+              </ul>
+              
+              <div class="wisdom-summary">
+                <p class="wisdom-title">易经智慧总结：</p>
+                <p class="wisdom-content">{{ getFinalWisdom(analysisResult) }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="result-actions">
+            <div class="action-left">
+              <button class="action-button">
+                <span class="action-icon">🔖</span>
+                <span class="action-text">收藏</span>
+              </button>
+            </div>
+            <div class="action-right">
+              <button class="action-button">
+                <span class="action-icon">📤</span>
+                <span class="action-text">分享</span>
+              </button>
+              <button @click="resetForm" class="action-button primary">
+                <span class="action-icon">🔄</span>
+                <span class="action-text">重新选择</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 历史记录 -->
-    <div v-if="!analysisResult">
-      <h3 class="text-lg font-bold text-gray-800 mb-3">历史决策</h3>
-      <div v-for="(item, index) in historyItems" :key="index" class="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
-        <div class="bg-gradient-to-r from-primary to-mystic p-3 text-white">
-          <div class="flex justify-between items-center">
-            <h4 class="font-medium">{{ item.question }}</h4>
-            <div class="text-xs opacity-70">{{ item.date }}</div>
-          </div>
-        </div>
-        <div class="p-3">
-          <div class="flex items-center mb-3">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" :class="item.iconBg">
-              <i :class="`${item.icon} ${item.iconColor}`"></i>
+      <!-- 历史记录 -->
+      <div v-if="!analysisResult" class="history-container">
+        <h3 class="history-title">历史决策</h3>
+        <div class="history-list">
+          <div v-for="(item, index) in historyItems" :key="index" class="history-card">
+            <div class="history-header">
+              <h4 class="history-question">{{ item.question }}</h4>
+              <div class="history-date">{{ item.date }}</div>
             </div>
-            <div class="ml-3">
-              <p class="text-gray-700">建议选择：<span :class="item.resultColor" class="font-medium">{{ item.result }}</span></p>
-              <p class="text-xs text-gray-500 mt-1">{{ item.summary }}</p>
+            <div class="history-content">
+              <div class="history-result">
+                <div class="result-icon" :class="item.iconBg">
+                  <i :class="`${item.icon} ${item.iconColor}`"></i>
+                </div>
+                <div class="result-info">
+                  <p class="result-text">建议选择：<span :class="item.resultColor" class="result-value">{{ item.result }}</span></p>
+                  <p class="result-summary">{{ item.summary }}</p>
+                </div>
+              </div>
+              <div class="history-actions">
+                <button class="view-details-button">查看详情</button>
+              </div>
             </div>
-          </div>
-          <div class="flex justify-end">
-            <button class="text-primary text-sm font-medium">查看详情</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- LLM加载指示器 -->
-    <LLMLoadingIndicator
-      :isLoading="isGenerating"
-      :progress="loadingProgress" 
-      :stage="loadingStage"
-    />
+      <!-- LLM加载指示器 -->
+      <LLMLoadingIndicator
+        :isLoading="isGenerating"
+        :progress="loadingProgress" 
+        :stage="loadingStage"
+      />
 
-    <!-- SharePanel -->
-    <SharePanel
-      :is-open="isSharePanelOpen"
-      :target-ref="dilemmaResultRef"
-      :share-data="{
-        title: `玄选两难 - ${analysisResult?.question || ''}`,
-        text: '我在天玄Web进行了玄选两难分析，获得了易经的智慧指引！',
-        hashtags: ['玄选两难', '天玄Web', '易经智慧']
-      }"
-      @close="isSharePanelOpen = false"
-    />
+      <!-- SharePanel -->
+      <SharePanel
+        :is-open="isSharePanelOpen"
+        :target-ref="dilemmaResultRef"
+        :share-data="{
+          title: `玄选两难 - ${analysisResult?.question || ''}`,
+          text: '我在天玄Web进行了玄选两难分析，获得了易经的智慧指引！',
+          hashtags: ['玄选两难', '天玄Web', '易经智慧']
+        }"
+        @close="isSharePanelOpen = false"
+      />
     </div>
   </div>
 </template>
@@ -372,7 +387,8 @@ const useMultipleAlgorithms = ref(false);
 const showError = ref(false);
 const showResult = ref(false);
 const analysisResult = ref<AnalysisResult | null>(null);
-const showDropdown = ref(false);
+// 易经占卜下拉菜单状态 - 已移除
+// const showDropdown = ref(false);
 
 // 新增：分享功能相关
 const isSharePanelOpen = ref(false);
@@ -830,5 +846,1155 @@ const getFinalWisdom = (result: any): string => {
 </script>
 
 <style scoped>
-/* 添加任何需要的样式 */
+/* 动态背景 */
+.dynamic-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.energy-waves {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  animation: waveFlow 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.floating-elements {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 2px, transparent 2px),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100px 100px, 60px 60px;
+  animation: elementFloat 25s linear infinite;
+  pointer-events: none;
+}
+
+.gradient-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.9) 100%);
+  pointer-events: none;
+}
+
+@keyframes waveFlow {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: scale(1.1) rotate(180deg); opacity: 0.6; }
+}
+
+@keyframes elementFloat {
+  0% { transform: translateY(0px) translateX(0px); }
+  100% { transform: translateY(-100px) translateX(50px); }
+}
+
+/* 英雄区域 */
+.hero-section {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.title-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.main-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+}
+
+.title-icon {
+  font-size: 1.2em;
+  filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+}
+
+.title-text {
+  position: relative;
+}
+
+.title-text::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.title-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.decoration-line {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+}
+
+.decoration-symbol {
+  font-size: 1.5rem;
+  color: #f59e0b;
+  animation: symbolPulse 2s ease-in-out infinite;
+}
+
+@keyframes symbolPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* 导航容器样式 - 已移除 */
+/* .navigation-container { ... } */
+/* .nav-content { ... } */
+
+/* 易经占卜选择器样式 - 已移除 */
+/* .method-selector { ... } */
+/* .selector-trigger { ... } */
+/* .dropdown-menu { ... } */
+/* .dropdown-item { ... } */
+/* .item-icon { ... } */
+
+/* 测试模式链接样式 - 已移除 */
+/* .test-mode-link { ... } */
+/* .test-mode-link:hover { ... } */
+/* .test-icon { ... } */
+
+/* 选项容器 */
+.options-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.section-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.option-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.option-card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.option-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+}
+
+.icon-text {
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.vs-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #8b5cf6;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+  margin: 1rem 0;
+  animation: vsGlow 2s ease-in-out infinite;
+}
+
+@keyframes vsGlow {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.option-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.option-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.option-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.option-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.input-focus-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.option-input:focus + .input-focus-border {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* 操作区域 */
+.action-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.analysis-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  cursor: pointer;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 48px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: #8b5cf6;
+}
+
+.toggle-input:checked + .toggle-slider::before {
+  transform: translateX(24px);
+}
+
+.toggle-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.analyze-button {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  border: none;
+  border-radius: 16px;
+  padding: 1rem 2.5rem;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-width: 180px;
+}
+
+.analyze-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.analyze-button:hover::before {
+  left: 100%;
+}
+
+.analyze-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(139, 92, 246, 0.4);
+}
+
+.analyze-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.button-icon {
+  font-size: 1.2rem;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 结果容器 */
+.result-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease;
+}
+
+.result-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.result-header {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  padding: 1.5rem 2rem;
+  color: white;
+}
+
+.result-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-question {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.result-method {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.method-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.result-content {
+  padding: 2rem;
+}
+
+/* 六爻显示 */
+.hexagram-display {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.hexagram-header {
+  margin-bottom: 1.5rem;
+}
+
+.hexagram-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.hexagram-symbol {
+  font-size: 3rem;
+  color: #8b5cf6;
+  margin-bottom: 1rem;
+}
+
+.hexagram-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.line-container {
+  display: flex;
+  justify-content: center;
+}
+
+.yang-line {
+  width: 80px;
+  height: 8px;
+  background: #8b5cf6;
+  border-radius: 4px;
+}
+
+.yin-line {
+  display: flex;
+  gap: 8px;
+}
+
+.yin-segment {
+  width: 36px;
+  height: 8px;
+  background: #8b5cf6;
+  border-radius: 4px;
+}
+
+.hexagram-meaning {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.changing-lines {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 1rem;
+}
+
+.changing-header {
+  margin-bottom: 0.5rem;
+}
+
+.changing-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.changing-line {
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.related-hexagram {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.related-title {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.related-name {
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.related-meaning {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 分析部分 */
+.analysis-section {
+  margin-bottom: 2rem;
+}
+
+.recommendation-card {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.recommendation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.recommendation-icon {
+  font-size: 1.5rem;
+}
+
+.recommendation-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.recommendation-content {
+  margin-bottom: 1rem;
+}
+
+.recommended-option {
+  color: #8b5cf6;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.balanced-option {
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.recommendation-analysis {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* 详细分析 */
+.detailed-analysis {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-icon {
+  width: 32px;
+  height: 32px;
+  background: #8b5cf6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.analysis-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.hexagram-details {
+  margin-bottom: 2rem;
+}
+
+.detail-item {
+  margin-bottom: 1rem;
+}
+
+.detail-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.detail-content {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.attributes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.attribute-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.attribute-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.attribute-value {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.judgment-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.judgment-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.judgment-content {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+/* 变爻分析 */
+.changing-analysis {
+  margin-bottom: 2rem;
+}
+
+.changing-analysis-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.changing-analysis-content {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.changing-summary {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.highlight {
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.hexagram-name {
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.changing-line-analysis {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.changing-line-analysis:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.line-title {
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.line-interpretation {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+/* 选项分析 */
+.options-analysis {
+  margin-bottom: 2rem;
+}
+
+.options-analysis-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.option-analysis-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.option-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.option-label {
+  font-weight: 500;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.option-score {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.option-analysis-content {
+  padding: 1rem;
+}
+
+.option-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.option-details {
+  margin-bottom: 1rem;
+}
+
+.option-strengths,
+.option-cautions {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.score-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  transition: width 1s ease;
+}
+
+/* 综合建议 */
+.comprehensive-advice {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.advice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.advice-icon {
+  font-size: 1.5rem;
+}
+
+.advice-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.advice-content {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.advice-intro {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.advice-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.advice-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.wisdom-summary {
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.wisdom-title {
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.wisdom-content {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* 结果操作 */
+.result-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-left,
+.action-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.action-button.primary {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #8b5cf6;
+}
+
+.action-button.primary:hover {
+  background: rgba(139, 92, 246, 0.3);
+  color: #8b5cf6;
+}
+
+.action-icon {
+  font-size: 1rem;
+}
+
+/* 历史记录 */
+.history-container {
+  margin-top: 2rem;
+}
+
+.history-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.history-card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}
+
+.history-header {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  padding: 1rem 1.5rem;
+  color: white;
+}
+
+.history-question {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.history-date {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.history-content {
+  padding: 1.5rem;
+}
+
+.history-result {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.result-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-text {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.result-value {
+  font-weight: 600;
+}
+
+.result-summary {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.history-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-details-button {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #8b5cf6;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-details-button:hover {
+  background: rgba(139, 92, 246, 0.3);
+  color: #8b5cf6;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .nav-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .attributes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .action-left,
+  .action-right {
+    justify-content: center;
+  }
+  
+  .main-title {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .title-decoration {
+    gap: 0.5rem;
+  }
+  
+  .decoration-line {
+    width: 40px;
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style> 

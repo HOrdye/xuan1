@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white shadow-sm">
+  <nav class="bg-white shadow-sm relative z-40">
     <div class="container mx-auto px-4">
       <div class="flex justify-between h-16">
         <!-- 左侧Logo -->
