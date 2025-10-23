@@ -146,6 +146,7 @@ const routes: Array<RouteRecordRaw> = [
       title: '笅杯占卜 - 天玄Web'
     }
   },
+
   // 塔罗牌功能
   {
     path: '/tarot',

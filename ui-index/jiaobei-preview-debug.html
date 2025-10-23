@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筊杯3D预览 - 修复版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .preview-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #1a1a2e;
+            position: relative;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666;
+        }
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .debug-info {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥤 筊杯3D预览 - 修复版</h1>
+            <p>传统筊杯设计优化 - 清晰的平面与凸面区分</p>
+        </div>
+        
+        <div class="preview-section">
+            <div class="preview-card">
+                <h3>🎯 当前设计（问题版本）</h3>
+                <div class="canvas-container">
+                    <div id="currentCanvas">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                            <div>加载中...</div>
+                            <div id="currentStatus" style="font-size: 12px; margin-top: 10px;">等待初始化</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="currentThrowBtn" onclick="throwCurrent()" disabled>投掷测试</button>
+                    <button class="btn" id="currentResetBtn" onclick="resetCurrent()" disabled>重置</button>
+                </div>
+                <div class="debug-info" id="currentDebug"></div>
+            </div>
+            
+            <div class="preview-card">
+                <h3>✨ 改进设计（新版本）</h3>
+                <div class="canvas-container">
+                    <div id="improvedCanvas">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                            <div>加载中...</div>
+                            <div id="improvedStatus" style="font-size: 12px; margin-top: 10px;">等待初始化</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="improvedThrowBtn" onclick="throwImproved()" disabled>投掷测试</button>
+                    <button class="btn" id="improvedResetBtn" onclick="resetImproved()" disabled>重置</button>
+                </div>
+                <div class="debug-info" id="improvedDebug"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentScene, currentCamera, currentRenderer, currentJiaoBei = [];
+        let improvedScene, improvedCamera, improvedRenderer, improvedJiaoBei = [];
+        
+        // 调试信息更新函数
+        function updateDebugInfo(elementId, info) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = info;
+            }
+        }
+        
+        // 检查Three.js是否正确加载
+        function checkThreeJS() {
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js 未加载！');
+                return false;
+            }
+            console.log('Three.js 加载成功，版本:', THREE.REVISION);
+            return true;
+        }
+        
+        // 检查WebGL支持
+        function checkWebGL() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) {
+                    console.error('WebGL 不支持');
+                    return false;
+                }
+                console.log('WebGL 支持正常');
+                return true;
+            } catch (e) {
+                console.error('WebGL 检查失败:', e);
+                return false;
+            }
+        }
+        
+        // 初始化当前设计
+        function initCurrent() {
+            console.log('开始初始化当前设计...');
+            updateDebugInfo('currentDebug', '初始化中...');
+            
+            if (!checkThreeJS()) {
+                updateDebugInfo('currentDebug', '错误: Three.js 未加载');
+                return;
+            }
+            
+            if (!checkWebGL()) {
+                updateDebugInfo('currentDebug', '错误: WebGL 不支持');
+                return;
+            }
+            
+            const container = document.getElementById('currentCanvas');
+            if (!container) {
+                updateDebugInfo('currentDebug', '错误: 找不到容器');
+                return;
+            }
+            
+            try {
+                // 清除容器内容
+                container.innerHTML = '';
+                
+                // 创建场景
+                currentScene = new THREE.Scene();
+                currentScene.background = new THREE.Color(0x1a1a2e);
+                
+                // 创建相机
+                currentCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+                currentCamera.position.set(0, 8, 12);
+                currentCamera.lookAt(0, 0, 0);
+                
+                // 创建渲染器
+                currentRenderer = new THREE.WebGLRenderer({ antialias: true });
+                currentRenderer.setSize(container.clientWidth, container.clientHeight);
+                currentRenderer.shadowMap.enabled = true;
+                container.appendChild(currentRenderer.domElement);
+                
+                // 添加光源
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                currentScene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 15, 10);
+                directionalLight.castShadow = true;
+                currentScene.add(directionalLight);
+                
+                // 添加地面
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -2;
+                ground.receiveShadow = true;
+                currentScene.add(ground);
+                
+                // 创建筊杯
+                createCurrentJiaoBei();
+                console.log('当前设计筊杯创建完成，场景中有', currentScene.children.length, '个对象');
+                
+                // 启动动画
+                animateCurrent();
+                
+                // 启用按钮和更新状态
+                document.getElementById('currentThrowBtn').disabled = false;
+                document.getElementById('currentResetBtn').disabled = false;
+                document.getElementById('currentStatus').textContent = '已就绪';
+                updateDebugInfo('currentDebug', `场景对象: ${currentScene.children.length}, 筊杯: ${currentJiaoBei.length}`);
+                
+                console.log('当前设计初始化完成');
+                
+            } catch (error) {
+                console.error('初始化当前设计失败:', error);
+                updateDebugInfo('currentDebug', '错误: ' + error.message);
+                alert('初始化当前设计失败: ' + error.message);
+            }
+        }
+        
+        // 创建当前设计筊杯
+        function createCurrentJiaoBei() {
+            currentJiaoBei = [];
+            for (let i = 0; i < 2; i++) {
+                const group = new THREE.Group();
+                
+                // 使用简单的立方体几何体，确保可见
+                const geometry = new THREE.BoxGeometry(1, 0.8, 1);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0xdc2626,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+                
+                // 添加标识
+                const flatIndicator = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.3, 16),
+                    new THREE.MeshBasicMaterial({ color: 0xffd700 })
+                );
+                flatIndicator.rotation.x = -Math.PI / 2;
+                flatIndicator.position.y = 0.5;
+                group.add(flatIndicator);
+                
+                group.position.set(i * 1.5 - 0.75, 2, 0);
+                currentScene.add(group);
+                currentJiaoBei.push(group);
+            }
+        }
+        
+        // 初始化改进设计
+        function initImproved() {
+            console.log('开始初始化改进设计...');
+            updateDebugInfo('improvedDebug', '初始化中...');
+            
+            if (!checkThreeJS()) {
+                updateDebugInfo('improvedDebug', '错误: Three.js 未加载');
+                return;
+            }
+            
+            if (!checkWebGL()) {
+                updateDebugInfo('improvedDebug', '错误: WebGL 不支持');
+                return;
+            }
+            
+            const container = document.getElementById('improvedCanvas');
+            if (!container) {
+                updateDebugInfo('improvedDebug', '错误: 找不到容器');
+                return;
+            }
+            
+            try {
+                // 清除容器内容
+                container.innerHTML = '';
+                
+                // 创建场景
+                improvedScene = new THREE.Scene();
+                improvedScene.background = new THREE.Color(0x1a1a2e);
+                
+                // 创建相机
+                improvedCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+                improvedCamera.position.set(0, 8, 12);
+                improvedCamera.lookAt(0, 0, 0);
+                
+                // 创建渲染器
+                improvedRenderer = new THREE.WebGLRenderer({ antialias: true });
+                improvedRenderer.setSize(container.clientWidth, container.clientHeight);
+                improvedRenderer.shadowMap.enabled = true;
+                container.appendChild(improvedRenderer.domElement);
+                
+                // 添加光源
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                improvedScene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 15, 10);
+                directionalLight.castShadow = true;
+                improvedScene.add(directionalLight);
+                
+                // 添加地面
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -2;
+                ground.receiveShadow = true;
+                improvedScene.add(ground);
+                
+                // 创建筊杯
+                createImprovedJiaoBei();
+                console.log('改进设计筊杯创建完成，场景中有', improvedScene.children.length, '个对象');
+                
+                // 启动动画
+                animateImproved();
+                
+                // 启用按钮和更新状态
+                document.getElementById('improvedThrowBtn').disabled = false;
+                document.getElementById('improvedResetBtn').disabled = false;
+                document.getElementById('improvedStatus').textContent = '已就绪';
+                updateDebugInfo('improvedDebug', `场景对象: ${improvedScene.children.length}, 筊杯: ${improvedJiaoBei.length}`);
+                
+                console.log('改进设计初始化完成');
+                
+            } catch (error) {
+                console.error('初始化改进设计失败:', error);
+                updateDebugInfo('improvedDebug', '错误: ' + error.message);
+                alert('初始化改进设计失败: ' + error.message);
+            }
+        }
+        
+        // 创建改进设计筊杯
+        function createImprovedJiaoBei() {
+            improvedJiaoBei = [];
+            for (let i = 0; i < 2; i++) {
+                const group = new THREE.Group();
+                
+                // 使用更复杂的几何体来区分平面和凸面
+                const geometry = new THREE.CylinderGeometry(0.4, 0.4, 0.8, 8);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x3b82f6,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+                
+                // 添加平面标识（金色圆盘）
+                const flatIndicator = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.35, 16),
+                    new THREE.MeshBasicMaterial({ color: 0xffd700 })
+                );
+                flatIndicator.rotation.x = -Math.PI / 2;
+                flatIndicator.position.y = 0.5;
+                group.add(flatIndicator);
+                
+                // 添加凸面标识（红色球体）
+                const convexIndicator = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.2, 8, 6),
+                    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                );
+                convexIndicator.position.y = -0.5;
+                group.add(convexIndicator);
+                
+                group.position.set(i * 1.5 - 0.75, 2, 0);
+                improvedScene.add(group);
+                improvedJiaoBei.push(group);
+            }
+        }
+        
+        // 投掷当前设计筊杯
+        function throwCurrent() {
+            console.log('投掷当前设计筊杯');
+            if (!currentJiaoBei || currentJiaoBei.length === 0) {
+                console.error('筊杯对象未初始化');
+                alert('筊杯对象未初始化，请检查控制台错误信息');
+                return;
+            }
+            currentJiaoBei.forEach((jiaoBei, index) => {
+                const rotationX = (Math.random() - 0.5) * Math.PI * 2;
+                const rotationY = (Math.random() - 0.5) * Math.PI * 2;
+                const rotationZ = (Math.random() - 0.5) * Math.PI * 2;
+                jiaoBei.rotation.set(rotationX, rotationY, rotationZ);
+                console.log(`筊杯${index + 1} 旋转:`, { x: rotationX, y: rotationY, z: rotationZ });
+            });
+        }
+        
+        // 投掷改进设计筊杯
+        function throwImproved() {
+            console.log('投掷改进设计筊杯');
+            if (!improvedJiaoBei || improvedJiaoBei.length === 0) {
+                console.error('筊杯对象未初始化');
+                alert('筊杯对象未初始化，请检查控制台错误信息');
+                return;
+            }
+            improvedJiaoBei.forEach((jiaoBei, index) => {
+                const rotationX = (Math.random() - 0.5) * Math.PI * 2;
+                const rotationY = (Math.random() - 0.5) * Math.PI * 2;
+                const rotationZ = (Math.random() - 0.5) * Math.PI * 2;
+                jiaoBei.rotation.set(rotationX, rotationY, rotationZ);
+                console.log(`筊杯${index + 1} 旋转:`, { x: rotationX, y: rotationY, z: rotationZ });
+            });
+        }
+        
+        // 重置当前设计
+        function resetCurrent() {
+            if (currentJiaoBei && currentJiaoBei.length > 0) {
+                currentJiaoBei.forEach(jiaoBei => {
+                    jiaoBei.rotation.set(0, 0, 0);
+                });
+            }
+        }
+        
+        // 重置改进设计
+        function resetImproved() {
+            if (improvedJiaoBei && improvedJiaoBei.length > 0) {
+                improvedJiaoBei.forEach(jiaoBei => {
+                    jiaoBei.rotation.set(0, 0, 0);
+                });
+            }
+        }
+        
+        // 当前设计动画循环
+        function animateCurrent() {
+            if (currentRenderer && currentScene && currentCamera) {
+                const time = Date.now() * 0.001;
+                
+                // 相机轻微移动
+                currentCamera.position.x = Math.sin(time * 0.5) * 0.3;
+                currentCamera.position.z = 12 + Math.cos(time * 0.3) * 0.2;
+                currentCamera.lookAt(0, 0, 0);
+                
+                // 渲染场景
+                currentRenderer.render(currentScene, currentCamera);
+            }
+            
+            // 继续动画循环
+            requestAnimationFrame(animateCurrent);
+        }
+        
+        // 改进设计动画循环
+        function animateImproved() {
+            if (improvedRenderer && improvedScene && improvedCamera) {
+                const time = Date.now() * 0.001;
+                
+                // 相机轻微移动
+                improvedCamera.position.x = Math.sin(time * 0.5) * 0.3;
+                improvedCamera.position.z = 12 + Math.cos(time * 0.3) * 0.2;
+                improvedCamera.lookAt(0, 0, 0);
+                
+                // 渲染场景
+                improvedRenderer.render(improvedScene, improvedCamera);
+            }
+            
+            // 继续动画循环
+            requestAnimationFrame(animateImproved);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，开始初始化...');
+            updateDebugInfo('currentDebug', '等待Three.js加载...');
+            updateDebugInfo('improvedDebug', '等待Three.js加载...');
+            
+            // 检查Three.js是否已加载
+            if (typeof THREE === 'undefined') {
+                console.log('等待Three.js加载...');
+                // 如果Three.js还没加载，等待一下再试
+                setTimeout(() => {
+                    if (typeof THREE !== 'undefined') {
+                        console.log('Three.js已加载，开始初始化...');
+                        initCurrent();
+                        initImproved();
+                    } else {
+                        console.error('Three.js加载失败');
+                        updateDebugInfo('currentDebug', '错误: Three.js加载失败');
+                        updateDebugInfo('improvedDebug', '错误: Three.js加载失败');
+                        alert('Three.js库加载失败，请检查网络连接');
+                    }
+                }, 2000);
+            } else {
+                console.log('Three.js已就绪，开始初始化...');
+                setTimeout(() => {
+                    initCurrent();
+                    initImproved();
+                }, 500);
+            }
+        });
+        
+        // 窗口大小改变时重新调整渲染器大小
+        window.addEventListener('resize', () => {
+            if (currentRenderer && currentCamera) {
+                const container = document.getElementById('currentCanvas');
+                currentCamera.aspect = container.clientWidth / container.clientHeight;
+                currentCamera.updateProjectionMatrix();
+                currentRenderer.setSize(container.clientWidth, container.clientHeight);
+            }
+            
+            if (improvedRenderer && improvedCamera) {
+                const container = document.getElementById('improvedCanvas');
+                improvedCamera.aspect = container.clientWidth / container.clientHeight;
+                improvedCamera.updateProjectionMatrix();
+                improvedRenderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        });
+    </script>
+</body>
+</html>

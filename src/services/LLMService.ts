@@ -2,6 +2,8 @@
 import type { StoryTarotCard } from '../features/tarot/utils/storyTarotData';
 import type { TarotSpread } from '../features/tarot/utils/tarotInterpretation';
 import { EnvConfigManager } from '../utils/envConfig';
+import { UserInfoSharingService, type UnifiedUserInfo } from './UserInfoSharingService';
+import { PersonalizationAlgorithm } from './PersonalizationAlgorithm';
 
 export type TarotIntent = 
   | 'Prediction' 
@@ -504,6 +506,31 @@ ${cards.map(card => {
     }
   }
 
+  // --- 自定义解读服务 ---
+  static async getCustomInterpretation(prompt: string): Promise<string> {
+    const config = this.getConfig();
+    
+    if (!config.apiKey) {
+      return 'AI服务未配置，无法提供自定义解读。';
+    }
+    
+    this.updateLoadingState({ isLoading: true, progress: '正在生成自定义解读...', stage: 'preparing' });
+    
+    try {
+      this.updateLoadingState({ isLoading: true, progress: '正在调用AI服务...', stage: 'calling' });
+      const response = await this.callLLMAPI(prompt);
+      
+      this.updateLoadingState({ isLoading: true, progress: '正在解析解读内容...', stage: 'processing' });
+      this.updateLoadingState({ isLoading: false, progress: '解读完成', stage: 'completed' });
+      
+      return response.content || 'AI未能返回有效的解读内容';
+    } catch (error) {
+      console.error('❌ 自定义解读失败:', error);
+      this.updateLoadingState({ isLoading: false, progress: '解读失败', stage: 'error' });
+      return `解读生成失败: ${(error as Error).message}`;
+    }
+  }
+
   // --- 易经卦象解读服务 ---
   static async getHexagramInterpretation(
     hexagram: Hexagram,
@@ -543,6 +570,73 @@ ${cards.map(card => {
     }
   }
 
+  // --- 场景化玄选两难解读服务 ---
+  static async getScenarioBasedDilemmaInterpretation(
+    optionA: string,
+    optionB: string,
+    scenario: {
+      decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
+      emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
+      urgency: 'high' | 'medium' | 'low';
+      complexity: 'simple' | 'moderate' | 'complex';
+      keywords: string[];
+      context: string;
+      riskLevel: 'low' | 'medium' | 'high';
+      timeHorizon: 'immediate' | 'short' | 'long';
+    },
+    hexagramInfo?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+      changingLines?: number[];
+      relatedHexagram?: {
+        name: string;
+        chineseName: string;
+        symbol: string;
+        judgment: string;
+        image: string;
+      } | null;
+    }
+  ): Promise<string> {
+    // 获取最新配置，确保配置同步
+    const config = this.getConfig();
+    
+    // 如果没有配置API Key，返回提示信息
+    if (!config.apiKey) {
+      return 'AI服务未配置，无法提供场景化解读。请先配置AI服务。';
+    }
+    
+    // 开始加载状态
+    this.updateLoadingState({ isLoading: true, progress: '正在分析决策场景...', stage: 'preparing' });
+    
+    try {
+      // 🚨 使用scenarioPromptGenerator生成完整的AI响应
+      console.log('🎯 [完整生成] 开始执行基于scenarioPromptGenerator的生成策略');
+      
+      // 生成完整的AI响应
+      this.updateLoadingState({ isLoading: true, progress: '正在生成完整的易经智慧解读...', stage: 'calling' });
+      const aiResponse = await this.generateCompleteAIResponse(optionA, optionB, scenario, hexagramInfo);
+      
+      if (aiResponse) {
+        console.log('✅ [完整生成完成] AI响应:', aiResponse);
+        
+        // 完成加载状态
+        this.updateLoadingState({ isLoading: false, progress: '解读完成', stage: 'completed' });
+        
+        // 直接返回AI生成的完整JSON
+        return JSON.stringify(aiResponse, null, 2);
+      } else {
+        throw new Error('AI未能生成有效的响应');
+      }
+    } catch (error) {
+      console.error('❌ 场景化玄选两难解读失败:', error);
+      this.updateLoadingState({ isLoading: false, progress: '解读失败', stage: 'error' });
+      return `解读生成失败: ${(error as Error).message}`;
+    }
+  }
+
   private static getLocalHexagramInterpretation(
     hexagram: Hexagram,
     changingLines: number[],
@@ -563,7 +657,7 @@ ${cards.map(card => {
            `**象辞**: ${hexagram.image}\n` +
            `**彖辞**: ${hexagram.tuan}\n` +
            `${changingLinesText}${relatedHexagramText}\n\n` +
-           `**现代解读**: \n${hexagram.modernInterpretation || '此卦提醒我们要顺应自然规律，以智慧和耐心面对人生的挑战与机遇。'}\n\n` +
+           `**现代解读**: \n${hexagram.modernInterpretation || ''}\n\n` +
            `**核心启示**: \n${hexagram.description}${questionText}`;
   }
 
@@ -600,6 +694,621 @@ ${question || '未提供具体问题'}
 6. 使用清晰的中文段落结构，总字数控制在300-500字之间
 
 请直接返回解读文本，无需额外格式说明。`;
+  }
+
+  // 🚨 使用scenarioPromptGenerator生成完整的AI响应
+  private static async generateCompleteAIResponse(
+    optionA: string,
+    optionB: string,
+    scenario: {
+      decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
+      emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
+      urgency: 'high' | 'medium' | 'low';
+      complexity: 'simple' | 'moderate' | 'complex';
+      keywords: string[];
+      context: string;
+      riskLevel: 'low' | 'medium' | 'high';
+      timeHorizon: 'immediate' | 'short' | 'long';
+    },
+    hexagramInfo?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+      changingLines?: number[];
+    }
+  ): Promise<any> {
+    try {
+      // 导入scenarioPromptGenerator
+      const { ScenarioPromptGenerator } = await import('../features/dilemma/utils/scenarioPromptGenerator');
+      
+      // 生成完整的prompt
+      const promptData = ScenarioPromptGenerator.generateCompletePrompt(optionA, optionB, scenario, hexagramInfo);
+      
+      // 调用AI API
+      const response = await this.callLLMAPI(promptData.completePrompt);
+      const content = response.content || '{}';
+      
+      try {
+        // 解析AI返回的JSON
+        const aiResponse = JSON.parse(content);
+        console.log('✅ AI生成完整响应:', aiResponse);
+        
+        // 🚨 调试：检查关键字段是否存在
+        console.log('🔍 检查关键字段:');
+        console.log('- hexagramData:', aiResponse.hexagramData);
+        console.log('- transformationInsights:', aiResponse.transformationInsights);
+        console.log('- hexagramChanges:', aiResponse.hexagramChanges);
+        console.log('- coreNarrative:', aiResponse.coreNarrative);
+        
+        return aiResponse;
+      } catch (e) {
+        console.error('❌ 解析AI响应失败:', e);
+        console.error('AI返回的原始内容:', content);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ 生成完整AI响应失败:', error);
+      return null;
+    }
+  }
+
+  private static async generateStructuredAnalysis(
+    coreNarrative: string,
+    optionA: string,
+    optionB: string
+  ): Promise<any> {
+    const prompt = `# 角色
+你是一个精准的文本分析和内容提取助手。
+
+# 🚨 绝对禁止的行为
+1. **禁止生成任何模板化内容**：如"需要进一步分析"、"具有独特价值"、"需要仔细权衡"等空洞表述
+2. **禁止使用万能句式**：如"建议在充分思考后做出决定"、"需要仔细考虑"等无意义的建议
+3. **禁止生成模糊内容**：如"某个方面"、"某个方向"、"重要启示"等不具体的描述
+
+# 信源 (Source of Truth)
+${coreNarrative}
+
+# 核心任务
+请严格根据上面的"信源"内容，不要添加任何额外信息，填充以下JSON结构：
+{
+  "optionAnalysis": [
+    {
+      "optionName": "${optionA}",
+      "alignmentWithNarrative": "描述这个选项与核心叙事的逻辑关系，使用'因为...所以...'的句式，体现易经智慧。必须具体到用户的选择，不能是抽象描述。",
+      "potentialAdvantage": "从叙事中提炼出坚持此选项的具体优点，必须与卦象智慧关联。必须具体说明这个优点是什么，不能是'具有独特价值'这样的废话。",
+      "potentialChallenge": "从叙事中提炼出坚持此选项的具体挑战，必须与卦象智慧关联。必须具体说明这个挑战是什么，不能是'需要仔细权衡'这样的废话。"
+    },
+    {
+      "optionName": "${optionB}",
+      "alignmentWithNarrative": "描述这个选项与核心叙事的逻辑关系，使用'因为...所以...'的句式，体现易经智慧。必须具体到用户的选择，不能是抽象描述。",
+      "potentialAdvantage": "从叙事中提炼出选择此选项的具体优点，必须与卦象智慧关联。必须具体说明这个优点是什么，不能是'具有独特价值'这样的废话。",
+      "potentialChallenge": "从叙事中提炼出选择此选项的具体挑战，必须与卦象智慧关联。必须具体说明这个挑战是什么，不能是'需要仔细权衡'这样的废话。"
+    }
+  ],
+  "actionableChecklist": [
+    {
+      "title": "从叙事中提炼出的第一个具体行动建议的标题（必须与用户的具体选择直接相关，如'今天下午在值班室测试工作效率'或'明天上午在办公室评估工作环境'）",
+      "detail": "该行动的具体描述，必须包含：1）具体时间（今天/明天/本周等）；2）具体地点（值班室/办公室/家里等）；3）具体动作（测试/评估/联系/准备等）；4）具体目标（测试什么/评估什么/联系谁/准备什么）。必须与用户的选择A和选择B直接相关，不能是通用建议。",
+      "rationale": "为什么这个行动能帮助用户在A和B之间做出选择，必须与卦象智慧紧密结合。必须具体说明这个行动如何帮助用户解决具体的选择问题。"
+    },
+    {
+      "title": "从叙事中提炼出的第二个具体行动建议的标题（必须与用户的具体选择直接相关，如'明天上午联系相关人员确认工作安排'或'后天评估两个选择的实际效果'）",
+      "detail": "该行动的具体描述，必须包含：1）具体时间（今天/明天/本周等）；2）具体地点（值班室/办公室/家里等）；3）具体动作（联系/评估/确认/准备等）；4）具体目标（联系谁/评估什么/确认什么/准备什么）。必须与用户的选择A和选择B直接相关，不能是通用建议。",
+      "rationale": "为什么这个行动能帮助用户在A和B之间做出选择，必须与卦象智慧紧密结合。必须具体说明这个行动如何帮助用户解决具体的选择问题。"
+    }
+  ]
+}
+
+**重要要求**：
+1. 必须严格按照JSON格式返回，不要包含任何markdown语法或多余的文字
+2. 每个建议都必须体现易经智慧与具体行动的"金线关联"
+3. 使用"因为...所以..."的逻辑句式，让用户理解为什么这样建议
+4. 所有内容都必须基于信源，不能添加额外信息
+5. **绝对禁止生成任何模板化、空洞的内容**
+6. **行动建议必须具体可操作**：
+   - 标题必须包含具体时间（今天/明天/本周等）
+   - 标题必须包含具体人物（领导/同事/家人等）
+   - 标题必须包含具体动作（联系/准备/制定/实施等）
+   - 标题必须包含具体目标（讨论什么/准备什么/完成什么）
+   - 避免使用"计划"、"优化"、"提升"等抽象词汇
+   - 使用"今天下午联系领导讨论"而不是"节前工作效率提升计划"
+7. **行动建议必须与用户的具体问题相关**：
+   - 如果用户选择涉及"值班室"，行动建议应该与值班相关
+   - 如果用户选择涉及"办公室"，行动建议应该与办公室相关
+   - 如果用户选择涉及"休假"，行动建议应该与休假相关
+   - 行动建议必须直接帮助用户解决具体的选择问题
+   - 避免生成与用户问题无关的通用建议
+8. **行动建议必须帮助用户做出选择**：
+   - 每个行动建议都应该帮助用户更好地理解A和B两个选择
+   - 行动建议应该提供具体的方法来测试、评估或验证选择
+   - 行动建议应该包含收集信息、比较优劣、验证假设等具体步骤
+   - 避免生成与选择无关的通用工作建议`;
+
+    try {
+      const response = await this.callLLMAPI(prompt);
+      const content = response.content || '{}';
+      try {
+        return JSON.parse(content);
+      } catch (e) {
+        console.error('❌ 解析结构化分析失败:', e);
+        return {
+          optionAnalysis: [],
+          actionableChecklist: []
+        };
+      }
+    } catch (error) {
+      console.error('❌ 生成结构化分析失败:', error);
+      return {
+        optionAnalysis: [],
+        actionableChecklist: []
+      };
+    }
+  }
+
+  private static formatFinalOutput(
+    coreNarrative: string, 
+    structuredAnalysis: any, 
+    hexagramInfo?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+      changingLines?: number[];
+      relatedHexagram?: {
+        name: string;
+        chineseName: string;
+        symbol: string;
+        judgment: string;
+        image: string;
+      } | null;
+    }
+  ): string {
+    // 将两段式生成的结果格式化为前端需要的JSON格式
+    const { optionAnalysis, actionableChecklist } = structuredAnalysis;
+    
+    // 构建前端期望的数据结构
+    const result = {
+      coreNarrative: {
+        title: "天玄智慧解读",
+        story: coreNarrative,
+        coreConflict: "基于卦象分析，当前存在核心冲突需要解决",
+        development: "卦象指引着明确的发展方向",
+        coreRevelation: "" // 让AI真正生成启示内容，不提供硬编码默认值
+      },
+      optionAnalysis: optionAnalysis || [],
+      breakthroughPlan: {
+        clearRecommendation: "", // 让AI真正生成建议内容，不提供硬编码默认值
+        actionList: actionableChecklist ? actionableChecklist.map((item: any) => ({
+          actionTitle: item.title || "",
+          actionDetail: item.detail || "",
+          rationale: item.rationale || ""
+        })) : []
+      },
+      // 新增：卦象相关字段，确保数据结构完整
+      hexagramMeanings: hexagramInfo ? this.generateHexagramMeanings(hexagramInfo) : {},
+      transformationInsights: hexagramInfo ? this.generateTransformationInsights(hexagramInfo) : {},
+      stableInsights: hexagramInfo ? this.generateStableInsights(hexagramInfo) : {},
+      
+      // 调试信息：记录生成的数据
+      _debug: {
+        hasHexagramInfo: !!hexagramInfo,
+        hexagramInfoKeys: hexagramInfo ? Object.keys(hexagramInfo) : [],
+        generatedHexagramMeanings: hexagramInfo ? Object.keys(this.generateHexagramMeanings(hexagramInfo)) : [],
+        generatedTransformationInsights: hexagramInfo ? Object.keys(this.generateTransformationInsights(hexagramInfo)) : [],
+        generatedStableInsights: hexagramInfo ? Object.keys(this.generateStableInsights(hexagramInfo)) : []
+      },
+      finalWisdom: "愿这份来自东方的古老智慧，为您的决策之路点亮明灯"
+    };
+    
+    // 返回JSON字符串，让前端可以正确解析
+    return JSON.stringify(result, null, 2);
+  }
+
+  // 新增：生成卦象含义数据 - 通过AI生成真正的卦象解读
+  private static generateHexagramMeanings(hexagramInfo: {
+    name: string;
+    chineseName: string;
+    symbol: string;
+    judgment: string;
+    image: string;
+    changingLines?: number[];
+    relatedHexagram?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+    } | null;
+  }): Record<string, string> {
+    const { chineseName, judgment, image, relatedHexagram } = hexagramInfo;
+    
+    // 基于卦象信息生成有意义的解读，避免重复卦象名称
+    const meanings: Record<string, string> = {};
+    
+    // 起卦的含义 - 通过AI生成现代解读
+    meanings[chineseName] = `《易经》原文："${judgment}。${image}"。现代解读：${chineseName}卦象征着当前的状态和处境，提醒我们在决策时要考虑的因素。`;
+    
+    // 如果有变卦，也生成变卦的含义
+    if (relatedHexagram) {
+      meanings[relatedHexagram.chineseName] = `《易经》原文："${relatedHexagram.judgment}。${relatedHexagram.image}"。现代解读：${relatedHexagram.chineseName}卦象征着未来的发展趋势，指引我们前进的方向。`;
+    }
+    
+    return meanings;
+  }
+
+  // 新增：生成卦象变化启示数据
+  private static generateTransformationInsights(hexagramInfo: {
+    name: string;
+    chineseName: string;
+    symbol: string;
+    judgment: string;
+    image: string;
+    changingLines?: number[];
+    relatedHexagram?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+    } | null;
+  }): Record<string, string> {
+    const { chineseName, judgment, image, relatedHexagram } = hexagramInfo;
+    
+    // 基于卦象信息生成变化启示，不硬编码任何内容
+    const insights: Record<string, string> = {};
+    
+    if (relatedHexagram) {
+      // 有变卦时，生成起卦到变卦的变化启示
+      const key = `${chineseName}-${relatedHexagram.chineseName}`;
+      // 只提供卦象信息，让AI真正生成启示内容
+      const insight = `起卦「${chineseName}」：${judgment}。${image}。变卦「${relatedHexagram.chineseName}」：${relatedHexagram.judgment}。${relatedHexagram.image}。`;
+      insights[key] = insight;
+    } else {
+      // 没有变卦时，生成稳定状态的启示
+      const key = `${chineseName}-稳定`;
+      const insight = `「${chineseName}」：${judgment}。${image}。`;
+      insights[key] = insight;
+    }
+    
+    return insights;
+  }
+
+  // 新增：生成稳定卦象启示数据
+  private static generateStableInsights(hexagramInfo: {
+    name: string;
+    chineseName: string;
+    symbol: string;
+    judgment: string;
+    image: string;
+    changingLines?: number[];
+    relatedHexagram?: {
+      name: string;
+      chineseName: string;
+      symbol: string;
+      judgment: string;
+      image: string;
+    } | null;
+  }): Record<string, string> {
+    const { chineseName, judgment, image, relatedHexagram } = hexagramInfo;
+    
+    // 基于卦象信息生成稳定启示，不硬编码任何内容
+    const insights: Record<string, string> = {};
+    
+    // 起卦的稳定启示
+    insights[chineseName] = `「${chineseName}」：${judgment}。${image}。`;
+    
+    // 如果有变卦，也生成变卦的稳定启示
+    if (relatedHexagram) {
+      insights[relatedHexagram.chineseName] = `「${relatedHexagram.chineseName}」：${relatedHexagram.judgment}。${relatedHexagram.image}。`;
+    }
+    
+    return insights;
+  }
+
+  // 新增：格式化叙事文本，添加适当的段落分隔
+  private static formatNarrativeWithParagraphs(narrative: string): string {
+    if (!narrative) return '';
+    
+    // 如果文本包含明确的段落标记，直接使用
+    if (narrative.includes('\n\n') || narrative.includes('##')) {
+      return narrative;
+    }
+    
+    // 根据句号、问号、感叹号分割文本
+    const sentences = narrative.split(/[。！？]/).filter(s => s.trim());
+    
+    if (sentences.length <= 3) {
+      // 如果句子较少，直接返回原文本
+      return narrative;
+    }
+    
+    // 智能分段：每2-4个句子组成一个段落，避免段落过长或过短
+    const paragraphs: string[] = [];
+    let currentParagraph = '';
+    let sentenceCount = 0;
+    
+    sentences.forEach((sentence, index) => {
+      currentParagraph += sentence.trim();
+      sentenceCount++;
+      
+      // 分段条件：达到3-4个句子，或者遇到关键词，或者是最后一个句子
+      const shouldSplit = sentenceCount >= 3 || 
+                         sentence.includes('因为') || 
+                         sentence.includes('所以') || 
+                         sentence.includes('若选择') ||
+                         sentence.includes('卦象') ||
+                         sentence.includes('离卦') ||
+                         sentence.includes('双火') ||
+                         index === sentences.length - 1;
+      
+      if (shouldSplit && currentParagraph.trim()) {
+        paragraphs.push(currentParagraph.trim());
+        currentParagraph = '';
+        sentenceCount = 0;
+      }
+    });
+    
+    // 如果分段后段落太少，尝试更细粒度的分段
+    if (paragraphs.length <= 1 && sentences.length > 6) {
+      const refinedParagraphs: string[] = [];
+      let refinedCurrent = '';
+      
+      sentences.forEach((sentence, index) => {
+        refinedCurrent += sentence.trim();
+        
+        if ((index + 1) % 2 === 0 || index === sentences.length - 1) {
+          if (refinedCurrent.trim()) {
+            refinedParagraphs.push(refinedCurrent.trim());
+            refinedCurrent = '';
+          }
+        }
+      });
+      
+      return refinedParagraphs.length > 0 ? refinedParagraphs.join('\n\n') : narrative;
+    }
+    
+    // 返回格式化后的段落
+    return paragraphs.length > 0 ? paragraphs.join('\n\n') : narrative;
+  }
+
+  // 辅助方法：获取决策类型的中文描述
+  private static getDecisionTypeText(type: string): string {
+    const texts: Record<string, string> = {
+      relationship: '人际关系决策',
+      career: '职业发展决策',
+      financial: '财务规划决策',
+      personal: '个人生活决策',
+      other: '其他重要决策'
+    };
+    return texts[type] || '重要决策';
+  }
+
+  // 辅助方法：获取情感状态的中文描述
+  private static getEmotionalToneText(tone: string): string {
+    const texts: Record<string, string> = {
+      positive: '积极乐观',
+      negative: '面临困难',
+      conflicted: '内心冲突',
+      neutral: '冷静理性'
+    };
+    return texts[tone] || '情绪稳定';
+  }
+
+  // 辅助方法：获取风险程度的中文描述
+  private static getRiskLevelText(risk: string): string {
+    const texts: Record<string, string> = {
+      high: '高风险',
+      medium: '中等风险',
+      low: '低风险'
+    };
+    return texts[risk] || '中等风险';
+  }
+
+  /**
+   * 生成个性化Prompt
+   */
+  static async generatePersonalizedPrompt(
+    basePrompt: string,
+    userInfo?: UnifiedUserInfo
+  ): Promise<string> {
+    if (!userInfo) {
+      userInfo = UserInfoSharingService.getUserInfo();
+    }
+
+    let personalizedPrompt = basePrompt;
+
+    // 添加用户基础信息
+    if (userInfo.basicInfo.birthDate || userInfo.basicInfo.gender || userInfo.basicInfo.question) {
+      personalizedPrompt += `\n\n# 用户信息`;
+      
+      if (userInfo.basicInfo.birthDate) {
+        personalizedPrompt += `\n- 生日：${userInfo.basicInfo.birthDate}`;
+      }
+      if (userInfo.basicInfo.gender) {
+        personalizedPrompt += `\n- 性别：${userInfo.basicInfo.gender}`;
+      }
+      if (userInfo.basicInfo.question) {
+        personalizedPrompt += `\n- 咨询问题：${userInfo.basicInfo.question}`;
+      }
+    }
+
+    // 添加玄学信息
+    if (userInfo.mysticalInfo.zodiac) {
+      personalizedPrompt += `\n- 星座：${userInfo.mysticalInfo.zodiac.sign}`;
+      personalizedPrompt += `\n- 星座元素：${userInfo.mysticalInfo.zodiac.element}`;
+      if (userInfo.mysticalInfo.zodiac.luckyColor) {
+        personalizedPrompt += `\n- 幸运颜色：${userInfo.mysticalInfo.zodiac.luckyColor}`;
+      }
+    }
+
+    // 添加占卜上下文
+    if (userInfo.divinationContext.questionType) {
+      personalizedPrompt += `\n- 问题类型：${userInfo.divinationContext.questionType}`;
+    }
+    if (userInfo.divinationContext.emotionalState) {
+      personalizedPrompt += `\n- 情感状态：${userInfo.divinationContext.emotionalState}`;
+    }
+    if (userInfo.divinationContext.decisionType) {
+      personalizedPrompt += `\n- 决策类型：${userInfo.divinationContext.decisionType}`;
+    }
+
+    return personalizedPrompt;
+  }
+
+  /**
+   * 个性化塔罗解读
+   */
+  static async generatePersonalizedTarotInterpretation(
+    cards: (StoryTarotCard & { orientation: 'upright' | 'reversed' })[],
+    spread: TarotSpread,
+    question: string,
+    intent: TarotIntent,
+    userInfo?: UnifiedUserInfo
+  ): Promise<FinalTarotInterpretation> {
+    if (!userInfo) {
+      userInfo = UserInfoSharingService.getUserInfo();
+    }
+
+    // 生成基础解读
+    const baseInterpretation = await this.generateTarotInterpretation(cards, spread, question, intent);
+
+    // 应用个性化调整
+    const personalizedInterpretation = this.applyPersonalizationToTarot(baseInterpretation, userInfo);
+
+    return personalizedInterpretation;
+  }
+
+  /**
+   * 个性化两难抉择分析
+   */
+  static async generatePersonalizedDilemmaAnalysis(
+    optionA: string,
+    optionB: string,
+    scenario: any,
+    hexagramInfo?: any,
+    userInfo?: UnifiedUserInfo
+  ): Promise<any> {
+    if (!userInfo) {
+      userInfo = UserInfoSharingService.getUserInfo();
+    }
+
+    // 生成基础分析
+    const baseAnalysis = await this.generateDilemmaAnalysis(optionA, optionB, scenario, hexagramInfo);
+
+    // 应用个性化调整
+    const personalizedAnalysis = this.applyPersonalizationToDilemma(baseAnalysis, userInfo);
+
+    return personalizedAnalysis;
+  }
+
+  /**
+   * 应用个性化到塔罗解读
+   */
+  private static applyPersonalizationToTarot(
+    interpretation: FinalTarotInterpretation,
+    userInfo: UnifiedUserInfo
+  ): FinalTarotInterpretation {
+    const personalized = { ...interpretation };
+
+    // 基于星座元素调整解读
+    if (userInfo.mysticalInfo.zodiac?.element) {
+      personalized.mainInterpretation = personalized.mainInterpretation.map(section => ({
+        ...section,
+        content: PersonalizationAlgorithm.adjustForZodiacElement(
+          section.content,
+          userInfo.mysticalInfo.zodiac!.element
+        )
+      }));
+    }
+
+    // 基于性别调整语气
+    if (userInfo.basicInfo.gender) {
+      personalized.mainInterpretation = personalized.mainInterpretation.map(section => ({
+        ...section,
+        content: PersonalizationAlgorithm.adjustToneForGender(
+          section.content,
+          userInfo.basicInfo.gender!
+        )
+      }));
+    }
+
+    // 基于问题类型调整重点
+    if (userInfo.divinationContext.questionType) {
+      personalized.mainInterpretation = personalized.mainInterpretation.map(section => ({
+        ...section,
+        content: PersonalizationAlgorithm.adjustFocusForQuestionType(
+          section.content,
+          userInfo.divinationContext.questionType!
+        )
+      }));
+    }
+
+    // 基于情感状态调整语气
+    if (userInfo.divinationContext.emotionalState) {
+      personalized.mainInterpretation = personalized.mainInterpretation.map(section => ({
+        ...section,
+        content: PersonalizationAlgorithm.adjustToneForEmotionalState(
+          section.content,
+          userInfo.divinationContext.emotionalState!
+        )
+      }));
+    }
+
+    return personalized;
+  }
+
+  /**
+   * 应用个性化到两难抉择分析
+   */
+  private static applyPersonalizationToDilemma(
+    analysis: any,
+    userInfo: UnifiedUserInfo
+  ): any {
+    const personalized = { ...analysis };
+
+    // 基于星座元素调整解读
+    if (userInfo.mysticalInfo.zodiac?.element) {
+      if (personalized.coreNarrative?.story) {
+        personalized.coreNarrative.story = PersonalizationAlgorithm.adjustForZodiacElement(
+          personalized.coreNarrative.story,
+          userInfo.mysticalInfo.zodiac.element
+        );
+      }
+    }
+
+    // 基于性别调整语气
+    if (userInfo.basicInfo.gender) {
+      if (personalized.coreNarrative?.story) {
+        personalized.coreNarrative.story = PersonalizationAlgorithm.adjustToneForGender(
+          personalized.coreNarrative.story,
+          userInfo.basicInfo.gender
+        );
+      }
+    }
+
+    // 基于决策类型调整建议
+    if (userInfo.divinationContext.decisionType) {
+      if (personalized.breakthroughPlan?.actionList) {
+        personalized.breakthroughPlan.actionList = PersonalizationAlgorithm.adjustAdviceForDecisionType(
+          personalized.breakthroughPlan.actionList.map((action: any) => action.actionDetail),
+          userInfo.divinationContext.decisionType
+        ).map((advice: string, index: number) => ({
+          ...personalized.breakthroughPlan.actionList[index],
+          actionDetail: advice
+        }));
+      }
+    }
+
+    // 添加个性化开场白
+    if (personalized.openingStatement) {
+      const personalizedOpening = PersonalizationAlgorithm.generatePersonalizedOpening(userInfo);
+      personalized.openingStatement = `${personalizedOpening} ${personalized.openingStatement}`;
+    }
+
+    return personalized;
   }
 }
 

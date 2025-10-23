@@ -15,6 +15,7 @@
           <router-link to="/" class="nav-link" :class="{ 'active': isActive('/') }">首页</router-link>
           <router-link to="/dilemma/divination" class="nav-link" :class="{ 'active': isActive('/dilemma/divination') }">六爻占卜</router-link>
           <router-link to="/dilemma" class="nav-link" :class="{ 'active': isActive('/dilemma') }">两难抉择</router-link>
+          <router-link to="/jiaobei" class="nav-link" :class="{ 'active': isActive('/jiaobei') }">笅杯占卜</router-link>
           <router-link to="/tarot" class="nav-link" :class="{ 'active': isActive('/tarot') }">塔罗牌</router-link>
           <router-link to="/fortune" class="nav-link" :class="{ 'active': isActive('/fortune') }">今日运势</router-link>
         </div>

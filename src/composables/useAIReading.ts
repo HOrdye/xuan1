@@ -92,7 +92,7 @@ export function useAIReading() {
           })
           result = await LLMService.getHexagramInterpretation(
             params.hexagram.hexagram,
-            params.hexagram.question
+            Array.isArray(params.hexagram.question) ? params.hexagram.question : []
           )
           break
           
@@ -191,22 +191,16 @@ function buildJiaoBeiPrompt(results: string[], question: string): string {
 
 // 调用自定义解读
 async function callCustomReading(prompt: string): Promise<string> {
-  // 这里可以直接使用LLMService的内部API调用方法
-  // 或者创建一个简单的卦象来复用现有接口
-  const dummyHexagram: Hexagram = {
-    name: 'Custom',
-    number: 0,
-    sequence: 0,
-    chineseName: '自定义',
-    symbol: '◇◇',
-    lines: [0, 0, 0, 0, 0, 0],
-    meaning: '自定义解读',
-    judgment: prompt,
-    yao_texts: ['自定义'],
-    trigrams: { upper: '自定义', lower: '自定义' }
+  try {
+    console.log('🔮 调用自定义解读服务...')
+    
+    // 使用LLMService的公共方法
+    return await LLMService.getCustomInterpretation(prompt)
+  } catch (error) {
+    console.error('❌ 自定义解读调用失败:', error)
+    // 回退到本地解读
+    return generateLocalJiaoBeiReading(['圣杯', '笑杯'], '请提供您的问题')
   }
-  
-  return await LLMService.getHexagramInterpretation(dummyHexagram, '')
 }
 
 // 生成本地笅杯解读

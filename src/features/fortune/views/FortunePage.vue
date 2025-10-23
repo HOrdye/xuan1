@@ -356,6 +356,7 @@ import SaveButton from '../../../components/common/SaveButton.vue';
 import SharePanel from '../../../components/common/SharePanel.vue';
 import type { PersonalizedFortuneData } from '../types/fortune';
 import { LLMService } from '../../../services/LLMService';
+import { UserInfoSharingService } from '../../../services/UserInfoSharingService';
 
 interface FortuneRequest {
   birthDate: string;
@@ -618,6 +619,10 @@ const generateFortune = async () => {
     
     console.log('📝 个性化数据:', personalData);
     console.log('🎯 开始调用 useFortune.generate...');
+    
+    // 收集用户信息到共享服务
+    UserInfoSharingService.collectFromFortune(personalData);
+    console.log('📊 用户信息已收集到共享服务');
     
     await generate(personalData, analysisMode.value === 'ai');
     

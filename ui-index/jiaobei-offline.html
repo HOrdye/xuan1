@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筊杯3D测试 - 离线版</title>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        #canvas {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            margin: 20px 0;
+            background: #2c3e50;
+            position: relative;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #ee5a24;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            min-height: 20px;
+        }
+        .debug {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: left;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #ff6b6b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥤 筊杯3D测试 - 离线版</h1>
+        <div class="status" id="status">正在初始化...</div>
+        <div id="canvas">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>加载中...</div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="throwBtn" onclick="throwJiaoBei()" disabled>投掷筊杯</button>
+            <button id="resetBtn" onclick="resetJiaoBei()" disabled>重置</button>
+        </div>
+        <div class="debug" id="debug">等待初始化...</div>
+    </div>
+
+    <script>
+        // 简化的3D渲染器，不依赖Three.js
+        class Simple3DRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.width = canvas.width;
+                this.height = canvas.height;
+                this.objects = [];
+                this.camera = { x: 0, y: 0, z: 10 };
+                this.rotation = { x: 0, y: 0, z: 0 };
+            }
+            
+            addObject(obj) {
+                this.objects.push(obj);
+            }
+            
+            render() {
+                // 清除画布
+                this.ctx.fillStyle = '#2c3e50';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // 绘制地面
+                this.ctx.fillStyle = '#8b4513';
+                this.ctx.fillRect(0, this.height * 0.8, this.width, this.height * 0.2);
+                
+                // 绘制所有对象
+                this.objects.forEach(obj => {
+                    this.drawObject(obj);
+                });
+            }
+            
+            drawObject(obj) {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                
+                // 简单的3D到2D投影
+                const scale = 100 / (obj.z + 10);
+                const x = centerX + obj.x * scale;
+                const y = centerY - obj.y * scale;
+                const size = obj.size * scale;
+                
+                if (size > 0) {
+                    this.ctx.save();
+                    this.ctx.translate(x, y);
+                    this.ctx.rotate(obj.rotation.z);
+                    
+                    // 绘制筊杯主体
+                    this.ctx.fillStyle = obj.color;
+                    this.ctx.fillRect(-size/2, -size/2, size, size);
+                    
+                    // 绘制边框
+                    this.ctx.strokeStyle = '#fff';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(-size/2, -size/2, size, size);
+                    
+                    // 绘制标识
+                    if (obj.type === 'flat') {
+                        this.ctx.fillStyle = '#f1c40f';
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, -size/3, size/4, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    } else if (obj.type === 'convex') {
+                        this.ctx.fillStyle = '#e74c3c';
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, size/3, size/6, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    
+                    this.ctx.restore();
+                }
+            }
+            
+            animate() {
+                // 更新相机位置
+                const time = Date.now() * 0.001;
+                this.camera.x = Math.sin(time * 0.5) * 2;
+                this.camera.z = 10 + Math.cos(time * 0.3) * 1;
+                
+                // 渲染场景
+                this.render();
+                
+                // 继续动画循环
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        let renderer;
+        let jiaoBei = [];
+        let isInitialized = false;
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log(message);
+        }
+        
+        function updateDebug(message) {
+            document.getElementById('debug').textContent = message;
+            console.log('Debug:', message);
+        }
+        
+        function init() {
+            updateStatus('开始初始化...');
+            
+            try {
+                // 获取容器
+                const container = document.getElementById('canvas');
+                if (!container) {
+                    updateStatus('错误: 找不到容器');
+                    return;
+                }
+                
+                // 清除加载提示
+                container.innerHTML = '';
+                
+                // 创建canvas元素
+                const canvas = document.createElement('canvas');
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                container.appendChild(canvas);
+                
+                // 创建渲染器
+                renderer = new Simple3DRenderer(canvas);
+                
+                // 创建筊杯对象
+                createJiaoBei();
+                
+                // 启动动画
+                renderer.animate();
+                
+                isInitialized = true;
+                updateStatus('初始化完成！可以投掷筊杯了');
+                updateDebug(`筊杯数量: ${jiaoBei.length}`);
+                
+                // 启用按钮
+                document.getElementById('throwBtn').disabled = false;
+                document.getElementById('resetBtn').disabled = false;
+                
+            } catch (error) {
+                updateStatus('初始化失败: ' + error.message);
+                updateDebug('错误详情: ' + error.stack);
+                console.error('初始化失败:', error);
+            }
+        }
+        
+        function createJiaoBei() {
+            jiaoBei = [];
+            
+            for (let i = 0; i < 2; i++) {
+                const jiaoBeiObj = {
+                    x: (i - 0.5) * 2,
+                    y: 0,
+                    z: 0,
+                    size: 1,
+                    color: '#e74c3c',
+                    rotation: { x: 0, y: 0, z: 0 },
+                    type: 'main'
+                };
+                
+                // 添加平面标识
+                const flatIndicator = {
+                    x: (i - 0.5) * 2,
+                    y: -0.5,
+                    z: 0,
+                    size: 0.8,
+                    color: '#f1c40f',
+                    rotation: { x: 0, y: 0, z: 0 },
+                    type: 'flat'
+                };
+                
+                // 添加凸面标识
+                const convexIndicator = {
+                    x: (i - 0.5) * 2,
+                    y: 0.5,
+                    z: 0,
+                    size: 0.6,
+                    color: '#e74c3c',
+                    rotation: { x: 0, y: 0, z: 0 },
+                    type: 'convex'
+                };
+                
+                renderer.addObject(jiaoBeiObj);
+                renderer.addObject(flatIndicator);
+                renderer.addObject(convexIndicator);
+                
+                jiaoBei.push(jiaoBeiObj);
+            }
+            
+            updateDebug(`创建了 ${jiaoBei.length} 个筊杯`);
+        }
+        
+        function throwJiaoBei() {
+            if (!isInitialized || jiaoBei.length === 0) {
+                updateStatus('筊杯未初始化，无法投掷');
+                return;
+            }
+            
+            updateStatus('投掷筊杯中...');
+            
+            jiaoBei.forEach((jiaoBei, index) => {
+                const rotationZ = (Math.random() - 0.5) * Math.PI * 2;
+                jiaoBei.rotation.z = rotationZ;
+                
+                updateDebug(`筊杯${index + 1} 旋转: Z=${rotationZ.toFixed(2)}`);
+            });
+            
+            updateStatus('投掷完成！');
+        }
+        
+        function resetJiaoBei() {
+            if (!isInitialized || jiaoBei.length === 0) {
+                updateStatus('筊杯未初始化，无法重置');
+                return;
+            }
+            
+            jiaoBei.forEach(jiaoBei => {
+                jiaoBei.rotation.z = 0;
+            });
+            
+            updateStatus('筊杯已重置');
+            updateDebug('所有筊杯旋转已归零');
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            updateStatus('页面加载完成，开始初始化...');
+            setTimeout(init, 500);
+        });
+        
+        // 窗口大小改变时重新调整canvas大小
+        window.addEventListener('resize', () => {
+            if (renderer && renderer.canvas) {
+                const container = document.getElementById('canvas');
+                renderer.canvas.width = container.clientWidth;
+                renderer.canvas.height = container.clientHeight;
+                renderer.width = container.clientWidth;
+                renderer.height = container.clientHeight;
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

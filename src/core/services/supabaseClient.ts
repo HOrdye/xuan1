@@ -77,10 +77,10 @@ class SupabaseManager {
     this.config = {
       url: envConfig.VITE_SUPABASE_URL || 
            import.meta.env.VITE_SUPABASE_URL || 
-           'https://temp-placeholder.supabase.co',
+           'https://your-project.supabase.co',
       anonKey: envConfig.VITE_SUPABASE_ANON_KEY || 
                import.meta.env.VITE_SUPABASE_ANON_KEY || 
-               'temp-placeholder-key'
+               'your-anon-key'
     };
 
     return this.config;

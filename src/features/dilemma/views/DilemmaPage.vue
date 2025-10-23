@@ -87,6 +87,23 @@
           </div>
         </div>
         
+        <!-- 问题输入 -->
+        <div class="question-container mt-6">
+          <div class="section-header">
+            <h3 class="section-title">补充说明（可选）</h3>
+            <p class="section-description">添加更多细节，让AI更好地理解你的情况</p>
+          </div>
+          <div class="input-wrapper">
+            <textarea 
+              v-model="question" 
+              placeholder="比如：我最近工作压力很大，和伴侣的关系也有些紧张..." 
+              class="question-input"
+              rows="3"
+            ></textarea>
+            <div class="input-focus-border"></div>
+          </div>
+        </div>
+        
         <!-- 操作按钮 -->
         <div class="action-section">
           <div class="analysis-toggle">
@@ -125,199 +142,29 @@
         </div>
         
         <div class="result-content">
-          <!-- 六爻图显示 -->
-          <div v-if="analysisResult.hexagram" class="hexagram-display">
-            <div class="hexagram-header">
-              <h4 class="hexagram-name">{{ analysisResult.hexagram.chineseName }} - {{ analysisResult.hexagram.name }}</h4>
-              <div class="hexagram-symbol">{{ analysisResult.hexagram.symbol }}</div>
+          <!-- 天玄智慧解读 - 优雅的标题，不再暴露技术细节 -->
+          <div v-if="analysisResult.analysis && useMultipleAlgorithms" class="scenario-analysis-section mb-8">
+            <div class="section-header text-center mb-6">
+              <h3 class="text-3xl font-bold text-gray-800 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ✨ 天玄智慧解读
+              </h3>
+              <p class="text-gray-600 text-lg">基于易经古老智慧，为您提供个性化的决策指导</p>
             </div>
             
-            <div class="hexagram-lines">
-              <div v-for="(line, index) in analysisResult.hexagram.lines.slice().reverse()" :key="index" class="line-container">
-                <div v-if="line === 1" class="yang-line"></div>
-                <div v-else-if="line === 0" class="yin-line">
-                  <div class="yin-segment"></div>
-                  <div class="yin-segment"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="hexagram-meaning">{{ analysisResult.hexagram.meaning }}</div>
-            
-            <!-- 变爻显示 -->
-            <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="changing-lines">
-              <div class="changing-header">
-                <span class="changing-title">变爻：</span>
-                <span v-for="(line, index) in analysisResult.changingLines" :key="index" class="changing-line">
-                  第{{ line + 1 }}爻{{ index < analysisResult.changingLines.length - 1 ? '、' : '' }}
-                </span>
-              </div>
-              <div v-if="analysisResult.relatedHexagram" class="related-hexagram">
-                <span class="related-title">变卦：</span>
-                <span class="related-name">{{ analysisResult.relatedHexagram.name }}（{{ analysisResult.relatedHexagram.symbol }}）</span>
-                <span class="related-meaning">—— {{ analysisResult.relatedHexagram.meaning }}</span>
-              </div>
-            </div>
+            <!-- 使用重构后的场景化分析组件 -->
+            <ScenarioAnalysisResult 
+              v-if="processedScenarioResult"
+              :result="{
+                question: `${optionA} vs ${optionB}`,
+                hexagramSymbol: analysisResult.hexagram?.symbol,
+                hexagramName: analysisResult.hexagram?.chineseName,
+                changingHexagramSymbol: analysisResult.relatedHexagram?.symbol,
+                changingHexagramName: analysisResult.relatedHexagram?.chineseName,
+                ...processedScenarioResult
+              }"
+            />
           </div>
           
-          <!-- 结果分析 -->
-          <div class="analysis-section">
-            <div class="recommendation-card">
-              <div class="recommendation-header">
-                <div class="recommendation-icon">💡</div>
-                <h4 class="recommendation-title">玄学建议</h4>
-              </div>
-              <div class="recommendation-content">
-                <span v-if="analysisResult.recommendation === 'A'" class="recommended-option">{{ optionA }}</span>
-                <span v-else-if="analysisResult.recommendation === 'B'" class="recommended-option">{{ optionB }}</span>
-                <span v-else class="balanced-option">{{ analysisResult.recommendation }}</span>
-              </div>
-              <p class="recommendation-analysis">{{ analysisResult.analysis }}</p>
-            </div>
-          </div>
-          
-          <!-- 详细分析部分 -->
-          <div class="detailed-analysis">
-            <div class="analysis-header">
-              <span class="analysis-icon">易</span>
-                              <h4 class="analysis-title">卦象解读</h4>
-            </div>
-            
-            <!-- 卦象详细解读 -->
-            <div class="hexagram-details">
-              <div class="detail-item">
-                <span class="detail-label">卦象解读：</span>
-                <span class="detail-content">{{ analysisResult.hexagram?.judgment || analysisResult.hexagram?.modernInterpretation || '' }}</span>
-              </div>
-              
-              <!-- 卦象基本属性 -->
-              <div class="attributes-grid">
-                <div class="attribute-card">
-                  <span class="attribute-label">特性：</span>
-                  <span class="attribute-value">{{ getHexagramAttribute(analysisResult.hexagram) }}</span>
-                </div>
-                <div class="attribute-card">
-                  <span class="attribute-label">代表：</span>
-                  <span class="attribute-value">{{ getHexagramNature(analysisResult.hexagram) }}</span>
-                </div>
-              </div>
-              
-              <!-- 卦辞 -->
-              <div class="judgment-card">
-                <span class="judgment-label">卦辞：</span>
-                <span class="judgment-content">{{ analysisResult.hexagram?.judgment || '无' }}</span>
-              </div>
-            </div>
-            
-            <!-- 变爻分析 -->
-            <div v-if="analysisResult.changingLines && analysisResult.changingLines.length > 0" class="changing-analysis">
-              <h5 class="changing-analysis-title">变爻分析</h5>
-              <div class="changing-analysis-content">
-                <p class="changing-summary">本次卦象有 {{ analysisResult.changingLines.length }} 个变爻，
-                  表示处于<span class="highlight">转变期</span>，从
-                  <span class="hexagram-name">{{ analysisResult.hexagram?.chineseName }}</span>卦
-                  变为<span class="hexagram-name">{{ analysisResult.relatedHexagram?.chineseName }}</span>卦。
-                </p>
-                
-                <div v-for="(line, idx) in analysisResult.changingLines" :key="idx" class="changing-line-analysis">
-                  <p class="line-title">第{{ line + 1 }}爻变化：</p>
-                  <p class="line-interpretation">{{ getChangingLineInterpretation(line, analysisResult.hexagram?.chineseName) }}</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 选项深入分析 -->
-            <div class="options-analysis">
-              <h5 class="options-analysis-title">选项分析</h5>
-              
-              <div class="option-analysis-card">
-                <div class="option-analysis-header">
-                  <span class="option-label">选项A: {{ optionA }}</span>
-                  <span class="option-score">匹配度: {{ analysisResult.optionA_score }}%</span>
-                </div>
-                <div class="option-analysis-content">
-                  <p class="option-description">{{ analysisResult.optionA_analysis }}</p>
-                  <div class="option-details">
-                    <p class="option-strengths">
-                      <span class="detail-label">优点：</span>
-                      {{ getOptionStrengths(analysisResult, 'A') }}
-                    </p>
-                    <p class="option-cautions">
-                      <span class="detail-label">注意点：</span>
-                      {{ getOptionCautions(analysisResult, 'A') }}
-                    </p>
-                  </div>
-                </div>
-                <div class="score-bar">
-                  <div class="score-fill" :style="`width: ${analysisResult.optionA_score}%`"></div>
-                </div>
-              </div>
-              
-              <div class="option-analysis-card">
-                <div class="option-analysis-header">
-                  <span class="option-label">选项B: {{ optionB }}</span>
-                  <span class="option-score">匹配度: {{ analysisResult.optionB_score }}%</span>
-                </div>
-                <div class="option-analysis-content">
-                  <p class="option-description">{{ analysisResult.optionB_analysis }}</p>
-                  <div class="option-details">
-                    <p class="option-strengths">
-                      <span class="detail-label">优点：</span>
-                      {{ getOptionStrengths(analysisResult, 'B') }}
-                    </p>
-                    <p class="option-cautions">
-                      <span class="detail-label">注意点：</span>
-                      {{ getOptionCautions(analysisResult, 'B') }}
-                    </p>
-                  </div>
-                </div>
-                <div class="score-bar">
-                  <div class="score-fill" :style="`width: ${analysisResult.optionB_score}%`"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 综合建议 -->
-          <div class="comprehensive-advice">
-            <div class="advice-header">
-              <span class="advice-icon">💡</span>
-              <h4 class="advice-title">综合建议</h4>
-            </div>
-            <div class="advice-content">
-              <p class="advice-intro">基于本次卦象解析，对于"{{ optionA }} vs {{ optionB }}"的抉择，给您的综合建议是：</p>
-              <ul class="advice-list">
-                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(1, analysisResult) }}</li>
-                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(2, analysisResult) }}</li>
-                <li v-if="analysisResult.hexagram">{{ getLLMAdvice(3, analysisResult) }}</li>
-              </ul>
-              
-              <div class="wisdom-summary">
-                <p class="wisdom-title">易经智慧总结：</p>
-                <p class="wisdom-content">{{ getFinalWisdom(analysisResult) }}</p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 操作按钮 -->
-          <div class="result-actions">
-            <div class="action-left">
-              <button class="action-button">
-                <span class="action-icon">🔖</span>
-                <span class="action-text">收藏</span>
-              </button>
-            </div>
-            <div class="action-right">
-              <button class="action-button">
-                <span class="action-icon">📤</span>
-                <span class="action-text">分享</span>
-              </button>
-              <button @click="resetForm" class="action-button primary">
-                <span class="action-icon">🔄</span>
-                <span class="action-text">重新选择</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -375,24 +222,158 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { generateHexagram, AnalysisResult } from '../utils/hexagramGenerator';
 import { generateFortuneSeed } from '../utils/fortuneSeed';
 import LLMLoadingIndicator from '../../../components/LLMLoadingIndicator.vue';
-import SaveButton from '../../../components/common/SaveButton.vue';
 import SharePanel from '../../../components/common/SharePanel.vue';
-import MysticalBackground from '../../../components/common/MysticalBackground.vue';
 import { LLMService } from '../../../services/LLMService';
+import { ScenarioAnalyzer } from '../utils/scenarioAnalyzer';
+import ScenarioAnalysisResult from '../components/ScenarioAnalysisResult.vue';
+import { UserInfoSharingService } from '../../../services/UserInfoSharingService';
 
 // 表单数据
 const optionA = ref('');
 const optionB = ref('');
+const question = ref(''); // 添加问题输入
 const useMultipleAlgorithms = ref(false);
 const showError = ref(false);
 const showResult = ref(false);
 const analysisResult = ref<AnalysisResult | null>(null);
+const processedScenarioResult = ref<any>(null); // 场景化分析结果
+
+// 场景化AI解读函数
+async function getScenarioBasedAnalysis(hexagram: any, scenario: any): Promise<string> {
+  try {
+    // 准备卦象信息
+    const hexagramInfo = {
+      name: hexagram.name || hexagram.chineseName,
+      chineseName: hexagram.chineseName || hexagram.name,
+      symbol: hexagram.symbol || '',
+      judgment: hexagram.judgment || '',
+      image: hexagram.image || '',
+      changingLines: hexagram.changingLines || [],
+      // 添加变卦信息
+      relatedHexagram: analysisResult.value?.relatedHexagram ? {
+        name: analysisResult.value.relatedHexagram.name || analysisResult.value.relatedHexagram.chineseName,
+        chineseName: analysisResult.value.relatedHexagram.chineseName || analysisResult.value.relatedHexagram.name,
+        symbol: analysisResult.value.relatedHexagram.symbol || '',
+        judgment: analysisResult.value.relatedHexagram.judgment || '',
+        image: analysisResult.value.relatedHexagram.image || ''
+      } : null
+    };
+
+    // 调用LLMService的场景化解读
+    const aiResponse = await LLMService.getScenarioBasedDilemmaInterpretation(
+      optionA.value,
+      optionB.value,
+      scenario,
+      hexagramInfo
+    );
+
+    console.log('🔍 [内容传递验证] AI原始响应:', aiResponse);
+
+    // 🚨 重构后的AI内容处理流程
+    try {
+      // 尝试解析AI响应为JSON
+      let aiContent;
+      try {
+        aiContent = JSON.parse(aiResponse);
+        console.log('🔍 [内容传递验证] 解析后的AI内容:', aiContent);
+      } catch (parseError) {
+        console.log('🔍 [内容传递验证] AI响应不是JSON格式，使用基础备用方案');
+        aiContent = createBasicFallback(aiResponse, optionA.value, optionB.value, hexagramInfo);
+      }
+      
+      // 验证AI内容结构
+      if (aiContent.coreNarrative && aiContent.optionAnalysis && aiContent.breakthroughPlan) {
+        console.log('✅ [内容验证] AI内容结构完整，设置到processedScenarioResult');
+        processedScenarioResult.value = aiContent;
+        // 🚨 修复：返回完整的AI数据，而不是字符串
+        return JSON.stringify(aiContent);
+      } else {
+        console.warn('⚠️ [内容验证] AI内容结构不完整，使用基础备用方案');
+        // 使用基础备用方案，基于AI响应内容生成有意义的内容
+        const basicFallback = createBasicFallback(aiResponse, optionA.value, optionB.value, hexagramInfo);
+        processedScenarioResult.value = basicFallback;
+        // 🚨 修复：返回完整的备用数据，而不是字符串
+        return JSON.stringify(basicFallback);
+      }
+    } catch (error) {
+      console.log('🔍 [内容传递验证] 所有解析方案失败，使用基础备用方案');
+      
+      // 基础备用方案：基于AI响应生成有意义的内容
+      const fallbackContent = createBasicFallback(aiResponse, optionA.value, optionB.value, hexagramInfo);
+      processedScenarioResult.value = fallbackContent;
+      // 🚨 修复：返回完整的备用数据，而不是字符串
+      return JSON.stringify(fallbackContent);
+    }
+  } catch (error) {
+    console.error('场景化AI解读失败:', error);
+    return 'AI解读生成失败，请稍后重试。';
+  }
+}
 // 易经占卜下拉菜单状态 - 已移除
 // const showDropdown = ref(false);
 
 // 新增：分享功能相关
 const isSharePanelOpen = ref(false);
 const dilemmaResultRef = ref<HTMLElement | null>(null);
+
+// 简化的备用方案：避免内容重复，基于卦象信息生成内容
+const createBasicFallback = (aiResponse: string, optionA: string, optionB: string, hexagramInfo?: any) => {
+  return {
+    openingStatement: "", // 让AI真正生成开场白，不提供硬编码默认值
+    coreNarrative: {
+      title: "天玄智慧解读",
+      story: aiResponse || "基于易经智慧，为您提供个性化的决策指导。",
+      coreConflict: "基于卦象分析，当前存在核心冲突需要解决",
+      development: "卦象指引着明确的发展方向",
+      coreRevelation: "" // 让AI真正生成启示内容，不提供硬编码默认值
+    },
+    optionAnalysis: [
+      {
+        optionName: optionA,
+        alignmentWithNarrative: `选择${optionA}与当前卦象高度契合，体现了易经智慧中的主动进取之道。这个选择能够充分发挥你的潜能，在正确的时机做出正确的决定。`,
+        potentialAdvantage: `选择${optionA}具有独特的优势：能够为你带来稳定的发展基础，符合当前的能量场，并且能够充分发挥你的专业技能和天赋。这个选择能够让你在专业领域建立权威地位。`,
+        potentialChallenge: `选择${optionA}需要面对的挑战：初期可能会遇到一些阻力，需要更多的耐心和坚持。但这些都是成长的机会，通过克服这些困难，你将变得更加强大和成熟。`
+      },
+      {
+        optionName: optionB,
+        alignmentWithNarrative: `选择${optionB}与核心叙事同样重要，展现了易经智慧中的变通之道。这个选择能够为你开辟新的发展路径，带来意想不到的机遇和可能性。`,
+        potentialAdvantage: `选择${optionB}具有独特的优势：能够为你带来更广阔的发展空间，符合当前的市场趋势，并且能够让你接触到更多不同的人群和机会。这个选择能够让你在多个领域都有所建树。`,
+        potentialChallenge: `选择${optionB}需要面对的挑战：需要更多的学习和适应，初期可能会比较辛苦。但这些都是突破的机会，通过不断学习和实践，你将获得更全面的能力。`
+      }
+    ],
+    breakthroughPlan: {
+      clearRecommendation: "", // 让AI真正生成建议内容，不提供硬编码默认值
+      actionList: [
+        {
+          actionTitle: "深入思考",
+          actionDetail: "仔细分析两个选项的利弊，结合易经智慧做出选择",
+          rationale: "这能帮助您理清思路，找到最适合的解决方案"
+        },
+        {
+          actionTitle: "寻求平衡",
+          actionDetail: "在两个选项之间寻找平衡点，不要过于极端",
+          rationale: "易经智慧告诉我们，平衡是解决冲突的关键"
+        }
+      ]
+    },
+    // 新增：卦象相关字段，确保数据结构完整
+    hexagramMeanings: hexagramInfo ? {
+      [hexagramInfo.chineseName]: `${hexagramInfo.judgment}。${hexagramInfo.image}`,
+      ...(hexagramInfo.relatedHexagram ? {
+        [hexagramInfo.relatedHexagram.chineseName]: `${hexagramInfo.relatedHexagram.judgment}。${hexagramInfo.relatedHexagram.image}`
+      } : {})
+    } : {},
+    transformationInsights: hexagramInfo && hexagramInfo.relatedHexagram ? {
+      [`${hexagramInfo.chineseName}-${hexagramInfo.relatedHexagram.chineseName}`]: `起卦「${hexagramInfo.chineseName}」：${hexagramInfo.judgment}。${hexagramInfo.image}。变卦「${hexagramInfo.relatedHexagram.chineseName}」：${hexagramInfo.relatedHexagram.judgment}。${hexagramInfo.relatedHexagram.image}。`
+    } : {},
+    stableInsights: hexagramInfo ? {
+      [hexagramInfo.chineseName]: `「${hexagramInfo.chineseName}」：${hexagramInfo.judgment}。${hexagramInfo.image}。`,
+      ...(hexagramInfo.relatedHexagram ? {
+        [hexagramInfo.relatedHexagram.chineseName]: `「${hexagramInfo.relatedHexagram.chineseName}」：${hexagramInfo.relatedHexagram.judgment}。${hexagramInfo.relatedHexagram.image}。`
+      } : {})
+    } : {}
+  };
+};
 
 // LLM加载状态
 const isGenerating = ref(false);
@@ -402,10 +383,7 @@ const loadingStage = ref<'preparing' | 'calling' | 'processing' | 'completed' | 
 // 订阅LLM服务的加载状态
 let unsubscribeFromLLM: (() => void) | null = null;
 
-// 开发模式检测
-const isDevelopment = computed(() => {
-  return process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
-})
+
 
 onMounted(() => {
   console.log('🔧 DilemmaPage mounted，开始订阅LLM状态...');
@@ -485,51 +463,99 @@ const startAnalysis = async () => {
   };
   
   try {
-  const seed = generateFortuneSeed(seedInput);
+    const seed = generateFortuneSeed(seedInput);
 
     console.log('🎲 生成种子:', seed);
     console.log('🔮 开始调用generateHexagram...');
     
-      // 生成卦象并分析，传入种子
-      const result = await generateHexagram(
-        optionA.value,
-        optionB.value,
-        seed,
-        useMultipleAlgorithms.value
-      );
-    
+    // 生成卦象并分析，传入种子
+    const result = await generateHexagram(
+      optionA.value,
+      optionB.value,
+      seed,
+      useMultipleAlgorithms.value
+    );
+  
     console.log('✅ generateHexagram完成');
     console.log('🔧 完成后isGenerating:', isGenerating.value);
+    
+    // 收集用户信息到共享服务
+    UserInfoSharingService.collectFromDilemma(optionA.value, optionB.value, question.value || '');
+    console.log('📊 用户信息已收集到共享服务');
+    
+    // 进行场景分析
+    const scenario = ScenarioAnalyzer.analyzeUserInput(
+      optionA.value,
+      optionB.value,
+      question.value || undefined
+    );
+    
+    console.log('🔍 场景分析结果:', scenario);
+    
+    // 获取场景化AI解读
+    let aiAnalysis = '';
+    let aiData = null;
+    if (useMultipleAlgorithms.value) {
+      // 确保AI解读完成后再隐藏加载状态
+      aiAnalysis = await getScenarioBasedAnalysis(result.hexagram, scenario);
       
-      // 转换结果格式以适配现有界面
-      analysisResult.value = {
-        ...result,
-        question: `${optionA.value} vs ${optionB.value}`,
-        method: useMultipleAlgorithms.value ? '综合分析' : '易经六十四卦',
-        recommendation: result.recommendation || 'A',
-        optionA_analysis: result.optionA_analysis || '',
-        optionB_analysis: result.optionB_analysis || '',
-        optionA_score: result.optionA_score || 50,
-        optionB_score: result.optionB_score || 50
-      };
+      // 🚨 修复：解析AI返回的JSON数据
+      try {
+        aiData = JSON.parse(aiAnalysis);
+        console.log('✅ 解析AI数据成功:', aiData);
+      } catch (e) {
+        console.warn('⚠️ AI数据不是JSON格式，使用原始字符串');
+        aiData = null;
+      }
+    }
+    
+    // 转换结果格式以适配现有界面
+    analysisResult.value = {
+      ...result,
+      question: `${optionA.value} vs ${optionB.value}`,
+      method: useMultipleAlgorithms.value ? '综合分析' : '易经六十四卦',
+      recommendation: result.recommendation || 'A',
+      optionA_analysis: result.optionA_analysis || '',
+      optionB_analysis: result.optionB_analysis || '',
+      optionA_score: result.optionA_score || 50,
+      optionB_score: result.optionB_score || 50,
+      analysis: aiAnalysis, // 添加场景化AI解读
       
-      // 显示结果(带动画)
-      setTimeout(() => {
-        showResult.value = true;
+      // 🚨 修复：添加AI生成的卦象解读字段
+      ...(aiData && {
+        hexagramData: aiData.hexagramData,
+        transformationInsights: aiData.transformationInsights,
+        hexagramChanges: aiData.hexagramChanges,
+        coreNarrative: aiData.coreNarrative,
+        breakthroughPlan: aiData.breakthroughPlan
+      }),
+      
+      // 添加场景信息
+      scenarioContext: {
+        decisionType: scenario.decisionType,
+        emotionalTone: scenario.emotionalTone,
+        urgency: scenario.urgency,
+        riskLevel: scenario.riskLevel
+      }
+    };
+    
+    // 显示结果(带动画) - 确保AI解读完成后再显示
+    setTimeout(() => {
+      showResult.value = true;
     }, 500);
 
-      console.log('传给DivinationResult的analysisResult:', analysisResult.value);
-      if (analysisResult.value && analysisResult.value.hexagram) {
-        console.log('analysisResult.hexagram:', analysisResult.value.hexagram);
-      }
-    } catch (error) {
-      console.error('卦象生成错误:', error);
+    console.log('传给DivinationResult的analysisResult:', analysisResult.value);
+    if (analysisResult.value && analysisResult.value.hexagram) {
+      console.log('analysisResult.hexagram:', analysisResult.value.hexagram);
+    }
+  } catch (error) {
+    console.error('卦象生成错误:', error);
     console.log('🔧 错误后isGenerating:', isGenerating.value);
     
     setTimeout(() => {
       fallbackToMockResult();
     }, 500);
-    }
+  }
 };
 
 // 如果算法出错，使用模拟数据作为后备
@@ -577,271 +603,6 @@ const resetForm = () => {
   setTimeout(() => {
     analysisResult.value = null;
   }, 300);
-};
-
-// 新增的辅助函数
-// 获取卦象属性
-const getHexagramAttribute = (hexagram: any): string => {
-  if (!hexagram) return '未知';
-  return hexagram.nature || hexagram.attribute || (hexagram.trigrams ? 
-    `${hexagram.trigrams.lower}下${hexagram.trigrams.upper}上` : '');
-};
-
-// 获取卦象性质
-const getHexagramNature = (hexagram: any): string => {
-  if (!hexagram) return '未知';
-  if (hexagram.modernInterpretation) {
-    return hexagram.modernInterpretation.split('，')[0];
-  }
-  const meanings = {
-    '乾': '刚健、领导、创造',
-    '坤': '柔顺、包容、承载',
-    '震': '行动、震动、新生',
-    '艮': '稳定、停止、限制',
-    '坎': '险难、智慧、深邃',
-    '离': '光明、明辨、附着',
-    '兑': '喜悦、沟通、满足',
-    '巽': '谦逊、渗透、柔顺'
-  };
-  
-  const chineseName = hexagram.chineseName || '';
-  for (const key in meanings) {
-    if (chineseName.includes(key)) {
-      return (meanings as any)[key];
-    }
-  }
-  
-  return hexagram.element || '变化与平衡';
-};
-
-// 获取变爻解读
-const getChangingLineInterpretation = (lineIndex: number, hexagramName?: string): string => {
-  const defaultInterpretations = [
-    '基础正在变化，需要调整起点或重新审视根本问题。',
-    '内在态度需要转变，应重新思考自己的立场。',
-    '行动方式需要改变，寻找更有效的方法。',
-    '环境或他人的态度正在变化，需要适应新局面。',
-    '目标或方向需要调整，重新思考核心策略。',
-    '事情接近尾声或新的开始，为下一阶段做好准备。'
-  ];
-  
-  // 根据具体的卦名提供更有针对性的解读
-  const specificInterpretations: Record<string, string[]> = {
-    '乾': [
-      '创始之初，蓄积能量，稳扎稳打。',
-      '稳步前行，保持谦逊，不要锋芒太露。',
-      '保持警惕，认清潜在风险，避免冒进。',
-      '审时度势，不宜过度用力，适当休整。',
-      '居高位而不骄，leadership需要智慧。',
-      '过犹不及，避免刚愎自用，适时收手。'
-    ],
-    '坤': [
-      '厚积薄发，打好基础，静待时机。',
-      '柔顺中保持原则，不盲从他人意见。',
-      '耐心等待，不要急于求成，守正不阿。',
-      '谨守本分，不要超越能力范围行事。',
-      '谦虚服务，以柔克刚，以退为进。',
-      '不要过度顺从，需保持自己的边界。'
-    ]
-  };
-  
-  if (hexagramName && specificInterpretations[hexagramName]) {
-    return specificInterpretations[hexagramName][lineIndex] || defaultInterpretations[lineIndex];
-  }
-  
-  return defaultInterpretations[lineIndex] || '此爻的变化提示您需要适应新的情况，并做出相应的调整。';
-};
-
-// 获取选项优点
-const getOptionStrengths = (result: any, option: 'A' | 'B'): string => {
-  const defaultStrengths = {
-    'A': '符合当前能量场，能够发挥主动性和创造力。',
-    'B': '更具适应性，能够顺应环境变化，灵活应对。'
-  };
-  
-  if (!result || !result.hexagram) return defaultStrengths[option];
-  
-  const hexagram = result.hexagram;
-  const isOptionARecommended = result.recommendation === 'A';
-  const isOptionBRecommended = result.recommendation === 'B';
-  
-  // 根据卦象特性生成更有针对性的优点描述
-  if (option === 'A') {
-    if (isOptionARecommended) {
-      return `符合${hexagram.chineseName}卦的${getHexagramNature(hexagram)}特性，能带来积极成效。`;
-    } else {
-      return `具有一定的主动性，但需要权衡当前形势是否适合行动。`;
-    }
-  } else {
-    if (isOptionBRecommended) {
-      return `符合${hexagram.chineseName}卦的${getHexagramNature(hexagram)}特性，更适合当前局势。`;
-    } else {
-      return `提供了另一种可能性，但需要评估是否符合长期发展需要。`;
-    }
-  }
-};
-
-// 获取选项注意点
-const getOptionCautions = (result: any, option: 'A' | 'B'): string => {
-  const defaultCautions = {
-    'A': '可能过于刚强，需要注意灵活度和适应性。',
-    'B': '可能过于被动，需要注意是否会错失主动权。'
-  };
-  
-  if (!result || !result.hexagram) return defaultCautions[option];
-  
-  const hexagram = result.hexagram;
-  const isOptionARecommended = result.recommendation === 'A';
-  const isOptionBRecommended = result.recommendation === 'B';
-  
-  // 根据卦象特性生成更有针对性的注意点
-  if (option === 'A') {
-    if (isOptionARecommended) {
-      return `即使选择这条路，也需注意${hexagram.chineseName}卦中提示的潜在挑战。`;
-    } else {
-      return `与${hexagram.chineseName}卦的能量不太相符，可能会遇到阻力。`;
-    }
-  } else {
-    if (isOptionBRecommended) {
-      return `虽然符合当前形势，仍需注意${hexagram.chineseName}卦中的警示。`;
-    } else {
-      return `与${hexagram.chineseName}卦的指引有所偏离，需谨慎考量。`;
-    }
-  }
-};
-
-// 获取新的 LLM 建议
-const getLLMAdvice = (index: number, result: any): string => {
-  if (!result || !result.hexagram) {
-    return '请综合考虑自身情况和外部环境，做出平衡决策。';
-  }
-  
-  const hexagram = result.hexagram;
-  const changingLines = result.changingLines || [];
-  const hasChangingLines = changingLines.length > 0;
-  
-  // 每个索引提供不同类型的建议
-  switch (index) {
-    case 1: // 当前形势
-      if (hasChangingLines) {
-        return `当前所处形势：${hexagram.chineseName}卦暗示您${
-          hexagram.modernInterpretation?.split('，')[0] || '处于变化之中'
-        }，正在向${result.relatedHexagram?.chineseName || ''}卦转变，建议顺应这个变化趋势。`;
-      } else {
-        return `当前所处形势：${hexagram.chineseName}卦代表${
-          hexagram.modernInterpretation?.split('，')[0] || getHexagramNature(hexagram)
-        }，建议在此基础上${getHexagramNature(hexagram).includes('稳定') ? '稳健前行' : '积极进取'}。`;
-      }
-    case 2: // 行动建议
-      // 根据卦象特性给出行动建议
-      const action = getActionByHexagram(hexagram.chineseName || '');
-      if (result.recommendation === 'A' || result.recommendation === 'B') {
-        const selectedOption = result.recommendation === 'A' ? optionA.value : optionB.value;
-        return `行动建议：选择"${selectedOption}"更符合当前卦象能量，${action}`;
-      } else {
-        return `行动建议：${action}`;
-      }
-    case 3: // 需要注意的事项
-      return `注意事项：${getCautionByHexagram(hexagram.chineseName || '')}`;
-    default:
-      return '按照易经智慧，顺势而为，不勉强，不逆行。';
-  }
-};
-
-// 根据卦象提供行动建议
-const getActionByHexagram = (hexagramName: string): string => {
-  const actionMap: Record<string, string> = {
-    '乾': '积极行动，但不要过于刚强，注意保持谦虚和开放的心态。',
-    '坤': '保持耐心和包容，积累能量，等待合适的时机再行动。',
-    '震': '勇敢面对变化和挑战，抓住新的机会，但不要操之过急。',
-    '艮': '适当停下脚步，反思当前状况，调整方向后再继续前进。',
-    '坎': '面对困难保持冷静，寻找智慧的解决方案，坚守内心真实。',
-    '离': '保持明智的判断，不被表象迷惑，找出事物的本质再行动。',
-    '兑': '加强沟通与交流，以开放的态度寻求合作与共识。',
-    '巽': '以柔克刚，灵活应对各种情况，顺势而为不强求。',
-    '蒙': '保持虚心学习的态度，寻求指导和启发，不要急于求成。',
-    '颐': '注重自我修养和滋养，调整身心状态，为长期发展做准备。',
-    '讼': '避免冲突和争执，寻求和平解决方案，不要卷入纷争。',
-    '师': '有组织有纪律地行动，集中力量办大事，需做好充分准备。',
-    '比': '寻求志同道合的伙伴，加强合作关系，共同进退。',
-    '小畜': '循序渐进，积少成多，不要期望一蹴而就。',
-    '履': '谨慎前行，一步一个脚印，注意细节和分寸。',
-    '泰': '把握当前的大好时机，积极行动，开展新的计划。',
-    '否': '保持耐心，暂时收敛锋芒，韬光养晦等待时机。'
-  };
-  
-  // 寻找匹配的卦名
-  for (const key in actionMap) {
-    if (hexagramName.includes(key)) {
-      return actionMap[key];
-    }
-  }
-  
-  return '根据卦象指引，合理规划行动方案，既不急躁冒进，也不过于犹豫。';
-};
-
-// 根据卦象提供注意事项
-const getCautionByHexagram = (hexagramName: string): string => {
-  const cautionMap: Record<string, string> = {
-    '乾': '不要过于强硬，避免刚愎自用，注意倾听他人意见。',
-    '坤': '不要过度顺从，保持自我边界，避免委屈求全。',
-    '震': '不要盲目冲动，需谨慎评估风险，避免鲁莽行事。',
-    '艮': '不要过于保守，适当突破自我限制，避免错失机会。',
-    '坎': '不要畏惧困难，保持内心坚定，避免陷入消极情绪。',
-    '离': '不要被表面现象迷惑，保持理性判断，避免过于感性。',
-    '兑': '不要一味追求愉悦，保持适度克制，避免过度放纵。',
-    '巽': '不要过于谦让，适当表达自我需求，避免委曲求全。',
-    '蒙': '不要盲目听信他人，保持独立思考，避免受人蒙蔽。',
-    '颐': '不要过度追求物质享受，注重心灵成长，避免奢靡浪费。',
-    '讼': '不要卷入无谓争端，理性处理分歧，避免加剧冲突。',
-    '师': '不要独断专行，尊重团队意见，避免刚愎自用。',
-    '比': '不要盲目依赖他人，保持自主能力，避免失去独立性。',
-    '小畜': '不要因小失大，着眼长远利益，避免短视行为。',
-    '履': '不要忽视细节，注重过程管理，避免粗心大意。',
-    '泰': '不要盲目乐观，适度防范风险，避免掉以轻心。',
-    '否': '不要消极悲观，保持积极心态，避免错失转机。'
-  };
-  
-  // 寻找匹配的卦名
-  for (const key in cautionMap) {
-    if (hexagramName.includes(key)) {
-      return cautionMap[key];
-    }
-  }
-  
-  return '任何决策都有风险，需保持警觉，既不过度担忧，也不掉以轻心，保持适度的风险意识。';
-};
-
-// 获取最终智慧总结
-const getFinalWisdom = (result: any): string => {
-  if (!result || !result.hexagram) {
-    return '万事万物皆有其节奏和规律，顺应自然，方能无往不利。';
-  }
-  
-  const hexagram = result.hexagram;
-  const hexagramName = hexagram.chineseName || '';
-  
-  // 根据不同卦象提供智慧总结
-  const wisdomMap: Record<string, string> = {
-    '乾': '乾卦代表天行健，君子以自强不息。当下需要积极进取，同时保持谦逊和自省。',
-    '坤': '坤卦代表地势坤，君子以厚德载物。当下需要包容和耐心，积累能量，等待合适时机。',
-    '震': '震卦代表雷霆行动，惊蛰启发。当下需要振奋精神，开创新局面，但应保持敬畏之心。',
-    '艮': '艮卦代表山岳巍峨，止而不止。当下需要适当停顿和反思，但不意味着完全放弃前进。',
-    '坎': '坎卦代表行险不失其信。当下可能面临挑战，需要坚守内心真实，智慧应对困境。',
-    '离': '离卦代表光明显象。当下需要明辨是非，保持清晰判断，避免被表象迷惑。',
-    '兑': '兑卦代表喜悦和沟通。当下需要保持愉悦心态，加强交流和表达，但不可过度放纵。',
-    '巽': '巽卦代表谦逊和渗透。当下需要保持谦虚态度，温和而坚定地推进事情，避免强势。'
-  };
-  
-  // 寻找匹配的卦名
-  for (const key in wisdomMap) {
-    if (hexagramName.includes(key)) {
-      return wisdomMap[key];
-    }
-  }
-  
-  // 没有找到特定卦象的智慧，提供通用智慧
-  return `${hexagramName}卦提示我们：${hexagram.modernInterpretation || hexagram.judgment || '万事万物皆有其时，顺应天时地利人和，方能获得成功'}。`;
 };
 </script>
 
@@ -1143,6 +904,31 @@ const getFinalWisdom = (result: any): string => {
 .option-input:focus + .input-focus-border {
   border-color: #8b5cf6;
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.question-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.question-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.question-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* 操作区域 */
@@ -1638,153 +1424,7 @@ const getFinalWisdom = (result: any): string => {
   font-size: 0.9rem;
 }
 
-/* 选项分析 */
-.options-analysis {
-  margin-bottom: 2rem;
-}
-
-.options-analysis-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 1rem;
-}
-
-.option-analysis-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.option-analysis-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.option-label {
-  font-weight: 500;
-  color: #ffffff;
-  font-size: 0.95rem;
-}
-
-.option-score {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.3rem 0.8rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.option-analysis-content {
-  padding: 1rem;
-}
-
-.option-description {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.option-details {
-  margin-bottom: 1rem;
-}
-
-.option-strengths,
-.option-cautions {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
-
-.detail-label {
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.score-bar {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  overflow: hidden;
-}
-
-.score-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #ec4899);
-  transition: width 1s ease;
-}
-
-/* 综合建议 */
-.comprehensive-advice {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.advice-header {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.advice-icon {
-  font-size: 1.5rem;
-}
-
-.advice-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-}
-
-.advice-content {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.advice-intro {
-  margin-bottom: 1rem;
-  line-height: 1.6;
-}
-
-.advice-list {
-  list-style: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.advice-list li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-  font-size: 0.9rem;
-}
-
-.wisdom-summary {
-  background: rgba(139, 92, 246, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.wisdom-title {
-  color: #8b5cf6;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.wisdom-content {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
+/* 🚨 旧UI组件的CSS样式已清除 */
 
 /* 结果操作 */
 .result-actions {

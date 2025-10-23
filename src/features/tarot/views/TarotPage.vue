@@ -433,6 +433,7 @@ import { classicSpreads, type TarotSpread, type TarotPosition } from '../utils/t
 import { LLMService, type InterpretationSection } from '../../../services/LLMService';
 import SaveButton from '../../../components/common/SaveButton.vue';
 import SharePanel from '../../../components/common/SharePanel.vue';
+import { UserInfoSharingService } from '../../../services/UserInfoSharingService';
 import anime from 'animejs/lib/anime.es.js';
 import * as THREE from 'three';
 
@@ -923,6 +924,10 @@ async function revealCards() {
   }));
 
   try {
+    // 收集用户信息到共享服务
+    UserInfoSharingService.collectFromTarot(userQuestion.value);
+    console.log('📊 用户信息已收集到共享服务');
+    
     const { mainInterpretation: sections, cards: cardsWithInterpretations } = await LLMService.getTarotInterpretation(
       cardsToInterpret,
       selectedSpread.value,

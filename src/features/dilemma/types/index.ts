@@ -63,6 +63,13 @@ export interface AnalysisResult {
   optionB_analysis?: string;
   recommendation?: string;
   results?: number[]; // 铜钱占卜的原始结果值
+  // 场景化分析相关
+  scenarioContext?: {
+    decisionType: string;
+    emotionalTone: string;
+    urgency: string;
+    riskLevel: string;
+  };
 } 
 
 // 占卜方法类型
