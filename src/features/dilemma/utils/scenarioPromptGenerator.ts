@@ -28,10 +28,11 @@ export class ScenarioPromptGenerator {
       judgment: string;
       image: string;
       changingLines?: number[];
-    }
+    },
+    traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
   ): ScenarioPrompt {
     const rolePrompt = this.generateRolePrompt(scenario);
-    const contextPrompt = this.generateContextPrompt(optionA, optionB, scenario, hexagramInfo);
+    const contextPrompt = this.generateContextPrompt(optionA, optionB, scenario, hexagramInfo, traditionalAnalysis);
     const instructionPrompt = this.generateInstructionPrompt(scenario);
     const outputFormatPrompt = this.generateOutputFormatPrompt();
     
@@ -56,13 +57,39 @@ export class ScenarioPromptGenerator {
 # Core Principles
 1. **同理心优先 (Empathy First):** 你的首要任务是理解和回应用户在特定情景下的情感需求。在分析前，必须先用一两句温暖、共情的话语，承认用户面临问题的复杂性和情感压力。
 
-2. **杜绝玄学黑话 (No Jargon):** 严禁直接使用"九五"、"上九"、"用九"等专业术语。你必须将所有易经概念（如"谦卦"、"益卦"、"变爻"）的深层含义，用现代、易懂的语言"翻译"出来，并与用户的具体问题紧密结合。
+2. **专业与易懂的平衡 (Professional yet Accessible):** 你必须基于传统易经逻辑分析（体用关系、六亲定位、世应定位、动爻分析、五行生克判断）进行解读，这是解读的基础和依据。但是，当你使用专业术语时（如"兄弟爻"、"体用关系"、"六亲"等），必须先解释这个术语的含义，然后再说明它在当前情况下的具体作用。例如：
+   - ❌ 错误："兄弟爻的变动提示市场资金流动可能发生变化"
+   - ✅ 正确："在第4爻位置出现了'兄弟爻'（代表同辈、竞争者或市场中的其他投资者）的变动，这提示市场资金流动可能发生变化，意味着其他投资者的行为会影响您的决策"
+   - ❌ 错误："体用比和，内外环境和谐"
+   - ✅ 正确："体用关系显示'比和'状态（体卦和用卦属性相同，形成和谐共振），这表明您的内在状态与外部环境处于和谐状态，没有明显的冲突"
 
-3. **聚焦"为什么"与"怎么办" (Focus on "Why" & "How"):** 不要只告诉用户"是什么"（比如"这是谦卦"），要重点解释"为什么"这个卦象与他的处境相关，以及他具体"怎么办"。
+3. **聚焦"为什么"与"怎么办" (Focus on "Why" & "How"):** 不要只告诉用户"是什么"（比如"这是谦卦"），要重点解释"为什么"这个卦象与他的处境相关，以及他具体"怎么办"。同时，要解释传统逻辑分析（如体用关系、六亲定位）是如何得出这个结论的。
 
 4. **提供启发而非命令 (Inspire, Don't Command):** 你的建议应该是启发性的、赋能的，帮助用户打开思路，而不是替他做决定。
 
 5. **场景化思维 (Contextual Thinking):** 你必须将易经智慧与用户的具体生活场景深度融合，让每个建议都"量身定制"，而不是通用的套话。
+
+6. **透明化解读过程 (Transparent Interpretation):** 在解读中，要适当展现传统逻辑分析的过程，让用户理解：
+   - 体用关系如何影响判断（例如："体卦代表您自己，用卦代表外部环境，两者关系为'比和'，意味着...")
+   - 世应位置的含义（例如："世爻在第3爻位置，代表您的主体位置；应爻在第6爻位置，代表需要关注的外部因素...")
+   - 动爻的具体影响（例如："第4爻发生变动，这一爻在'六亲'体系中属于'兄弟'（代表竞争、合作或市场中的其他参与者），五行属性为'木'（代表生长、扩张），这意味着...")
+   - 五行生克的逻辑（例如："体卦属土，动爻属木，木克土，这意味着外部因素会消耗您的能量，需要谨慎应对")
+
+7. **体用生克优先原则 (Body-Usage Relationship Priority):** 这是最重要的原则。当体用生克（卦象内部的五行生克关系）与卦辞爻辞发生冲突时，**必须重体用生克，轻卦辞爻辞**。体用生克是"体"（本质），卦辞爻辞是"用"（参考）。本质永远比参考更重要。
+
+   **决策流程：**
+   
+   **第一步：确立核心分析框架（体用生克）**
+   - 首先，必须根据所问之事，找准用神（代表事情）和世爻（代表自己）
+   - 分析旺衰：看用神和世爻在当前的月份（月建）、日子（日辰）下是旺是衰
+   - 分析生克关系：看动爻对用神和世爻的生克，看变爻对动爻的"回头生"或"回头克"
+   - 得出核心结论：基于以上分析，先得出一个基于五行生克的初步吉凶判断
+   
+   **第二步：参考卦辞爻辞（辅助与深化）**
+   - **验证与强化：** 如果卦辞爻辞的吉凶倾向与体用分析一致，可以引用卦辞爻辞来强化和丰富断语，例如："此卦内外皆吉，卦辞云'元亨'，正应此事顺利通达之象。"
+   - **提供背景与警示：** 如果卦辞爻辞的描述与体用分析有出入，甚至相反，它通常不是来推翻你的结论，而是提供背景信息、深层原因或细微警示。关键技巧：将卦辞爻辞的"不吉"描述，解读为事情过程中的心态、环境或需要注意事项，而非最终结果。例如：体用显示吉，但卦辞有"征凶"，可以说："然卦辞云'征凶'，提示需防微杜渐，注意过程中的心态与细节。"
+   
+   **重要提醒：** 永远以体用生克为结论核心，卦辞爻辞只能作为补充说明、专家提示或过程警示，绝不能改变基于体用生克得出的核心判断。
 
 # Your Expertise
 你特别擅长${this.getDecisionTypeDescription(scenario.decisionType)}，并且${this.getEmotionalAdjustment(scenario.emotionalTone)}${this.getUrgencyAdjustment(scenario.urgency)}`;
@@ -82,7 +109,8 @@ export class ScenarioPromptGenerator {
       judgment: string;
       image: string;
       changingLines?: number[];
-    }
+    },
+    traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
   ): string {
     let context = `# User Context
 - **User Question:** "${optionA} vs ${optionB}"
@@ -97,19 +125,51 @@ export class ScenarioPromptGenerator {
 - **Key Context:** ${scenario.context}
 - **Keywords:** ${scenario.keywords.length > 0 ? scenario.keywords.join('、') : '无特定关键词'}`;
     
-    // 添加易经信息（如果有）
-    if (hexagramInfo) {
-      context += `\n\n# Metaphysical Context
-- **Initial Hexagram:** ${hexagramInfo.chineseName} (${hexagramInfo.name}) - 卦辞：${hexagramInfo.judgment}
-- **Symbol:** ${hexagramInfo.symbol}
-- **Image:** ${hexagramInfo.image}`;
-      
-      if (hexagramInfo.changingLines && hexagramInfo.changingLines.length > 0) {
-        context += `\n- **Changing Lines:** ${hexagramInfo.changingLines.length} lines are changing (${hexagramInfo.changingLines.map(i => i + 1).join(', ')}), indicating a period of ${this.getTransformationDescription(hexagramInfo.changingLines.length)}.`;
+      // 添加易经信息（如果有）
+      if (hexagramInfo) {
+        context += `\n\n# Metaphysical Context
+  - **Initial Hexagram:** ${hexagramInfo.chineseName} (${hexagramInfo.name}) - 卦辞：${hexagramInfo.judgment}
+  - **Symbol:** ${hexagramInfo.symbol}
+  - **Image:** ${hexagramInfo.image}`;
+
+        if (hexagramInfo.changingLines && hexagramInfo.changingLines.length > 0) {
+          context += `\n- **Changing Lines:** ${hexagramInfo.changingLines.length} lines are changing (${hexagramInfo.changingLines.map(i => i + 1).join(', ')}), indicating a period of ${this.getTransformationDescription(hexagramInfo.changingLines.length)}.`;
+        }
       }
-    }
-    
-    return context;
+
+      // ⭐ 新增：添加传统易经逻辑分析（如果有）
+      if (traditionalAnalysis) {
+        context += `\n\n## 传统易经逻辑分析（必须基于此进行解读）\n`;
+        
+        if (traditionalAnalysis.palaceData) {
+          context += `- **卦宫归属**: ${traditionalAnalysis.palaceData.palace}宫，五行属性: ${traditionalAnalysis.palaceData.element}\n`;
+          context += `- **世爻位置**: 第${traditionalAnalysis.palaceData.shiYao + 1}爻\n`;
+          context += `- **应爻位置**: 第${traditionalAnalysis.palaceData.yingYao + 1}爻\n`;
+        }
+        
+        if (traditionalAnalysis.bodyUsage) {
+          context += `- **体用关系**:\n`;
+          context += `  * 体卦: ${traditionalAnalysis.bodyUsage.bodyTrigram}（${traditionalAnalysis.bodyUsage.bodyElement}）\n`;
+          context += `  * 用卦: ${traditionalAnalysis.bodyUsage.usageTrigram}（${traditionalAnalysis.bodyUsage.usageElement}）\n`;
+          const relationshipText = this.getBodyUsageRelationshipText(traditionalAnalysis.bodyUsage.relationship);
+          context += `  * 关系: ${relationshipText}\n`;
+          if (traditionalAnalysis.bodyUsage.interpretation?.generalMeaning) {
+            context += `  * 传统解读: ${traditionalAnalysis.bodyUsage.interpretation.generalMeaning}\n`;
+          }
+        }
+        
+        if (traditionalAnalysis.changingLinesAnalysis && traditionalAnalysis.changingLinesAnalysis.length > 0) {
+          context += `- **动爻详细分析**:\n`;
+          traditionalAnalysis.changingLinesAnalysis.forEach((ch: any) => {
+            context += `  * 第${ch.position + 1}爻（${ch.relative}，${ch.element}）: ${ch.yaoText}\n`;
+            context += `    ${ch.interpretation}\n`;
+          });
+        }
+        
+        context += `\n**重要**: 上述传统逻辑分析是基于正统易经理论计算得出的，你的解读必须严格基于这些分析结果，不能偏离传统逻辑。特别是动爻分析，必须详细解读每个动爻的具体含义和影响。\n`;
+      }
+
+      return context;
   }
 
   /**
@@ -190,16 +250,16 @@ export class ScenarioPromptGenerator {
       "concreteRisk": "string" // 具体的风险，不是套话
     }
   ],
-  "breakthroughPlan": {
-    "clearRecommendation": "string", // 明确的倾向性建议
-    "actionList": [ // 破局行动清单
-      {
-        "actionTitle": "string", // 行动标题
-        "actionDetail": "string", // 具体行动步骤，必须是可执行的
-        "rationale": "string" // 为什么这个行动能解决核心冲突
-      }
-    ]
-  },
+    "breakthroughPlan": {
+      "clearRecommendation": "string", // 明确的倾向性建议
+      "actionList": [ // 破局行动清单
+        {
+          "actionTitle": "string", // 行动标题
+          "actionDetail": "string", // 具体行动步骤，必须是可执行的。**重要**：请使用清晰的列表格式，用分号或换行分隔多个要点，避免长段落堆砌
+          "rationale": "string" // 为什么这个行动能解决核心冲突
+        }
+      ]
+    },
   "hexagramData": {
     "起卦卦名": {
       "meaning": "string"
@@ -219,15 +279,20 @@ export class ScenarioPromptGenerator {
   }
 }
 
-# Critical Output Requirements
-1. **JSON格式严格**: 必须是可以直接解析的JSON，不要包含任何markdown符号
-2. **核心叙事完整**: coreNarrative必须是一个完整的、连贯的解读故事
-3. **场景映射清晰**: 每个抽象概念都必须映射到用户的具体生活场景
-4. **逻辑连贯**: 所有内容都必须基于同一个核心叙事，避免自相矛盾
-5. **行动具体**: 每个建议都必须是具体的行动，不是抽象思考
-6. **卦象解读完整**: hexagramData必须包含起卦和变卦的现代解读
-7. **变化趋势清晰**: transformationInsights必须解释从起卦到变卦的变化趋势
-8. **变爻含义具体**: hexagramChanges必须解释变爻的具体含义
+  # Critical Output Requirements
+  1. **JSON格式严格**: 必须是可以直接解析的JSON，不要包含任何markdown符号       
+  2. **核心叙事完整**: coreNarrative必须是一个完整的、连贯的解读故事
+  3. **场景映射清晰**: 每个抽象概念都必须映射到用户的具体生活场景
+  4. **逻辑连贯**: 所有内容都必须基于同一个核心叙事，避免自相矛盾
+  5. **行动具体**: 每个建议都必须是具体的行动，不是抽象思考
+  6. **卦象解读完整**: hexagramData必须包含起卦和变卦的现代解读
+  7. **变化趋势清晰**: transformationInsights必须解释从起卦到变卦的变化趋势     
+  8. **变爻含义具体**: hexagramChanges必须解释变爻的具体含义
+  9. **内容易读性**:
+     - coreNarrative.story 要分段，避免大段文字堆砌
+     - actionDetail 要用列表格式，多个要点用分号或换行分隔
+     - 使用简洁的句子，避免过长的段落
+     - 关键信息（如百分比、时间、专业术语）要清晰标注
 
 **重要提醒**: 不要在JSON结构之外包含任何文字、解释或markdown符号。`;
   }
@@ -410,10 +475,24 @@ export class ScenarioPromptGenerator {
   /**
    * 获取变爻数量的描述
    */
-  private static getTransformationDescription(changingLinesCount: number): string {
+  private static getTransformationDescription(changingLinesCount: number): string {                                                                             
     if (changingLinesCount === 0) return 'stability and consistency';
-    if (changingLinesCount <= 2) return 'minor transformation and adjustment';
+    if (changingLinesCount <= 2) return 'minor transformation and adjustment';  
     if (changingLinesCount <= 4) return 'significant transformation and change';
     return 'major transformation and upheaval';
+  }
+
+  /**
+   * 获取体用关系的中文描述
+   */
+  private static getBodyUsageRelationshipText(relationship: string): string {
+    const relationshipMap: Record<string, string> = {
+      'body-ke-usage': '体克用（主体主动，有利于主动出击）',
+      'usage-ke-body': '用克体（外部压力大，宜守不宜攻）',
+      'body-sheng-usage': '体生用（主体付出多，需要谨慎）',
+      'usage-sheng-body': '用生体（外部助力大，利于发展）',
+      'bihe': '体用比和（和谐稳定）'
+    };
+    return relationshipMap[relationship] || relationship;
   }
 }

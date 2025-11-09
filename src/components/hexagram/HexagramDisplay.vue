@@ -1,5 +1,5 @@
 <template>
-  <div class="hexagram-display" :class="{ 'is-loading': isLoading, 'is-empty': !hexagram, 'debug-mode': debug }">
+  <div class="hexagram-display" :class="{ 'is-loading': isLoading, 'is-empty': !hexagram }">
     <!-- 加载状态 -->
     <div v-if="isLoading" class="hexagram-loading">
       <div class="ink-drop-loading">
@@ -33,11 +33,6 @@
             @error="handleImageError" 
             style="background: transparent; max-width: 120px; max-height: 150px;" 
           />
-          <!-- 调试信息，仅在debug=true时显示 -->
-          <div v-if="debug" class="image-debug-info">
-            <p>图像路径: {{ computedImageUrl }}</p>
-            <p>加载状态: {{ imageLoadError ? '失败' : '尝试加载中' }}</p>
-          </div>
         </div>
         
         <!-- 爻线动态展示 -->
@@ -75,11 +70,6 @@
             </div>
           </div>
           
-          <!-- 调试信息 -->
-          <div v-if="debug" class="debug-info">
-            <span>Key: {{ hexagramKey }}</span>
-            <span>Animated: {{ isAnimated }}</span>
-          </div>
         </div>
       </div>
       
@@ -139,7 +129,6 @@ interface Props {
   showYaoTexts?: boolean;     // 是否显示爻辞
   changingLines?: number[];   // 变爻位置
   themeColor?: string;        // 主题颜色
-  debug?: boolean;            // 调试模式
 }
 
 // 设置默认值
@@ -155,7 +144,6 @@ const props = withDefaults(defineProps<Props>(), {
   showYaoTexts: true,
   changingLines: () => [],
   themeColor: 'currentColor',
-  debug: false,
 });
 
 // 当前高亮的爻线
@@ -188,15 +176,16 @@ const isValidHexagram = computed(() => {
 });
 
 // 计算图像URL，处理可能的错误情况
-  const computedImageUrl = computed(() => {
-    if (imageLoadError.value) return null;
-    
-    if (props.hexagram?.sequence) {
-      return `/static/hexagrams/${props.hexagram.sequence}.svg`;
-    }
-    
-    return null;
-  });
+const computedImageUrl = computed(() => {
+  if (imageLoadError.value) return null;
+  
+  if (props.hexagram?.sequence) {
+    // 确保路径正确，使用相对路径
+    return `./static/hexagrams/${props.hexagram.sequence}.svg`;
+  }
+  
+  return null;
+});
 
 // 处理图像加载错误 - 简化逻辑
 const handleImageError = () => {
@@ -231,9 +220,6 @@ const resetAnimation = () => {
   requestAnimationFrame(() => {
     setTimeout(() => {
       isAnimated.value = true;
-      if (props.debug) {
-        console.log('动画状态已重置，新key:', hexagramKey.value);
-      }
     }, 100);
   });
 };
@@ -244,9 +230,6 @@ watch(() => props.hexagram, (newHexagram) => {
   
   if (newHexagram) {
     resetAnimation();
-    if (props.debug) {
-      console.log('卦象已更新:', newHexagram.name, '动画将被重置');
-    }
   }
 });
 
@@ -259,11 +242,6 @@ watch(() => props.imageUrl, () => {
 // 组件挂载时初始化
 onMounted(() => {
   resetAnimation();
-  if (props.debug) {
-    console.log('组件已挂载，初始化动画状态');
-    // 由于已简化图像加载逻辑，不再需要扫描多个路径
-    console.log('【DEBUG】使用统一路径加载卦象图像');
-  }
 });
 
 // 格式化卦象名称，移除英文内容
@@ -310,35 +288,6 @@ const formatDescription = (text: string): string => {
   overflow: hidden;
 }
 
-/* 调试模式 */
-.debug-mode {
-  border: 2px dashed red;
-  position: relative;
-}
-
-.debug-mode::before {
-  content: 'DEBUG MODE';
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: red;
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-}
-
-.debug-info {
-  position: absolute;
-  left: 100%;
-  margin-left: 10px;
-  font-size: 10px;
-  background: rgba(0, 0, 0, 0.1);
-  padding: 2px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-}
 
 /* 加载状态 */
 .hexagram-loading {
@@ -618,21 +567,6 @@ const formatDescription = (text: string): string => {
   object-fit: contain;
 }
 
-/* 添加调试信息样式 */
-.image-debug-info {
-  margin-top: 8px;
-  padding: 5px;
-  background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 4px;
-  font-size: 9px;
-  font-family: monospace;
-  color: #fff;
-  word-break: break-all;
-}
-
-.image-debug-info p {
-  margin: 2px 0;
-}
 
 /* 爻线容器 */
 .hexagram-lines-container {

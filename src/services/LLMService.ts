@@ -531,13 +531,14 @@ ${cards.map(card => {
     }
   }
 
-  // --- 易经卦象解读服务 ---
-  static async getHexagramInterpretation(
-    hexagram: Hexagram,
-    changingLines: number[] = [],
-    relatedHexagram: Hexagram | null = null,
-    question?: string
-  ): Promise<string> {
+    // --- 易经卦象解读服务 ---
+    static async getHexagramInterpretation(
+      hexagram: Hexagram,
+      changingLines: number[] = [],
+      relatedHexagram: Hexagram | null = null,
+      question?: string,
+      traditionalAnalysis?: any
+    ): Promise<string> {
     // 获取最新配置，确保配置同步
     const config = this.getConfig();
     
@@ -549,9 +550,13 @@ ${cards.map(card => {
     // 开始加载状态
     this.updateLoadingState({ isLoading: true, progress: '正在准备卦象解读...', stage: 'preparing' });
     
-    try {
-      // 创建专业的卦象解读提示
-      const prompt = this.buildHexagramInterpretationPrompt(hexagram, changingLines, relatedHexagram, question);
+      try {
+        // 创建专业的卦象解读提示（包含传统逻辑分析）
+        console.log('📝 准备生成AI提示词，传统逻辑分析:', traditionalAnalysis ? '已提供' : '未提供');
+        const prompt = this.buildHexagramInterpretationPrompt(hexagram, changingLines, relatedHexagram, question, traditionalAnalysis);
+        if (traditionalAnalysis) {
+          console.log('✅ AI提示词已包含传统逻辑分析');
+        }
       
       this.updateLoadingState({ isLoading: true, progress: '正在生成AI解读...', stage: 'calling' });
       const response = await this.callLLMAPI(prompt);
@@ -572,34 +577,35 @@ ${cards.map(card => {
 
   // --- 场景化玄选两难解读服务 ---
   static async getScenarioBasedDilemmaInterpretation(
-    optionA: string,
-    optionB: string,
-    scenario: {
-      decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
-      emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
-      urgency: 'high' | 'medium' | 'low';
-      complexity: 'simple' | 'moderate' | 'complex';
-      keywords: string[];
-      context: string;
-      riskLevel: 'low' | 'medium' | 'high';
-      timeHorizon: 'immediate' | 'short' | 'long';
-    },
-    hexagramInfo?: {
-      name: string;
-      chineseName: string;
-      symbol: string;
-      judgment: string;
-      image: string;
-      changingLines?: number[];
-      relatedHexagram?: {
+      optionA: string,
+      optionB: string,
+      scenario: {
+        decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
+        emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
+        urgency: 'high' | 'medium' | 'low';
+        complexity: 'simple' | 'moderate' | 'complex';
+        keywords: string[];
+        context: string;
+        riskLevel: 'low' | 'medium' | 'high';
+        timeHorizon: 'immediate' | 'short' | 'long';
+      },
+      hexagramInfo?: {
         name: string;
         chineseName: string;
         symbol: string;
         judgment: string;
         image: string;
-      } | null;
-    }
-  ): Promise<string> {
+        changingLines?: number[];
+        relatedHexagram?: {
+          name: string;
+          chineseName: string;
+          symbol: string;
+          judgment: string;
+          image: string;
+        } | null;
+      },
+      traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
+    ): Promise<string> {
     // 获取最新配置，确保配置同步
     const config = this.getConfig();
     
@@ -615,9 +621,9 @@ ${cards.map(card => {
       // 🚨 使用scenarioPromptGenerator生成完整的AI响应
       console.log('🎯 [完整生成] 开始执行基于scenarioPromptGenerator的生成策略');
       
-      // 生成完整的AI响应
-      this.updateLoadingState({ isLoading: true, progress: '正在生成完整的易经智慧解读...', stage: 'calling' });
-      const aiResponse = await this.generateCompleteAIResponse(optionA, optionB, scenario, hexagramInfo);
+        // 生成完整的AI响应
+        this.updateLoadingState({ isLoading: true, progress: '正在生成完整的易经智慧解读...', stage: 'calling' });
+        const aiResponse = await this.generateCompleteAIResponse(optionA, optionB, scenario, hexagramInfo, traditionalAnalysis);
       
       if (aiResponse) {
         console.log('✅ [完整生成完成] AI响应:', aiResponse);
@@ -665,71 +671,155 @@ ${cards.map(card => {
     hexagram: Hexagram,
     changingLines: number[],
     relatedHexagram: Hexagram | null,
-    question?: string
+    question?: string,
+    traditionalAnalysis?: any
   ): string {
-    // 构建专业卦象解读提示
+    // 构建专业卦象解读提示 - 要求展示完整易经推演过程
+    const changingLinesInfo = changingLines.length > 0 
+      ? `${changingLines.map(i => {
+          const labels = ['初', '二', '三', '四', '五', '上'];
+          return `${labels[i]}爻`;
+        }).join('、')}（第${changingLines.map(i => i + 1).join('、')}爻）`
+      : '无动爻（静卦）';
+    
+    const relatedHexagramInfo = relatedHexagram 
+      ? `\n- 变卦名称: ${relatedHexagram.name} (${relatedHexagram.chineseName})\n- 变卦卦辞: ${relatedHexagram.judgment || relatedHexagram.description || ''}\n- 变卦象传: ${relatedHexagram.image || relatedHexagram.overall || ''}`
+      : '';
+    
     return `你是易经研究专家，拥有20年解卦经验，精通《周易》原文和历代注疏。
-请基于专业易学知识，为用户提供深入的卦象解读。
+请基于专业易学知识，按照传统易经推演逻辑，为用户提供深入的卦象解读。
 
 **卦象信息**:
-- 主卦: ${hexagram.name} (${hexagram.chineseName})
-- 卦象符号: ${hexagram.symbol}
-- 卦辞: ${hexagram.judgment}
-- 象辞: ${hexagram.image}
-- 彖辞: ${hexagram.tuan}
-- 现代解读: ${hexagram.modernInterpretation}
-- 核心含义: ${hexagram.description}
-${changingLines.length > 0 ? `- 变爻位置: ${changingLines.map(i => `${i + 1}爻`).join(', ')}` : ''}
-${relatedHexagram ? `- 变卦: ${relatedHexagram.name} (${relatedHexagram.chineseName})` : ''}
+- 本卦名称: ${hexagram.name} (${hexagram.chineseName})
+- 本卦卦符号: ${hexagram.symbol}
+- 本卦卦辞: ${hexagram.judgment || hexagram.description || ''}
+- 本卦象传: ${hexagram.image || hexagram.overall || ''}
+- 本卦彖传: ${hexagram.tuan || ''}
+${hexagram.yao_texts && hexagram.yao_texts.length > 0 ? `- 本卦爻辞:\n${hexagram.yao_texts.map((yao, idx) => {
+  const labels = ['初', '二', '三', '四', '五', '上'];
+  return `  ${labels[idx]}爻: ${yao}`;
+}).join('\n')}` : ''}
+- 动爻情况: ${changingLinesInfo}${relatedHexagramInfo}
 
-**用户问题**: 
-${question || '未提供具体问题'}
+  **用户问题**:
+  ${question || '未提供具体问题'}
 
-**解读要求**:
-1. 首先解析主卦的核心含义，结合卦辞、象辞和彖辞进行深入分析
-2. 对变爻进行逐爻解释（若有变爻），说明其象征意义
-3. 分析变卦的含义（若有变卦），以及与主卦的关系
-4. 结合用户问题，给出具体的启示和建议
-5. 保持专业、客观的解读风格，避免运势预测类内容
-6. 使用清晰的中文段落结构，总字数控制在300-500字之间
+  ${traditionalAnalysis ? `**传统易经逻辑分析（必须基于此进行解读）**:
+  ${traditionalAnalysis.palaceData ? `- 卦宫归属: ${traditionalAnalysis.palaceData.palace}宫，五行属性: ${traditionalAnalysis.palaceData.element}
+  - 世爻位置: 第${traditionalAnalysis.palaceData.shiYao + 1}爻，应爻位置: 第${traditionalAnalysis.palaceData.yingYao + 1}爻
+` : ''}
+  ${traditionalAnalysis.bodyUsage ? `- 体用关系:
+    * 体卦: ${traditionalAnalysis.bodyUsage.bodyTrigram}（${traditionalAnalysis.bodyUsage.bodyElement}）
+    * 用卦: ${traditionalAnalysis.bodyUsage.usageTrigram}（${traditionalAnalysis.bodyUsage.usageElement}）
+    * 关系: ${traditionalAnalysis.bodyUsage.relationship === 'body-ke-usage' ? '体克用（主体主动，有利于主动出击）' :
+             traditionalAnalysis.bodyUsage.relationship === 'usage-ke-body' ? '用克体（外部压力大，宜守不宜攻）' :
+             traditionalAnalysis.bodyUsage.relationship === 'body-sheng-usage' ? '体生用（主体付出多，需要谨慎）' :
+             traditionalAnalysis.bodyUsage.relationship === 'usage-sheng-body' ? '用生体（外部助力大，利于发展）' :
+             '体用比和（和谐稳定）'}
+    * 传统解读: ${traditionalAnalysis.bodyUsage.interpretation.generalMeaning}
+` : ''}
+  ${traditionalAnalysis.changingLinesAnalysis && traditionalAnalysis.changingLinesAnalysis.length > 0 ? `- 动爻详细分析:
+${traditionalAnalysis.changingLinesAnalysis.map((ch: any) => `    * 第${ch.position + 1}爻（${ch.relative}，${ch.element}）: ${ch.yaoText}。${ch.interpretation}`).join('\n')}
+` : ''}
+  **重要**: 上述传统逻辑分析是基于正统易经理论计算得出的，你的解读必须严格基于这些分析结果，不能偏离传统逻辑。` : ''}
 
-请直接返回解读文本，无需额外格式说明。`;
+  **解读要求（必须严格遵守易经推演逻辑）**:
+你必须按照传统易经解卦的推演过程来组织解读，包含以下完整步骤：
+
+1. **本卦分析**：
+   - 解释"${hexagram.chineseName || hexagram.name}"卦的核心含义
+   - 引用卦辞和象传，说明本卦在当前问题上的寓意
+   - 结合用户问题，分析本卦显示的当前形势
+
+2. **动爻推演**（如果有动爻）：
+   - 说明哪些爻位发生变动（${changingLinesInfo}）
+   - 解释这些动爻在本卦中的意义
+   - 分析动爻变动所预示的变化方向
+
+3. **变卦趋势**（如果有变卦）：
+   - 解释从"${hexagram.chineseName || hexagram.name}"卦变至"${relatedHexagram?.chineseName || relatedHexagram?.name || ''}"卦的含义
+   - 说明变卦卦辞对问题发展的预示
+   - 分析本卦→变卦的整体演变趋势
+
+4. **综合推演**：
+   - 综合本卦、动爻、变卦三个层面，给出完整的趋势判断
+   - 明确指出当前状态、变化过程和未来走向
+   - 基于推演结果，给出针对性的建议
+
+  **写作要求**:
+  - 必须体现易经推演的逻辑链条，展现从本卦到变卦的完整推理过程
+  - 引用具体的卦辞、爻辞、象传内容作为依据，不要泛泛而谈
+  - 避免现代商业化的建议（如"收集更多信息"、"保持心态"等套话）
+  - 用传统易学的表达方式，但要让用户能理解
+  - 结论必须与推演过程一致，不能自相矛盾
+  - **专业术语解释**：当你使用专业术语时（如"兄弟爻"、"体用关系"、"六亲"、"世应"等），必须先解释这个术语的含义，然后再说明它在当前情况下的具体作用。例如：
+    - ❌ 错误："兄弟爻的变动提示市场资金流动可能发生变化"
+    - ✅ 正确："在第4爻位置出现了'兄弟爻'（代表同辈、竞争者或市场中的其他投资者）的变动，这提示市场资金流动可能发生变化"
+    - ❌ 错误："体用比和，内外环境和谐"
+    - ✅ 正确："体用关系显示'比和'状态（体卦代表您自己，用卦代表外部环境，两者属性相同形成和谐共振），这表明您的内在状态与外部环境处于和谐状态"
+  - **透明化解读**：在解读中，要适当展现传统逻辑分析的过程，让用户理解体用关系、世应位置、动爻分析、五行生克是如何得出判断的，而不是让用户感觉是黑箱操作
+
+**输出格式**:
+请按照以下结构输出，必须体现推演过程：
+【本卦分析】
+（解释本卦含义，引用卦辞，说明当前形势）
+
+【动爻推演】
+（如果有动爻，分析动爻意义和变化方向）
+
+【变卦趋势】
+（如果有变卦，解释变卦含义和未来走向）
+
+【综合结论】
+（综合推演结果，给出判断和建议）
+
+请直接返回中文正文（不要JSON/不要额外说明），严格按照上述推演逻辑组织内容。`;
   }
 
   // 🚨 使用scenarioPromptGenerator生成完整的AI响应
   private static async generateCompleteAIResponse(
-    optionA: string,
-    optionB: string,
-    scenario: {
-      decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
-      emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
-      urgency: 'high' | 'medium' | 'low';
-      complexity: 'simple' | 'moderate' | 'complex';
-      keywords: string[];
-      context: string;
-      riskLevel: 'low' | 'medium' | 'high';
-      timeHorizon: 'immediate' | 'short' | 'long';
-    },
-    hexagramInfo?: {
-      name: string;
-      chineseName: string;
-      symbol: string;
-      judgment: string;
-      image: string;
-      changingLines?: number[];
-    }
-  ): Promise<any> {
-    try {
-      // 导入scenarioPromptGenerator
-      const { ScenarioPromptGenerator } = await import('../features/dilemma/utils/scenarioPromptGenerator');
-      
-      // 生成完整的prompt
-      const promptData = ScenarioPromptGenerator.generateCompletePrompt(optionA, optionB, scenario, hexagramInfo);
+      optionA: string,
+      optionB: string,
+      scenario: {
+        decisionType: 'relationship' | 'career' | 'financial' | 'personal' | 'other';
+        emotionalTone: 'positive' | 'negative' | 'neutral' | 'conflicted';
+        urgency: 'high' | 'medium' | 'low';
+        complexity: 'simple' | 'moderate' | 'complex';
+        keywords: string[];
+        context: string;
+        riskLevel: 'low' | 'medium' | 'high';
+        timeHorizon: 'immediate' | 'short' | 'long';
+      },
+      hexagramInfo?: {
+        name: string;
+        chineseName: string;
+        symbol: string;
+        judgment: string;
+        image: string;
+        changingLines?: number[];
+      },
+      traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
+    ): Promise<any> {
+      try {
+        // 导入scenarioPromptGenerator
+        const { ScenarioPromptGenerator } = await import('../features/dilemma/utils/scenarioPromptGenerator');
+
+        // 生成完整的prompt
+        const promptData = ScenarioPromptGenerator.generateCompletePrompt(optionA, optionB, scenario, hexagramInfo, traditionalAnalysis);
       
       // 调用AI API
-      const response = await this.callLLMAPI(promptData.completePrompt);
-      const content = response.content || '{}';
-      
+      const response = await this.callLLMAPI(promptData.completePrompt);        
+      let content = response.content || '{}';
+
+      // 🚨 修复：清理AI返回内容中的markdown代码块标记
+      // AI有时会返回 ```json ... ``` 格式，需要先清理这些标记
+      content = content.trim();
+      // 移除开头的 ```json 或 ```JSON 或 ``` 标记（可能带换行）
+      content = content.replace(/^```(?:json|JSON)?\s*\n?/i, '');
+      // 移除结尾的 ``` 标记（可能带换行）
+      content = content.replace(/\n?```\s*$/i, '');
+      content = content.trim();
+
       try {
         // 解析AI返回的JSON
         const aiResponse = JSON.parse(content);
@@ -1173,7 +1263,7 @@ ${coreNarrative}
     }
 
     // 生成基础解读
-    const baseInterpretation = await this.generateTarotInterpretation(cards, spread, question, intent);
+    const baseInterpretation = await this.getTarotInterpretation(cards, spread, question);
 
     // 应用个性化调整
     const personalizedInterpretation = this.applyPersonalizationToTarot(baseInterpretation, userInfo);
@@ -1196,7 +1286,7 @@ ${coreNarrative}
     }
 
     // 生成基础分析
-    const baseAnalysis = await this.generateDilemmaAnalysis(optionA, optionB, scenario, hexagramInfo);
+    const baseAnalysis = await this.getScenarioBasedDilemmaInterpretation(optionA, optionB, scenario, hexagramInfo);
 
     // 应用个性化调整
     const personalizedAnalysis = this.applyPersonalizationToDilemma(baseAnalysis, userInfo);

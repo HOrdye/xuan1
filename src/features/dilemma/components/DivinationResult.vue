@@ -1,26 +1,11 @@
 <template>
   <div>
-    <!-- 临时调试信息 -->
-    <div class="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
-      <h4 class="font-bold text-yellow-800 mb-2">🔧 调试信息</h4>
-      <div class="text-sm text-yellow-700">
-        <p><strong>result 存在:</strong> {{ result ? '是' : '否' }}</p>
-        <p><strong>result.hexagram 存在:</strong> {{ result?.hexagram ? '是' : '否' }}</p>
-        <p><strong>result.question:</strong> {{ result?.question || '无' }}</p>
-        <p><strong>personalizedInsight 存在:</strong> {{ personalizedInsight ? '是' : '否' }}</p>
-        <div v-if="result?.hexagram" class="mt-2">
-          <p><strong>卦象名称:</strong> {{ result.hexagram.chineseName || result.hexagram.name || '未知' }}</p>
-          <p><strong>卦象lines:</strong> {{ result.hexagram.lines ? '存在' : '无' }}</p>
-        </div>
-      </div>
-    </div>
-    
     <div v-if="result" class="divination-result bg-white shadow-xl rounded-lg p-6 animate-fadeIn">
-      <!-- 页面头部 - 品牌标识和主题切换 -->
-      <div class="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200">
+      <!-- 页面头部 - 品牌标识 -->
+      <div class="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200">           
         <!-- 天玄品牌标识 -->
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">                                    
             <span class="text-white font-bold text-lg">天</span>
           </div>
           <div>
@@ -28,16 +13,7 @@
             <p class="text-sm text-blue-600">智慧决策助手</p>
           </div>
         </div>
-        
-        <!-- 主题切换按钮 -->
-        <button 
-          @click="toggleTheme"
-          class="p-2 rounded-full bg-white/60 hover:bg-white/80 transition-all duration-200 border border-blue-200"
-          :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
-        >
-          <span v-if="isDarkMode" class="text-yellow-500 text-xl">☀️</span>
-          <span v-else class="text-gray-600 text-xl">🌙</span>
-        </button>
+
       </div>
 
       <!-- 标题和问题回顾 -->
@@ -67,12 +43,6 @@
           >
             ☯ 卦象分析
           </button>
-          <button 
-            @click="scrollToSection('action')"
-            class="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full hover:bg-emerald-200 transition-colors duration-200"
-          >
-            🎯 行动指南
-          </button>
         </div>
       </div>
 
@@ -85,31 +55,200 @@
           <h4 class="text-xl font-semibold text-gray-800 mb-2">天玄智能解读</h4>
         </div>
         
-        <!-- 个性化开场白 -->
-        <div class="mb-4 p-4 bg-white rounded-lg border-l-4 border-blue-500">
-          <p class="text-gray-700 leading-relaxed">{{ personalizedInsight.opening }}</p>
-        </div>
-        
-        <!-- 信心指数/顺利度显示 -->
-        <div class="mb-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-600">顺利度</span>
-            <span class="text-lg font-bold text-blue-600">{{ personalizedInsight.confidenceLevel }}%</span>
+          <!-- 核心结论 -->
+          <div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-300 shadow-lg">
+            <h5 class="font-bold text-green-800 mb-4 text-lg">核心结论</h5>
+            <p class="text-2xl font-bold text-gray-900 leading-relaxed">{{ personalizedInsight.coreConclusion }}</p>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              class="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-1000 ease-out"
-              :style="{ width: personalizedInsight.confidenceLevel + '%' }"
-            ></div>
+      </div>
+
+      <!-- ========== 卦象内容区域 ========== -->
+      <div v-if="result.hexagram" class="mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200 animate-reveal">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full mb-3">
+            <span class="text-white text-xl">☯</span>
+          </div>
+          <h4 class="text-xl font-semibold text-gray-800 mb-2">卦象内容</h4>
+          <p class="text-sm text-gray-600">完整的卦象信息展示</p>
+        </div>
+
+        <!-- 本卦完整信息 -->
+        <div class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">                                                      
+          <h4 class="font-bold text-gray-800 text-2xl mb-4 text-center">本卦: {{ result.hexagram.chineseName || result.hexagram.name }}</h4>                    
+
+          <!-- 左右分栏布局：左侧卦象+卦辞象辞，右侧爻辞（上下齐平） -->        
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            <!-- 左侧：卦象、卦辞、象辞 -->
+            <div class="space-y-4 flex flex-col">
+              <!-- 卦象展示（居中） -->
+              <div class="hexagram-center-align flex justify-center items-center w-full">
+                <HexagramDisplay
+                  :hexagram="result.hexagram"
+                  :show-description="false"
+                  :show-xiang-text="false"
+                  :show-overall="false"
+                />
+              </div>
+              
+              <!-- 卦辞 -->
+              <div v-if="result.hexagram.judgment || result.hexagram.description" class="p-4 bg-blue-50 rounded-lg border border-blue-100">                     
+                <h5 class="font-semibold text-blue-800 mb-2 flex items-center justify-center"> 
+                  <span class="mr-2">📖</span>
+                  卦辞
+                </h5>
+                <p class="text-gray-800 leading-relaxed text-center">{{ result.hexagram.judgment || result.hexagram.description }}</p>
+              </div>
+
+              <!-- 象辞 -->
+              <div v-if="result.hexagram.image || result.hexagram.overall" class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">                        
+                <h5 class="font-semibold text-indigo-800 mb-2 flex items-center justify-center">                                                                               
+                  <span class="mr-2">✨</span>
+                  象辞
+                </h5>
+                <p class="text-gray-800 leading-relaxed text-center">{{ result.hexagram.image || result.hexagram.overall }}</p>
+              </div>
+            </div>
+
+            <!-- 右侧：爻辞（放大字体，增大间距，与左侧等高） -->
+            <div class="flex flex-col">
+              <div v-if="result.hexagram.yao_texts && result.hexagram.yao_texts.length > 0" class="p-5 bg-green-50 rounded-lg border border-green-100 h-full flex flex-col">         
+                <h5 class="font-semibold text-green-800 mb-4 flex items-center justify-center text-lg">
+                  <span class="mr-2">🔮</span>
+                  爻辞
+                </h5>
+                <div class="space-y-3 flex-1">
+                  <div
+                    v-for="(yao, index) in result.hexagram.yao_texts"
+                    :key="index"
+                    class="text-base text-gray-800 p-3 bg-white/70 rounded leading-relaxed text-center"
+                  >
+                    {{ yao }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <!-- 核心结论 -->
-        <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-          <h5 class="font-semibold text-green-800 mb-2">核心结论</h5>
-          <p class="text-gray-700">{{ personalizedInsight.coreConclusion }}</p>
+
+        <!-- 变卦完整信息（如果有动爻） -->
+        <div v-if="result.changingLines && result.changingLines.length > 0 && result.relatedHexagram" class="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+          <h4 class="font-bold text-gray-800 text-2xl mb-4 text-center">变卦: {{ result.relatedHexagram.chineseName || result.relatedHexagram.name }}</h4>
+
+          <!-- 左右分栏布局：左侧卦象+卦辞象辞，右侧爻辞（上下齐平） -->        
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">     
+            <!-- 左侧：卦象、卦辞、象辞 -->
+            <div class="space-y-4 flex flex-col">
+              <!-- 卦象展示（居中） -->
+              <div class="hexagram-center-align flex justify-center items-center w-full">                                                                       
+                <HexagramDisplay
+                  :hexagram="result.relatedHexagram"
+                  :show-description="false"
+                  :show-xiang-text="false"
+                  :show-overall="false"
+                />
+              </div>
+
+              <!-- 卦辞 -->
+              <div v-if="result.relatedHexagram.judgment || result.relatedHexagram.description" class="p-4 bg-blue-50 rounded-lg border border-blue-100">                     
+                <h5 class="font-semibold text-blue-800 mb-2 flex items-center justify-center">                                                                  
+                  <span class="mr-2">📖</span>
+                  卦辞
+                </h5>
+                <p class="text-gray-800 leading-relaxed text-center">{{ result.relatedHexagram.judgment || result.relatedHexagram.description }}</p>                          
+              </div>
+
+              <!-- 象辞 -->
+              <div v-if="result.relatedHexagram.image || result.relatedHexagram.overall" class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">                        
+                <h5 class="font-semibold text-indigo-800 mb-2 flex items-center justify-center">                                                                
+                  <span class="mr-2">✨</span>
+                  象辞
+                </h5>
+                <p class="text-gray-800 leading-relaxed text-center">{{ result.relatedHexagram.image || result.relatedHexagram.overall }}</p>                                 
+              </div>
+            </div>
+
+            <!-- 右侧：爻辞（如果有） -->
+            <div class="flex flex-col">
+              <div v-if="result.relatedHexagram.yao_texts && result.relatedHexagram.yao_texts.length > 0" class="p-5 bg-green-50 rounded-lg border border-green-100 h-full flex flex-col">                                                                    
+                <h5 class="font-semibold text-green-800 mb-4 flex items-center justify-center text-lg">                                                         
+                  <span class="mr-2">🔮</span>
+                  爻辞
+                </h5>
+                <div class="space-y-3 flex-1">
+                  <div
+                    v-for="(yao, index) in result.relatedHexagram.yao_texts"
+                    :key="index"
+                    class="text-base text-gray-800 p-3 bg-white/70 rounded leading-relaxed text-center"                                                         
+                  >
+                    {{ yao }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        
+
+        <!-- 卦象变化过程（如果有动爻） -->
+        <div v-if="result.changingLines && result.changingLines.length > 0 && result.relatedHexagram" class="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+          <h5 class="font-semibold text-orange-800 mb-2 text-center">趋势总结</h5>
+          <p class="text-gray-700 text-center mb-4">此事由<span class="font-medium text-orange-600">{{ result.hexagram.chineseName || result.hexagram.name }}</span>的状况，最终会发展为<span class="font-medium text-red-600">{{ result.relatedHexagram.chineseName || result.relatedHexagram.name }}</span>的结果。</p>
+
+          <!-- 卦象变化动画展示 -->
+          <div class="mt-4 p-4 bg-white/60 rounded-lg">
+            <h6 class="font-semibold text-orange-700 mb-3 text-center">卦象变化过程</h6>    
+            <div class="flex items-center justify-center space-x-4">
+              <!-- 本卦 -->
+              <div class="text-center">
+                <div class="mb-2">
+                  <HexagramDisplay
+                    :hexagram="result.hexagram"
+                    :highlight-lines="result.changingLines"
+                    :is-changing="true"
+                    class="transform transition-all duration-1000"
+                  />
+                </div>
+                <p class="text-sm font-medium text-orange-600">本卦</p>
+              </div>
+
+              <!-- 变化箭头 -->
+              <div class="flex flex-col items-center">
+                <div class="w-8 h-0.5 bg-gradient-to-r from-orange-400 to-red-400 mb-2"></div>                                                                  
+                <div class="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-400"></div>                                                
+                <div class="text-xs text-gray-500 mt-2">变化</div>
+              </div>
+
+              <!-- 变卦 -->
+              <div class="text-center">
+                <div class="mb-2">
+                  <HexagramDisplay
+                    :hexagram="result.relatedHexagram"
+                    class="transform transition-all duration-1000"
+                  />
+                </div>
+                <p class="text-sm font-medium text-red-600">变卦</p>
+              </div>
+            </div>
+
+            <!-- 动爻说明 -->
+            <div class="mt-3 text-center">
+              <p class="text-xs text-gray-600 mb-2">
+                动爻：{{ result.changingLines.map(line => getYaoLabel(line)).join('、') }}                                                                    
+              </p>
+
+              <!-- 动画触发按钮 -->
+              <button
+                @click="startHexagramAnimation"
+                :disabled="animationState !== 'idle'"
+                class="px-3 py-1 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs rounded-full hover:from-orange-500 hover:to-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"         
+              >
+                {{ animationState === 'idle' ? '🎬 观看变化过程' :
+                   animationState === 'highlighting' ? '✨ 高亮动爻中...' :   
+                   animationState === 'flipping' ? '🔄 卦象翻转中...' : '✅ 变化完成' }}                                                                      
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- 卦象属性标签 -->
         <div v-if="personalizedInsight.hexagramAttributes" class="mt-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
           <h5 class="font-semibold text-purple-800 mb-3">卦象特质分析</h5>
@@ -145,333 +284,78 @@
               <span class="font-medium">{{ personalizedInsight.hexagramAttributes.energy }}</span>
             </div>
           </div>
-          
-          <!-- 性格特质 -->
-          <div class="mt-3">
-            <span class="text-gray-600 text-sm">性格特质：</span>
-            <div class="flex flex-wrap gap-2 mt-1">
-              <span 
-                v-for="trait in personalizedInsight.hexagramAttributes.personality" 
-                :key="trait"
-                class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full"
-              >
-                {{ trait }}
-              </span>
-            </div>
-          </div>
         </div>
         
-        <!-- 思维模型提炼卡片 -->
-        <div v-if="personalizedInsight?.hexagramAttributes" class="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-200">
-          <h5 class="font-semibold text-indigo-800 mb-3">🧠 思维模型提炼</h5>
-          <div class="space-y-4">
-            <!-- 思维模型名称 -->
-            <div class="text-center p-3 bg-white/60 rounded-lg">
-              <h6 class="font-bold text-indigo-700 text-lg">{{ generateMentalModel(result.hexagram, identifyQuestionType(result.question || '')).model }}</h6>
-              <p class="text-sm text-indigo-600 mt-1">基于卦象智慧的现代思维工具</p>
-            </div>
-            
-            <!-- 核心原则 -->
-            <div>
-              <h6 class="font-semibold text-indigo-700 mb-2">核心原则</h6>
-              <div class="space-y-2">
-                <div 
-                  v-for="(principle, index) in generateMentalModel(result.hexagram, identifyQuestionType(result.question || '')).principles" 
-                  :key="index"
-                  class="flex items-start space-x-3 p-2 bg-white/60 rounded-lg"
-                >
-                  <span class="inline-flex items-center justify-center w-5 h-5 bg-indigo-500 text-white text-xs font-bold rounded-full flex-shrink-0 mt-0.5">
-                    {{ index + 1 }}
-                  </span>
-                  <span class="text-gray-700 text-sm">{{ principle }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 实际应用 -->
-            <div>
-              <h6 class="font-semibold text-indigo-700 mb-2">实际应用</h6>
-              <div class="space-y-2">
-                <div 
-                  v-for="(application, index) in generateMentalModel(result.hexagram, identifyQuestionType(result.question || '')).applications" 
-                  :key="index"
-                  class="flex items-start space-x-3 p-2 bg-white/60 rounded-lg"
-                >
-                  <span class="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white text-xs font-bold rounded-full flex-shrink-0 mt-0.5">
-                    {{ index + 1 }}
-                  </span>
-                  <span class="text-gray-700 text-sm">{{ application }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- 综合解读 - 提升到页面中部，紧跟在核心结论之后 -->
-      <div v-if="result.analysis && result.method !== 'dilemma'" class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-blue-200 animate-reveal">
+      <!-- ========== 具体解读区域 ========== -->
+      <div v-if="(result.analysis && result.method !== 'dilemma') || (result.changingLines && result.changingLines.length > 0)" class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-blue-200 animate-reveal">
         <div class="text-center mb-4">
           <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-3">
             <span class="text-white text-xl">📖</span>
           </div>
-          <h4 class="text-xl font-semibold text-gray-800 mb-2">综合解读</h4>
+          <h4 class="text-xl font-semibold text-gray-800 mb-2">具体解读</h4>
           <p class="text-sm text-gray-600">基于传统易经智慧与现代解读的深度分析</p>
         </div>
-        
-        <div class="text-gray-700 whitespace-pre-wrap leading-relaxed">
-          <!-- 使用v-html渲染带格式的文本 -->
-          <div v-html="formatAnalysisText(typeof result.analysis === 'string' ? result.analysis : JSON.stringify(result.analysis))"></div>
-        </div>
-      </div>
 
-      <!-- 卦象解读标签页 -->
-      <div v-if="result.hexagram" class="hexagram-section mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200 animate-reveal">
-        <!-- 调试信息 -->
-        <div class="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
-          <strong>调试信息:</strong> 卦象数据存在，正在显示卦象解读
-        </div>
-        <!-- 趋势总结 -->
-        <div v-if="result.changingLines && result.changingLines.length > 0 && result.relatedHexagram" class="mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
-          <h5 class="font-semibold text-orange-800 mb-2">趋势总结</h5>
-          <p class="text-gray-700">此事由<span class="font-medium text-orange-600">{{ result.hexagram.chineseName || result.hexagram.name }}</span>的状况，最终会发展为<span class="font-medium text-red-600">{{ result.relatedHexagram.chineseName || result.relatedHexagram.name }}</span>的结果。</p>
-          
-          <!-- 卦象变化动画展示 -->
-          <div class="mt-4 p-4 bg-white/60 rounded-lg">
-            <h6 class="font-semibold text-orange-700 mb-3">卦象变化过程</h6>
-            <div class="flex items-center justify-center space-x-4">
-              <!-- 本卦 -->
-              <div class="text-center">
-                <div class="mb-2">
-                  <HexagramDisplay 
-                    :hexagram="result.hexagram" 
-                    :debug="true"
-                    :highlight-lines="result.changingLines"
-                    :is-changing="true"
-                    class="transform transition-all duration-1000"
-                  />
-                </div>
-                <p class="text-sm font-medium text-orange-600">本卦</p>
-              </div>
-              
-              <!-- 变化箭头 -->
-              <div class="flex flex-col items-center">
-                <div class="w-8 h-0.5 bg-gradient-to-r from-orange-400 to-red-400 mb-2"></div>
-                <div class="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-400"></div>
-                <div class="text-xs text-gray-500 mt-2">变化</div>
-              </div>
-              
-              <!-- 变卦 -->
-              <div class="text-center">
-                <div class="mb-2">
-                  <HexagramDisplay 
-                    :hexagram="result.relatedHexagram" 
-                    :debug="true"
-                    class="transform transition-all duration-1000"
-                  />
-                </div>
-                <p class="text-sm font-medium text-red-600">变卦</p>
-              </div>
-            </div>
-            
-                          <!-- 动爻说明 -->
-              <div class="mt-3 text-center">
-                <p class="text-xs text-gray-600">
-                  动爻：{{ result.changingLines.map(line => getYaoLabel(line)).join('、') }}
-                </p>
-                
-                <!-- 动画触发按钮 -->
-                <button 
-                  @click="startHexagramAnimation"
-                  :disabled="animationState !== 'idle'"
-                  class="mt-2 px-3 py-1 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs rounded-full hover:from-orange-500 hover:to-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {{ animationState === 'idle' ? '🎬 观看变化过程' : 
-                     animationState === 'highlighting' ? '✨ 高亮动爻中...' :
-                     animationState === 'flipping' ? '🔄 卦象翻转中...' : '✅ 变化完成' }}
-                </button>
-              </div>
+        <!-- 综合解读 -->
+        <div v-if="result.analysis && result.method !== 'dilemma'" class="mb-8">
+          <h5 class="font-semibold text-gray-800 mb-3 text-lg">综合解读</h5>
+          <div class="text-gray-700 whitespace-pre-wrap leading-relaxed">
+            <!-- 使用v-html渲染带格式的文本 -->
+            <div v-html="formatAnalysisText(typeof result.analysis === 'string' ? result.analysis : JSON.stringify(result.analysis))"></div>
           </div>
         </div>
-        
-        <!-- 标签页导航 -->
-        <div class="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
-          <button 
-            @click="activeTab = 'original'"
-            :class="['px-4 py-2 rounded-md text-sm font-medium transition-all duration-200', 
-              activeTab === 'original' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-800']"
-          >
-            本卦解读
-          </button>
-          <button 
-            v-if="result.changingLines && result.changingLines.length > 0"
-            @click="activeTab = 'changing'"
-            :class="['px-4 py-2 rounded-md text-sm font-medium transition-all duration-200', 
-              activeTab === 'changing' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-800']"
-          >
-            变卦分析
-          </button>
-          <button 
-            v-if="result.changingLines && result.changingLines.length > 0"
-            @click="activeTab = 'lines'"
-            :class="['px-4 py-2 rounded-md text-sm font-medium transition-all duration-200', 
-              activeTab === 'lines' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-800']"
-          >
-            动爻启示
-          </button>
-        </div>
-        
-        <!-- 标签页内容 -->
-        <div class="tab-content">
-          <!-- 本卦解读 -->
-          <div v-if="activeTab === 'original'" class="space-y-4">
-            <div class="text-center mb-4">
-              <h4 class="font-bold text-gray-800 text-2xl mb-3">本卦: {{ result.hexagram.chineseName || result.hexagram.name }}</h4>
-              <HexagramDisplay :hexagram="result.hexagram" :debug="false" />
-            </div>
-            <div v-if="result.hexagram.judgment || result.hexagram.meaning" class="p-4 bg-blue-50 rounded-lg">
-              <h5 class="font-semibold text-blue-800 mb-2">卦辞解读</h5>
-              <p class="text-gray-700">{{ result.hexagram.judgment || result.hexagram.meaning }}</p>
-            </div>
-            <div v-if="result.hexagram.modernInterpretation" class="p-4 bg-green-50 rounded-lg">
-              <h5 class="font-semibold text-green-800 mb-2">现代解读</h5>
-              <p class="text-gray-700">{{ result.hexagram.modernInterpretation }}</p>
-            </div>
-          </div>
-          
-          <!-- 变卦分析 -->
-          <div v-if="activeTab === 'changing' && result.relatedHexagram" class="space-y-4">
-            <div class="text-center mb-4">
-              <h4 class="font-bold text-gray-800 text-2xl mb-3">变卦: {{ result.relatedHexagram.chineseName || result.relatedHexagram.name }}</h4>
-              <HexagramDisplay :hexagram="result.relatedHexagram" :debug="false" />
-            </div>
-            <div v-if="result.relatedHexagram.judgment || result.relatedHexagram.meaning" class="p-4 bg-purple-50 rounded-lg">
-              <h5 class="font-semibold text-purple-800 mb-2">卦辞解读</h5>
-              <p class="text-gray-700">{{ result.relatedHexagram.judgment || result.relatedHexagram.meaning }}</p>
-            </div>
-            <div v-if="result.relatedHexagram.modernInterpretation" class="p-4 bg-green-50 rounded-lg">
-              <h5 class="font-semibold text-green-800 mb-2">现代解读</h5>
-              <p class="text-gray-700">{{ result.relatedHexagram.modernInterpretation }}</p>
-            </div>
-          </div>
-          
-          <!-- 动爻启示 -->
-          <div v-if="activeTab === 'lines' && result.changingLines && result.changingLines.length > 0" class="space-y-4">
-            <div class="p-4 bg-yellow-50 rounded-lg">
-              <h5 class="font-semibold text-yellow-800 mb-3">动爻分析</h5>
-              <p class="text-gray-700 mb-3">共有 {{ result.changingLines.length }} 个爻发生变化，这预示着事情的关键转折点。</p>
-              <ul class="space-y-3">
-                <li v-for="(lineIndex, idx) in result.changingLines" :key="idx" class="p-3 bg-white rounded-lg border border-yellow-200">
-                  <div class="flex items-start space-x-3">
-                    <span class="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 text-white text-xs font-bold rounded-full">{{ getYaoLabel(lineIndex) }}</span>
-                    <div class="flex-1">
-                      <p class="font-medium text-gray-800 mb-1">{{ getYaoLabel(lineIndex) }}爻变化</p>
-                      <p v-if="(result.hexagram as any).yao_texts && (result.hexagram as any).yao_texts[lineIndex]" class="text-sm text-gray-600 mb-2">
-                        原文：{{ (result.hexagram as any).yao_texts[lineIndex] }}
-                      </p>
-                      <p v-if="result.relatedHexagram && (result.relatedHexagram as any).yao_texts && (result.relatedHexagram as any).yao_texts[lineIndex]" class="text-sm text-gray-600">
-                        变爻：{{ (result.relatedHexagram as any).yao_texts[lineIndex] }}
-                      </p>
-                    </div>
+
+        <!-- 动爻分析（如果有动爻） -->
+        <div v-if="result.changingLines && result.changingLines.length > 0" class="space-y-4">
+          <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <h5 class="font-semibold text-yellow-800 mb-3">动爻分析</h5>
+            <p class="text-gray-700 mb-3">共有 {{ result.changingLines.length }} 个爻发生变化，这预示着事情的关键转折点。</p>
+            <ul class="space-y-3">
+              <li v-for="(lineIndex, idx) in result.changingLines" :key="idx" class="p-3 bg-white rounded-lg border border-yellow-200">
+                <div class="flex items-start space-x-3">
+                  <span class="inline-flex items-center justify-center w-6 h-6 bg-yellow-500 text-white text-xs font-bold rounded-full">{{ getYaoLabel(lineIndex) }}</span>
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-800 mb-1">{{ getYaoLabel(lineIndex) }}爻变化</p>
+                    <p v-if="(result.hexagram as any).yao_texts && (result.hexagram as any).yao_texts[lineIndex]" class="text-sm text-gray-600 mb-2">
+                      原文：{{ (result.hexagram as any).yao_texts[lineIndex] }}
+                    </p>
+                    <p v-if="result.relatedHexagram && (result.relatedHexagram as any).yao_texts && (result.relatedHexagram as any).yao_texts[lineIndex]" class="text-sm text-gray-600">
+                      变爻：{{ (result.relatedHexagram as any).yao_texts[lineIndex] }}
+                    </p>
                   </div>
-                </li>
-              </ul>
-            </div>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
-      
-      <div v-else class="text-center p-4 mb-6 border rounded-lg bg-gray-50 animate-reveal">
-        <p class="text-gray-600">主卦象信息未能生成。</p>
-        <!-- 调试信息 -->
-        <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded text-xs">
-          <strong>调试信息:</strong> 
-          <br>result: {{ result ? '存在' : 'null' }}
-          <br>result.hexagram: {{ result?.hexagram ? '存在' : 'null' }}
-          <br>result.question: {{ result?.question || '无' }}
         </div>
-      </div>
 
-
-
-      <!-- 行动指南卡片 -->
-      <div class="action-section mb-8 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-200 animate-reveal">
-        <div class="text-center mb-4">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full mb-3">
-            <span class="text-white text-xl">🎯</span>
-          </div>
-          <h4 class="text-xl font-semibold text-gray-800 mb-2">行动指南</h4>
-        </div>
-        
-        <!-- 抽取今日指南按钮 -->
-        <div class="text-center mb-4">
-          <button 
-            @click="generateActionGuide"
-            class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-          >
-            🎲 抽取今日行动指南
-          </button>
-        </div>
-        
-        <!-- 行动指南内容 -->
-        <div v-if="actionGuide" class="space-y-4">
-          <div class="p-4 bg-white rounded-lg border border-emerald-200">
-            <h5 class="font-semibold text-emerald-800 mb-2">今日建议</h5>
-            <p class="text-gray-700">{{ actionGuide.advice }}</p>
-          </div>
-          
-          <div class="p-4 bg-white rounded-lg border border-emerald-200">
-            <h5 class="font-semibold text-emerald-800 mb-2">关键行动</h5>
-            <p class="text-gray-700">{{ actionGuide.action }}</p>
-          </div>
-          
-          <!-- 基于卦象属性的具体行动建议 -->
-          <div v-if="personalizedInsight?.actionItems && personalizedInsight.actionItems.length > 0" class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-            <h5 class="font-semibold text-blue-800 mb-3">基于卦象的行动指南</h5>
-            <div class="space-y-2">
-              <div 
-                v-for="(action, index) in personalizedInsight.actionItems" 
-                :key="index"
-                class="flex items-start space-x-3 p-2 bg-white/60 rounded-lg"
-              >
-                <span class="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white text-xs font-bold rounded-full flex-shrink-0 mt-0.5">
-                  {{ index + 1 }}
-                </span>
-                <span class="text-gray-700 text-sm">{{ action }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 保存指南按钮 -->
-          <div class="text-center">
-            <button 
-              @click="saveActionGuide"
-              class="px-4 py-2 bg-emerald-100 text-emerald-700 font-medium rounded-lg hover:bg-emerald-200 transition-colors duration-200"
-            >
-              💾 保存指南
-            </button>
-          </div>
-        </div>
-        
-        <!-- 默认提示 -->
-        <div v-else class="text-center p-4">
-          <p class="text-gray-600">点击上方按钮，获取基于卦象的个性化行动建议</p>
+      <!-- Action Buttons -->
+      <div class="mt-8 flex justify-center items-center space-x-4">
+        <div class="flex items-center space-x-2">
+          <SaveButton
+            v-if="result"
+            :item="{
+              type: 'divination',
+              question: result?.question || '',
+              result: result
+            }"
+            :title="`易经占卜 - ${result?.hexagram?.chineseName || result?.hexagram?.name || '未知卦象'}`"
+          />
+          <span class="text-sm text-gray-600 ml-1">保存结果</span>
         </div>
       </div>
 
       <!-- 用户反馈系统 -->
-      <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-lg border border-indigo-200 animate-reveal">
-        <div class="text-center mb-4">
-          <h4 class="text-lg font-semibold text-gray-800 mb-2">这个解读对你有帮助吗？</h4>
-          <p class="text-sm text-gray-600">你的反馈帮助我们不断优化解读质量</p>
-        </div>
-        
-        <div class="flex flex-wrap justify-center gap-3">
+        <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-lg border border-indigo-200 animate-reveal">
+          <div class="text-center mb-4">
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">这个解读对你有帮助吗？</h4>
+            <p class="text-sm text-gray-600">你的反馈帮助我们不断优化解读质量</p>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-3">
           <button 
             @click="submitFeedback('helpful')"
             class="px-4 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors duration-200 flex items-center space-x-2"
@@ -502,30 +386,6 @@
         </div>
       </div>
 
-      <!-- 开发模式测试按钮 -->
-      <div v-if="isDevelopment" class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h4 class="text-lg font-semibold text-yellow-800 mb-3">开发模式测试</h4>
-        <div class="flex flex-wrap gap-2">
-          <button 
-            @click="testPersonalizedInsight"
-            class="px-3 py-2 bg-yellow-100 text-yellow-700 text-sm rounded hover:bg-yellow-200"
-          >
-            测试智能解读
-          </button>
-          <button 
-            @click="testActionGuide"
-            class="px-3 py-2 bg-yellow-100 text-yellow-700 text-sm rounded hover:bg-yellow-200"
-          >
-            测试行动指南
-          </button>
-          <button 
-            @click="testUserFeedback"
-            class="px-3 py-2 bg-yellow-100 text-yellow-700 text-sm rounded hover:bg-yellow-200"
-          >
-            测试用户反馈
-          </button>
-        </div>
-      </div>
 
       <!-- Dilemma (玄选两难) 特定分析 -->
       <div v-if="result.method === 'dilemma' && result.optionA && result.optionB" 
@@ -543,45 +403,33 @@
             <p v-if="result.optionB_analysis" class="text-xs text-gray-600">{{ result.optionB_analysis }}</p>
           </div>
         </div>
-        <div v-if="result.recommendation" class="recommendation mt-4 p-4 bg-primary/10 rounded-lg text-center">
-          <strong class="text-primary">综合建议:</strong>
-          <p class="text-gray-700">{{ result.recommendation }}</p>
-        </div>
       </div>
-      
-      <!-- 综合解读 - 提升到页面中部，紧跟在核心结论之后 -->
-      <div v-if="result.analysis && result.method !== 'dilemma'" class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-blue-200 animate-reveal">
-        <div class="text-center mb-4">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-3">
-            <span class="text-white text-xl">📖</span>
-          </div>
-          <h4 class="text-xl font-semibold text-gray-800 mb-2">综合解读</h4>
-          <p class="text-sm text-gray-600">基于传统易经智慧与现代解读的深度分析</p>
-        </div>
-        
-        <div class="text-gray-700 whitespace-pre-wrap leading-relaxed">
-          <!-- 使用v-html渲染带格式的文本 -->
-          <div v-html="formatAnalysisText(typeof result.analysis === 'string' ? result.analysis : JSON.stringify(result.analysis))"></div>
-        </div>
-      </div>
-
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { defineProps, computed, ref, onMounted } from 'vue';
+  <script setup lang="ts">
+import { defineProps, computed, ref, onMounted, watch } from 'vue';
 import type { AnalysisResult } from '../types';
 import HexagramDisplay from '../../../components/hexagram/HexagramDisplay.vue';
-import { 
-  generatePersonalizedAdvice, 
+import {
+  generatePersonalizedAdvice,
   getHexagramAttributes,
-  calculateHexagramMatch 
+  calculateHexagramMatch
 } from '../utils/hexagramAttributes';
+import { LLMService } from '../../../services/LLMService';
+import { formatContent as formatContentScheme1 } from '../../../utils/contentFormatter';
+import SaveButton from '../../../components/common/SaveButton.vue';
 
 const _props = defineProps<{
   result: AnalysisResult | null;
 }>();
+
+// 为了在模板中方便使用，创建一个计算属性
+const result = computed(() => {
+  console.log('🔍 DivinationResult - result computed:', _props.result);
+  return _props.result;
+});
 
 // 标签页状态管理
 const activeTab = ref('changing'); // 默认显示变卦分析，因为这是用户最关心的
@@ -602,15 +450,24 @@ const isDevelopment = ref(process.env.NODE_ENV === 'development');
 const animationState = ref<'idle' | 'highlighting' | 'flipping' | 'complete'>('idle');
 const currentAnimationStep = ref(0);
 
-// 主题模式状态
-const isDarkMode = ref(false);
-const themeColors = computed(() => ({
-  primary: isDarkMode.value ? 'from-blue-600 to-purple-600' : 'from-blue-500 to-purple-500',
-  secondary: isDarkMode.value ? 'from-orange-500 to-red-500' : 'from-orange-400 to-red-400',
-  background: isDarkMode.value ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900',
-  card: isDarkMode.value ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-  text: isDarkMode.value ? 'text-gray-100' : 'text-gray-900'
-}));
+// LLM distilled core conclusion
+const distilled = ref<{ summary: string; confidence: number; actions: string[]; evidence: string[] } | null>(null);
+watch(
+  () => _props.result?.analysis,
+  async (val) => {
+    try {
+      if (!val) { distilled.value = null; return; }
+      const text = typeof val === 'string' ? val : (() => { try { return JSON.stringify(val); } catch { return '' } })();
+      if (!text) { distilled.value = null; return; }
+      const res = await LLMService.distillCoreConclusion(text);
+      distilled.value = res && res.summary ? res : null;
+    } catch {
+      distilled.value = null;
+    }
+  },
+  { immediate: true }
+);
+
 
 // 智能连接算法：生成个性化开场白和核心结论
 const personalizedInsight = computed(() => {
@@ -716,7 +573,7 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
     const hexagramName = hexagram.chineseName || hexagram.name;
     
     // 使用新的卦象属性系统生成个性化建议
-    const personalizedAdvice = generatePersonalizedAdvice(hexagramName, questionTypes);
+    const personalizedAdvice = generatePersonalizedAdvice(hexagramName, questionTypes, question);
     const hexagramAttributes = getHexagramAttributes(hexagramName);
     
     // 安全检查：确保personalizedAdvice有正确的结构
@@ -762,52 +619,169 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
   }
 }
 
-// 新增：生成独立的核心结论函数
-function generateCoreConclusion(hexagramName: string, questionTypes: string[], personalizedAdvice: any): string {
-  try {
-    // 安全检查：确保personalizedAdvice有正确的结构
-    if (!personalizedAdvice || typeof personalizedAdvice !== 'object') {
-      console.error('generateCoreConclusion: personalizedAdvice无效:', personalizedAdvice);
-      return `基于${hexagramName}的智慧，建议你保持开放和谨慎的态度，这将为你带来更好的结果。`;
+  // 新增：生成独立的核心结论函数 - 基于传统逻辑分析
+  function generateCoreConclusion(hexagramName: string, questionTypes: string[], personalizedAdvice: any): string {
+    try {
+      // 优先使用传统逻辑分析生成核心结论
+      const traditionalAnalysis = _props.result?.traditionalAnalysis;
+      console.log('🔍 generateCoreConclusion - traditionalAnalysis:', traditionalAnalysis);
+      
+      if (traditionalAnalysis && traditionalAnalysis.bodyUsage) {
+        console.log('✅ 使用传统逻辑分析生成核心结论');
+        const bodyUsage = traditionalAnalysis.bodyUsage;
+        const hexagram = _props.result?.hexagram;
+        const judgment = hexagram?.judgment || hexagram?.description || '';
+        const changingLines = _props.result?.changingLines || [];
+        const relatedHexagram = _props.result?.relatedHexagram;
+        
+        // 基于体用关系生成核心结论
+        // 原则：重体用生克（本质），轻卦辞爻辞（参考）
+        // 体用生克是核心结论，卦辞作为补充说明或专家提示
+        
+        let conclusion = '';
+        
+        // 第一步：确立核心分析框架（体用生克）
+        // 体用关系解读 - 这是核心，不受卦辞影响
+        const relationshipText = 
+          bodyUsage.relationship === 'body-ke-usage' ? '体克用，您能够主动控制局面，有利于主动出击'
+          : bodyUsage.relationship === 'usage-ke-body' ? '用克体，外部环境对您有一定压力，宜守不宜攻'
+          : bodyUsage.relationship === 'body-sheng-usage' ? '体生用，需要付出较多，需要谨慎管理资源'
+          : bodyUsage.relationship === 'usage-sheng-body' ? '用生体，外部环境对您有利，能够得到帮助和支持'
+          : '体用比和，内外和谐统一，形势稳定';
+        
+        console.log('📊 体用关系（核心）:', bodyUsage.relationship, '->', relationshipText);
+        
+        // 第二步：参考卦辞爻辞（辅助与深化）
+        // 检测卦辞的吉凶倾向，用于验证、强化或提供警示
+        const positiveKeywords = ['元亨', '利', '吉', '贞', '亨', '无咎', '可', '宜'];
+        const negativeKeywords = ['征凶', '无攸利', '不利', '凶', '勿用', '不可', '不宜', '咎'];
+        const hasPositiveSign = positiveKeywords.some(keyword => judgment.includes(keyword));
+        const hasNegativeWarning = negativeKeywords.some(keyword => judgment.includes(keyword));
+        
+        // 生成卦辞补充说明
+        const judgmentCore = judgment.length > 50 ? judgment.substring(0, 50) + '...' : judgment;
+        let judgmentSupplement = '';
+        
+        if (judgmentCore) {
+          // 判断体用关系与卦辞是否一致
+          const bodyUsageIsPositive = bodyUsage.relationship === 'body-ke-usage' || 
+                                       bodyUsage.relationship === 'usage-sheng-body' || 
+                                       bodyUsage.relationship === 'bihe';
+          
+          if (bodyUsageIsPositive && hasPositiveSign) {
+            // 一致：体用吉，卦辞也吉，可以强化
+            judgmentSupplement = `卦辞云"${judgmentCore}"，可作印证，内外皆吉。`;
+          } else if (!bodyUsageIsPositive && hasNegativeWarning) {
+            // 一致：体用不吉，卦辞也不吉，可以强化
+            judgmentSupplement = `卦辞云"${judgmentCore}"，正应此象，需谨慎应对。`;
+          } else if (bodyUsageIsPositive && hasNegativeWarning) {
+            // 不一致：体用吉但卦辞不吉，卦辞作为过程警示
+            judgmentSupplement = `然卦辞云"${judgmentCore}"，提示需防微杜渐，注意过程中的心态与细节。`;
+          } else if (!bodyUsageIsPositive && hasPositiveSign) {
+            // 不一致：体用不吉但卦辞吉，卦辞作为背景参考
+            judgmentSupplement = `卦辞云"${judgmentCore}"，可为参考，但需以体用生克为主。`;
+          } else {
+            // 中立或无法判断
+            judgmentSupplement = `卦辞云"${judgmentCore}"，可作参考。`;
+          }
+        }
+        
+        console.log('📊 卦辞检测:', { hasPositiveSign, hasNegativeWarning, judgmentSupplement });
+        
+        // 如果有动爻，结合动爻分析
+        if (changingLines.length > 0 && traditionalAnalysis.changingLinesAnalysis) {
+          const changingAnalysis = traditionalAnalysis.changingLinesAnalysis;
+          const highImportanceChanges = changingAnalysis.filter((ch: any) => ch.importance === 'high');
+          
+          if (highImportanceChanges.length > 0) {
+            const mainChange = highImportanceChanges[0];
+            conclusion = `"${hexagramName}"卦显示：${relationshipText}。${mainChange.position + 1}爻（${mainChange.relative}）变动为关键，${mainChange.interpretation}`;
+            if (judgmentSupplement) {
+              conclusion += ` ${judgmentSupplement}`;
+            }
+            console.log('📝 核心结论（带动爻）:', conclusion);
+          } else {
+            const changeText = changingLines.map((pos: number) => `${pos + 1}爻`).join('、');
+            conclusion = `"${hexagramName}"卦显示：${relationshipText}。${changeText}发生变动，局势正在变化中。`;
+            if (judgmentSupplement) {
+              conclusion += ` ${judgmentSupplement}`;
+            }
+            console.log('📝 核心结论（有动爻）:', conclusion);
+          }
+        } else if (changingLines.length === 0) {
+          // 静卦
+          conclusion = `"${hexagramName}"卦为静卦（无动爻），${relationshipText}。`;
+          if (judgmentSupplement) {
+            conclusion += ` ${judgmentSupplement}`;
+          }
+          console.log('📝 核心结论（静卦）:', conclusion);
+        } else {
+          // 有动爻但无详细分析
+          const changeText = changingLines.map((pos: number) => `${pos + 1}爻`).join('、');
+          conclusion = `"${hexagramName}"卦显示：${relationshipText}。${changeText}发生变动，需关注事态发展。`;
+          if (judgmentSupplement) {
+            conclusion += ` ${judgmentSupplement}`;
+          }
+          console.log('📝 核心结论（有动爻但无分析）:', conclusion);
+        }
+        
+        // 如果有变卦，补充变卦信息
+        if (relatedHexagram) {
+          conclusion += ` 将变至"${relatedHexagram.chineseName || relatedHexagram.name}"卦。`;
+        }
+        
+        return conclusion;
+      } else {
+        console.log('⚠️ 未找到传统逻辑分析，使用降级方案');
+      }
+      
+      // 如果没有传统逻辑分析，使用原有逻辑（降级方案）
+      const hexagram = _props.result?.hexagram;
+      const changingLines = _props.result?.changingLines || [];
+      const relatedHexagram = _props.result?.relatedHexagram;
+
+      if (!hexagram) {
+        return `"${hexagramName}"卦提示需要综合判断当前形势，谨慎决策。`;
+      }
+
+      // 基于卦辞和变卦进行推演
+      const judgment = hexagram.judgment || hexagram.description || '';
+      const relatedName = relatedHexagram?.chineseName || relatedHexagram?.name;
+      const labels = ['初', '二', '三', '四', '五', '上'];
+
+      // 如果有变卦，说明有动爻，需要综合分析本卦和变卦
+      if (changingLines.length > 0 && relatedName) {
+        const changingLinesText = changingLines.map(line => `${labels[line]}爻`).join('、');
+        const judgmentCore = judgment.length > 40 ? judgment.substring(0, 40) + '...' : judgment;
+
+        if (judgmentCore) {
+          return `"${hexagramName}"卦显示：${judgmentCore}。动爻在${changingLinesText}，预示将变至"${relatedName}"卦，局势将发生转变。`;
+        } else {
+          return `"${hexagramName}"卦中${changingLinesText}发生变动，预示将变至"${relatedName}"卦，局势将发生转变。`;
+        }
+      } else if (changingLines.length === 0) {
+        // 静卦：没有动爻，直接看本卦
+        const judgmentCore = judgment.length > 50 ? judgment.substring(0, 50) + '...' : judgment;
+        if (judgmentCore) {
+          return `"${hexagramName}"卦为静卦（无动爻），卦辞云："${judgmentCore}"。`;
+        } else {
+          return `"${hexagramName}"卦为静卦，无动爻变化，当前态势保持稳定。`;
+        }
+      } else {
+        // 有动爻但无变卦数据
+        const changingLinesText = changingLines.map(line => `${labels[line]}爻`).join('、');
+        const judgmentCore = judgment.length > 40 ? judgment.substring(0, 40) + '...' : judgment;
+        if (judgmentCore) {
+          return `"${hexagramName}"卦显示：${judgmentCore}。${changingLinesText}发生变动，需关注事态发展。`;
+        } else {
+          return `"${hexagramName}"卦中${changingLinesText}发生变动，局势正在变化中。`;
+        }
+      }
+    } catch (error) {
+      console.error('生成核心结论时出错:', error);
+      return `基于"${hexagramName}"卦的智慧，建议您采取积极行动，把握当前机会。`;
     }
-    
-    const confidence = personalizedAdvice.confidence || 0.5;
-    
-    // 根据问题类型和卦象属性生成具体的结论
-    if (questionTypes.includes('事业')) {
-      if (confidence > 0.7) {
-        return `建议积极行动，把握当前有利时机，在${hexagramName}的指引下，你的职业发展将迎来新的机遇。`;
-      } else if (confidence > 0.4) {
-        return `需要谨慎决策，在${hexagramName}的提醒下，建议先完善自身条件，等待更合适的时机再行动。`;
-      } else {
-        return `当前环境复杂，${hexagramName}建议保持耐心，避免冒进，专注提升个人能力。`;
-      }
-    } else if (questionTypes.includes('感情')) {
-      if (confidence > 0.7) {
-        return `感情发展前景良好，${hexagramName}提示你保持真诚和耐心，关系将稳步发展。`;
-      } else if (confidence > 0.4) {
-        return `感情需要更多沟通和理解，${hexagramName}建议你主动表达，但不要急于求成。`;
-      } else {
-        return `感情面临挑战，${hexagramName}提醒你需要重新审视关系，寻找问题的根源。`;
-      }
-    } else if (questionTypes.includes('决策辅助')) {
-      if (confidence > 0.7) {
-        return `决策时机成熟，${hexagramName}支持你的选择，建议果断行动。`;
-      } else if (confidence > 0.4) {
-        return `需要更多信息支持，${hexagramName}建议你收集更多资料，谨慎决策。`;
-      } else {
-        return `当前不适合做决定，${hexagramName}提醒你保持现状，等待更好的时机。`;
-      }
-    } else {
-      // 通用结论
-      const advice = personalizedAdvice.advice || '保持开放和谨慎的态度';
-      return `基于${hexagramName}的智慧，建议你${advice}，这将为你带来更好的结果。`;
-    }
-  } catch (error) {
-    console.error('生成核心结论时出错:', error);
-    return `基于${hexagramName}的智慧，建议你保持开放和谨慎的态度，这将为你带来更好的结果。`;
   }
-}
 
 // 生成行动指南 - 使用卦象属性系统
 function generateActionGuide() {
@@ -819,45 +793,30 @@ function generateActionGuide() {
     
     const hexagram = _props.result.hexagram;
     const hexagramName = hexagram.chineseName || hexagram.name;
+    const question = _props.result.question || '';
     
-    // 获取卦象属性
-    const attributes = getHexagramAttributes(hexagramName);
-    
-    if (attributes && attributes.personality && attributes.action && attributes.timing) {
-      // 基于卦象属性生成个性化行动指南
-      const guides = [
-        {
-          advice: `基于"${hexagramName}"的${attributes.nature || '智慧'}特质，今天适合${attributes.action}。利用"${attributes.personality.join('、')}"的优势，${attributes.timing}。`,
-          action: generateActionBasedOnAttributes(attributes)
-        },
-        {
-          advice: `"${hexagramName}"的${attributes.element || '五行'}属性提醒你，当前需要${attributes.energy === '上升' ? '把握上升趋势' : attributes.energy === '积聚' ? '积累能量' : '保持稳定'}。`,
-          action: generateTimingBasedAction(attributes)
-        },
-        {
-          advice: `"${hexagramName}"的${attributes.fortune || '运势'}提示，适合在${(attributes.suitableFor || ['个人发展']).join('、')}方面采取行动。`,
-          action: generateSuitableAction(attributes)
-        }
-      ];
-      
-      // 随机选择一个指南
-      const randomIndex = Math.floor(Math.random() * guides.length);
-      actionGuide.value = guides[randomIndex];
+    // 基于问题和卦象生成具体的行动建议
+    if (question.includes('公务员') || question.includes('遴选') || question.includes('考试')) {
+      actionGuide.value = {
+        advice: `针对您的公务员遴选问题，"${hexagramName}"卦建议您系统性地准备考试。建议您制定详细的备考计划，包括行政职业能力测试、申论写作等各个科目的学习安排。同时，建议您多做一些模拟题，熟悉考试题型和答题技巧。`,
+        action: `具体行动：1）制定3个月备考计划，每天固定学习时间；2）重点攻克薄弱环节，如行测中的数量关系、申论中的材料分析；3）参加模拟考试，熟悉考试节奏；4）关注时事政策，为申论写作积累素材。`
+      };
+    } else if (question.includes('工作') || question.includes('跳槽')) {
+      actionGuide.value = {
+        advice: `针对您的职场问题，"${hexagramName}"卦建议您综合分析当前情况。建议您评估当前工作的优劣势，包括薪资待遇、发展前景、工作环境等因素。同时，建议您明确自己的职业目标和期望，以便做出最适合的决定。`,
+        action: `具体行动：1）制作一份优劣势对比表，客观评估当前工作；2）了解目标职位的具体要求和发展空间；3）与行业内的朋友或前辈交流，获取真实信息；4）做出决策后，制定详细的过渡计划。`
+      };
+    } else if (question.includes('感情') || question.includes('恋爱')) {
+      actionGuide.value = {
+        advice: `针对您的感情问题，"${hexagramName}"卦建议您真诚沟通。建议您主动表达自己的想法和感受，同时也要倾听对方的意见。建议您多做一些能增进感情的事情，如共同参加活动、真诚交流想法等。`,
+        action: `具体行动：1）安排一次坦诚的对话，表达自己的想法；2）做一些能增进感情的活动，如约会、送礼物；3）如果面临困难，考虑寻求朋友的帮助或专业的建议；4）保持耐心，给关系发展的时间。`
+      };
     } else {
-      // 降级到基础指南
-      const basicGuides = [
-        {
-          advice: `基于"${hexagramName}"的智慧，今天适合保持开放和包容的心态，接纳周围的变化和机会。`,
-          action: "尝试新事物，与不同的人交流，保持学习的姿态。"
-        },
-        {
-          advice: `"${hexagramName}"提醒你，当前需要稳扎稳打，循序渐进地推进目标。`,
-          action: "制定详细的计划，分步骤执行，不要急于求成。"
-        }
-      ];
-      
-      const randomIndex = Math.floor(Math.random() * basicGuides.length);
-      actionGuide.value = basicGuides[randomIndex];
+      // 通用建议
+      actionGuide.value = {
+        advice: `基于"${hexagramName}"卦的智慧，建议您保持积极主动的态度。`,
+        action: `具体行动：1）明确您的目标和期望；2）制定详细的计划；3）积极采取行动；4）保持信心和耐心。`
+      };
     }
   } catch (error) {
     console.error('生成行动指南时出错:', error);
@@ -1107,251 +1066,130 @@ function scrollToSection(section: string) {
   }
 }
 
-// 主题切换函数
-function toggleTheme() {
-  isDarkMode.value = !isDarkMode.value;
-  // 保存主题偏好到本地存储
-  localStorage.setItem('tianxuan-theme', isDarkMode.value ? 'dark' : 'light');
-  
-  // 应用主题到根元素和body元素，确保主题类能正确应用
-  const root = document.documentElement;
-  const body = document.body;
-  
-  if (isDarkMode.value) {
-    root.classList.add('dark');
-    body.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-    body.classList.remove('dark');
-  }
-  
-  // 触发主题变化事件，便于其他组件响应
-  window.dispatchEvent(new CustomEvent('theme-changed', { 
-    detail: { theme: isDarkMode.value ? 'dark' : 'light' } 
-  }));
-}
 
-// 初始化主题
-function initTheme() {
-  const savedTheme = localStorage.getItem('tianxuan-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    isDarkMode.value = true;
-    document.documentElement.classList.add('dark');
-    document.body.classList.add('dark');
-  } else {
-    isDarkMode.value = false;
-    document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark');
-  }
-  
-  // 监听系统主题变化
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  mediaQuery.addEventListener('change', (e) => {
-    if (!localStorage.getItem('tianxuan-theme')) {
-      // 只有在用户没有手动设置主题时才跟随系统
-      isDarkMode.value = e.matches;
-      if (e.matches) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-    }
-  });
-}
 
-// 思维模型提炼算法 - 将卦象智慧转化为现代思维工具
-function generateMentalModel(hexagram: any, questionTypes: string[]): {
-  model: string;
-  principles: string[];
-  applications: string[];
-} {
-  const hexagramName = hexagram.chineseName || hexagram.name;
-  const attributes = getHexagramAttributes(hexagramName);
-  
-  if (!attributes) {
-    return {
-      model: '平衡思维模型',
-      principles: ['保持开放心态', '谨慎决策', '寻求指导'],
-      applications: ['在不确定时保持平衡', '多角度思考问题', '寻求他人建议']
-    };
-  }
-  
-  // 根据卦象属性生成思维模型
-  let model = '';
-  let principles: string[] = [];
-  let applications: string[] = [];
-  
-  if (attributes.action === '主动') {
-    model = '主动进取思维模型';
-    principles = [
-      '把握时机，主动出击',
-      '展现领导才能和创造力',
-      '在竞争中保持优势'
-    ];
-    applications = [
-      '主动承担新项目',
-      '展现个人能力',
-      '把握晋升机会'
-    ];
-  } else if (attributes.action === '顺从') {
-    model = '顺应时势思维模型';
-    principles = [
-      '顺应环境变化',
-      '保持耐心和包容',
-      '在团队中发挥价值'
-    ];
-    applications = [
-      '适应新的工作环境',
-      '耐心等待合适时机',
-      '加强团队合作'
-    ];
-  } else if (attributes.action === '合作') {
-    model = '合作共赢思维模型';
-    principles = [
-      '寻求合作机会',
-      '发挥团队优势',
-      '建立和谐关系'
-    ];
-    applications = [
-      '寻找合作伙伴',
-      '参与团队项目',
-      '建立人脉网络'
-    ];
-  } else if (attributes.action === '稳定') {
-    model = '稳扎稳打思维模型';
-    principles = [
-      '循序渐进，稳步推进',
-      '积累经验和资源',
-      '保持长期视角'
-    ];
-    applications = [
-      '制定详细计划',
-      '分步骤执行目标',
-      '持续学习和成长'
-    ];
-  } else {
-    model = '平衡调整思维模型';
-    principles = [
-      '保持动态平衡',
-      '灵活调整策略',
-      '兼顾多个目标'
-    ];
-    applications = [
-      '定期评估和调整',
-      '平衡工作和生活',
-      '寻求多赢解决方案'
-    ];
-  }
-  
-  // 根据问题类型调整应用场景
-  if (questionTypes.includes('事业')) {
-    applications = applications.map(app => app.replace('目标', '职业目标').replace('计划', '职业规划'));
-  } else if (questionTypes.includes('感情')) {
-    applications = applications.map(app => app.replace('合作', '感情交流').replace('团队', '感情关系'));
-  }
-  
-  return { model, principles, applications };
-}
-
-// 开发模式测试函数
-function testPersonalizedInsight() {
-  console.log('测试智能解读功能:', personalizedInsight.value);
-  alert('智能解读功能正常！请查看控制台输出。');
-}
-
-function testActionGuide() {
-  generateActionGuide();
-  console.log('测试行动指南功能:', actionGuide.value);
-  alert('行动指南功能正常！请查看控制台输出。');
-}
-
-function testUserFeedback() {
-  console.log('测试用户反馈功能');
-  submitFeedback('helpful');
-  alert('用户反馈功能正常！请查看控制台输出。');
-}
 
 function getYaoLabel(idx: number): string {
   const labels = ['初爻', '二爻', '三爻', '四爻', '上爻'];
   return labels[idx] || `${idx + 1}爻`;
 }
 
-// 组件挂载后初始化主题
+// 组件挂载
 onMounted(() => {
-  initTheme();
-  
-  // 监听主题变化事件
-  window.addEventListener('theme-changed', (e: any) => {
-    const { theme } = e.detail;
-    isDarkMode.value = theme === 'dark';
-  });
+  // 组件初始化逻辑（如需要）
 });
 
-// 格式化解读文本，添加HTML标签使其更易读
-function formatAnalysisText(text: string): string {
-  if (!text) return '';
-  
-  try {
-    // 检查文本是否包含格式标记如"text-primary text-lg block mt-4 mb-2"
-    if (text.includes('"text-primary') || text.includes('"block pl-4')) {
-      // 直接移除这些格式标记
+  // 格式化解读文本，添加HTML标签使其更易读（使用方案一：高亮标签 + 引用框）    
+  function formatAnalysisText(text: string): string {
+    if (!text) return '';
+
+    try {
+      // 先清理格式标记
       let cleaned = text;
-      
+
       // 移除带引号的CSS类标记
       cleaned = cleaned.replace(/"([^"]*text-[^"]*|[^"]*block[^"]*|[^"]*pl-\d+[^"]*)"/g, '""');
-      
-      // 确保文本被包裹在段落标签中
-      if (!cleaned.startsWith('<p>')) {
-        cleaned = '<p>' + cleaned;
+
+      // 移除CSS类标记，如[text-primary text-lg block mt-4 mb-2]
+      cleaned = cleaned.replace(/\[[^\]]+\]/g, '');
+
+      // 移除英文括号及其内容
+      cleaned = cleaned.replace(/\s*\([^)]*\)/g, '');
+
+      // 使用方案一的格式化工具进行关键词句突出
+      let formatted = formatContentScheme1(cleaned);
+
+      // 如果格式化后没有段落标签，添加段落标签
+      if (!formatted.includes('<p>') && !formatted.includes('<div class="interpretation-section-title">')) {
+        // 将换行符转换为段落
+        formatted = formatted
+          .replace(/\n\n+/g, '</p><p>')
+          .replace(/\n([^\n])/g, '<br>$1');
+
+        if (!formatted.startsWith('<p>') && !formatted.startsWith('<div')) {
+          formatted = '<p>' + formatted;
+        }
+        if (!formatted.endsWith('</p>') && !formatted.endsWith('</div>')) {
+          formatted = formatted + '</p>';
+        }
       }
-      if (!cleaned.endsWith('</p>')) {
-        cleaned = cleaned + '</p>';
-      }
-      
-      return cleaned;
+
+      // 在每个部分（本卦分析、动爻推演、变卦趋势、综合结论）的最后一句加粗
+      formatted = formatLastSentenceBold(formatted);
+
+      return formatted;
+    } catch (error) {
+      console.error('格式化文本时出错:', error);
+      // 发生错误时返回原始文本，但确保包含在段落标签中
+      return `<p>${text.replace(/\n/g, '<br>')}</p>`;
     }
-    
-    // 如果已经包含HTML标签，直接清理并返回
-    if (text.includes('<p>') || text.includes('<strong>') || text.includes('<span>')) {
-      return cleanFormatMarkers(text);
-    }
-    
-    // 常规文本处理
-    let processedText = text;
-    
-    // 首先移除英文括号及其内容
-    processedText = processedText.replace(/\s*\([^)]*\)/g, '');
-    
-    // 将换行符转换为HTML段落
-    let formattedText = processedText
-      .replace(/\n\n+/g, '</p><p>') // 连续多个换行作为段落分隔
-      .replace(/\n([^\n])/g, '<br>$1'); // 单个换行转为<br>
-    
-    // 为标题添加样式（如【变化分析】【具体建议】等）
-    formattedText = formattedText.replace(/【([^】]+)】/g, '<strong>【$1】</strong>');
-    
-    // 为列表项添加样式（如1. 2. 3.等）
-    formattedText = formattedText.replace(/(\d+\.\s+[^<]+)(?=<br>|<\/p>|$)/g, '<span>$1</span>');
-    
-    // 确保文本被包裹在段落中
-    if (!formattedText.startsWith('<p>')) {
-      formattedText = '<p>' + formattedText;
-    }
-    if (!formattedText.endsWith('</p>')) {
-      formattedText = formattedText + '</p>';
-    }
-    
-    return formattedText;
-  } catch (error) {
-    console.error('格式化文本时出错:', error);
-    // 发生错误时返回原始文本，但确保包含在段落标签中
-    return `<p>${text.replace(/\n/g, '<br>')}</p>`;
   }
-}
+
+  // 在每个部分的最后一句加粗
+  function formatLastSentenceBold(html: string): string {
+    // 识别各个部分的标题
+    const sectionTitles = ['本卦分析', '动爻推演', '变卦趋势', '综合结论'];
+    
+    // 按部分分割内容
+    let result = html;
+    
+    sectionTitles.forEach(title => {
+      // 查找标题位置
+      const titleRegex = new RegExp(`(${title}[^<]*</[^>]+>)`, 'gi');
+      const matches = [...result.matchAll(titleRegex)];
+      
+      if (matches.length > 0) {
+        // 从后往前处理每个匹配
+        for (let i = matches.length - 1; i >= 0; i--) {
+          const match = matches[i];
+          const titleEnd = match.index! + match[0].length;
+          
+          // 查找下一个标题或文档结尾
+          let sectionEnd = result.length;
+          for (let j = i + 1; j < matches.length; j++) {
+            if (matches[j].index! > titleEnd) {
+              sectionEnd = matches[j].index!;
+              break;
+            }
+          }
+          
+          // 提取该部分的内容
+          const sectionContent = result.substring(titleEnd, sectionEnd);
+          
+          // 查找该部分中最后一个段落或最后一个句子
+          // 先尝试找最后一个</p>标签
+          const lastPIndex = sectionContent.lastIndexOf('</p>');
+          if (lastPIndex !== -1) {
+            // 找到最后一个段落
+            const lastPStart = sectionContent.lastIndexOf('<p>', lastPIndex);
+            if (lastPStart !== -1) {
+              const paragraph = sectionContent.substring(lastPStart, lastPIndex + 4);
+              // 提取段落中的文本（去除HTML标签）
+              const textContent = paragraph.replace(/<[^>]+>/g, '');
+              
+              // 找到最后一个句子（以。！？结尾）
+              const lastSentenceMatch = textContent.match(/[^。！？]*[。！？][^。！？]*$/);
+              if (lastSentenceMatch) {
+                const lastSentence = lastSentenceMatch[0].trim();
+                if (lastSentence.length > 0) {
+                  // 在段落中加粗最后一句
+                  const boldedParagraph = paragraph.replace(
+                    new RegExp(lastSentence.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+                    `<strong style="font-weight: bold; font-size: 1.1em;">${lastSentence}</strong>`
+                  );
+                  result = result.substring(0, titleEnd + lastPStart) + 
+                          boldedParagraph + 
+                          result.substring(titleEnd + lastPIndex + 4);
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    return result;
+  }
 
 /**
  * 清理文本中的格式标记和英文内容
@@ -1425,6 +1263,91 @@ function cleanFormatMarkers(text: string): string {
 .tab-content {
   min-height: 200px;
 }
+
+/* 强制卦象图居中对齐 */
+.hexagram-center-align :deep(.hexagram-content) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .hexagram-center-align :deep(.hexagram-content) {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .hexagram-center-align :deep(.hexagram-ink-container) {
+    flex: none !important;
+    width: 100% !important;
+    max-width: 300px !important;
+  }
+  
+  .hexagram-center-align :deep(.hexagram-info) {
+    flex: none !important;
+    width: 100% !important;
+  }
+}
+
+.hexagram-center-align :deep(.hexagram-ink-container) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+.hexagram-center-align :deep(.static-hexagram) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+.hexagram-center-align :deep(.hexagram-image-wrapper) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+.hexagram-center-align :deep(.hexagram-lines-container) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+}
+
+.hexagram-center-align :deep(.hexagram-info) {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.hexagram-center-align :deep(.hexagram-name),
+.hexagram-center-align :deep(.hexagram-meta) {
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.hexagram-center-align :deep(.hexagram-meta) {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center !important;
+}
+
+.hexagram-center-align :deep(.hexagram-meta .meta-item) {
+  text-align: center !important;
+}
+
 
 /* 按钮悬停效果 */
 button:hover {
@@ -1508,121 +1431,7 @@ button:hover {
   }
 }
 
-/* 思维模型卡片动画 */
-.mental-model-card {
-  animation: slideInUp 0.6s ease-out;
-}
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 深色模式样式 */
-:deep(.dark) .divination-result {
-  background-color: #1f2937;
-  color: #f9fafb;
-}
-
-:deep(.dark) .bg-white {
-  background-color: #374151;
-}
-
-:deep(.dark) .text-gray-900 {
-  color: #f9fafb;
-}
-
-:deep(.dark) .text-gray-700 {
-  color: #d1d5db;
-}
-
-:deep(.dark) .text-gray-600 {
-  color: #9ca3af;
-}
-
-:deep(.dark) .border-gray-200 {
-  border-color: #4b5563;
-}
-
-:deep(.dark) .bg-gray-50 {
-  background-color: #374151;
-}
-
-:deep(.dark) .bg-blue-50 {
-  background-color: #1e3a8a;
-}
-
-:deep(.dark) .bg-purple-50 {
-  background-color: #581c87;
-}
-
-:deep(.dark) .bg-green-50 {
-  background-color: #14532d;
-}
-
-:deep(.dark) .bg-orange-50 {
-  background-color: #7c2d12;
-}
-
-:deep(.dark) .bg-indigo-50 {
-  background-color: #312e81;
-}
-
-/* 修复深色模式选择器 - 使用正确的类名 */
-.dark .divination-result {
-  background-color: #1f2937;
-  color: #f9fafb;
-}
-
-.dark .bg-white {
-  background-color: #374151;
-}
-
-.dark .text-gray-900 {
-  color: #f9fafb;
-}
-
-.dark .text-gray-700 {
-  color: #d1d5db;
-}
-
-.dark .text-gray-600 {
-  color: #9ca3af;
-}
-
-.dark .border-gray-200 {
-  border-color: #4b5563;
-}
-
-.dark .bg-gray-50 {
-  background-color: #374151;
-}
-
-.dark .bg-blue-50 {
-  background-color: #1e3a8a;
-}
-
-.dark .bg-purple-50 {
-  background-color: #581c87;
-}
-
-.dark .bg-green-50 {
-  background-color: #14532d;
-}
-
-.dark .bg-orange-50 {
-  background-color: #7c2d12;
-}
-
-.dark .bg-indigo-50 {
-  background-color: #312e81;
-}
 
 /* 响应式设计优化 */
 @media (max-width: 768px) {
@@ -1670,9 +1479,81 @@ button:hover {
   .divination-result > div {
     margin-bottom: 1.5rem;
   }
-  
+
   .hexagram-display {
     transform: scale(0.9);
   }
 }
-</style> 
+
+/* 方案一：高亮标签 + 引用框样式 */
+
+/* 章节标题样式 */
+:deep(.interpretation-section-title) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fbbf24;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+  padding: 12px 16px;
+  margin: 24px 0 16px 0;
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+}
+
+:deep(.section-icon) {
+  font-size: 1.5rem;
+}
+
+:deep(.section-text) {
+  flex: 1;
+}
+
+/* 易经引用样式 */
+:deep(.yijing-quote) {
+  color: #a78bfa;
+  font-style: italic;
+  background: rgba(167, 139, 250, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border-left: 3px solid #a78bfa;
+  margin: 0 2px;
+  display: inline-block;
+}
+
+/* 关键建议样式 */
+:deep(.key-advice) {
+  background: linear-gradient(120deg, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0.1) 100%);
+  color: #fde047;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+/* 结论高亮样式 */
+:deep(.conclusion-highlight) {
+  background: rgba(34, 197, 94, 0.15);
+  border-left: 4px solid #22c55e;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #86efac;
+}
+
+/* 时间徽章样式 */
+:deep(.time-badge) {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9em;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+</style>

@@ -219,7 +219,15 @@ function findHexagram(inputLines: (0 | 1)[] | number[]): Hexagram | null {
   console.log('🔍 findHexagram: 开始查找卦象', { lines, linesString: lines.join('') });
   
   console.log('🔄 findHexagram: 标准化后的爻组合:', lines);
-  
+
+  // 确保搜索的lines也是标准化的（在循环外计算，避免重复计算）
+  const normalizedSearchLines: (0 | 1)[] = lines.map(line => {
+    if (line === 0) return 0;
+    if (line === 1) return 1;
+    const num = Number(line);
+    return num > 0 ? 1 : 0;
+  });
+
   // 从hexagrams.json查找匹配的卦象
   const hexagram = hexagramsData.find((h, index) => {
     if (!h || !h.lines || !Array.isArray(h.lines) || h.lines.length !== 6) {
@@ -227,14 +235,18 @@ function findHexagram(inputLines: (0 | 1)[] | number[]): Hexagram | null {
       return false;
     }
     
-    // 直接比较原始数据，避免标准化导致的数据不一致
-      const isMatch = h.lines.every((line, index) => {
-        const actualLine = lines[index];
-        // 确保双方都是 (0 | 1) 类型
-        const normalizedLine = Number(line) > 0 ? 1 : 0;
-        const normalizedActualLine = actualLine;
-        return normalizedLine === normalizedActualLine;
-      });
+    // 标准化双方数据进行比较
+    const normalizedHexagramLines: (0 | 1)[] = h.lines.map(line => {
+      if (line === 0) return 0;
+      if (line === 1) return 1;
+      const num = Number(line);
+      return num > 0 ? 1 : 0;
+    });
+
+    const isMatch = normalizedHexagramLines.every((hexLine, index) => {
+      const searchLine = normalizedSearchLines[index];
+      return hexLine === searchLine;
+    });
     
     if (isMatch) {
       console.log('✅ findHexagram: 找到匹配卦象:', { 
@@ -250,21 +262,27 @@ function findHexagram(inputLines: (0 | 1)[] | number[]): Hexagram | null {
     return isMatch;
   });
   
-  if (!hexagram) {
-    console.error('❌ findHexagram: 未找到匹配的卦象');
-    console.log('📋 详细调试信息:', {
-      searchLines: lines,
-      searchLinesString: lines.join(''),
-      availableCount: hexagramsData.length,
-      firstFewHexagrams: hexagramsData.slice(0, 5).map((h, index) => ({
-        index,
-        name: h?.name || 'undefined',
-        chineseName: h?.chineseName || 'undefined',
-        sequence: h?.sequence || 'undefined',
-        lines: h?.lines || 'undefined',
-        linesString: Array.isArray(h?.lines) ? h.lines.join('') : 'not-array'
-      }))
-    });
+    if (!hexagram) {
+      console.error('❌ findHexagram: 未找到匹配的卦象');
+      console.log('📋 详细调试信息:', {
+        searchLines: lines,
+        searchLinesString: lines.join(''),
+        normalizedSearchLines: normalizedSearchLines.join(''),
+        availableCount: hexagramsData.length,
+        firstFewHexagrams: hexagramsData.slice(0, 5).map((h, index) => ({
+          index,
+          name: h?.name || 'undefined',
+          chineseName: h?.chineseName || 'undefined',
+          sequence: h?.sequence || 'undefined',
+          lines: h?.lines || 'undefined',
+          linesString: Array.isArray(h?.lines) ? h.lines.join('') : 'not-array',
+          normalizedLines: Array.isArray(h?.lines) ? h.lines.map((l: any) => {
+            if (l === 0) return 0;
+            if (l === 1) return 1;
+            return Number(l) > 0 ? 1 : 0;
+          }).join('') : 'not-array'
+        }))
+      });
     
     // 尝试查找相似的卦象作为调试信息
     const similarHexagrams = hexagramsData.filter(h => {
@@ -1035,14 +1053,21 @@ export async function generateHexagram(optionA: string, optionB: string, seed: n
       (lineResult.changing ? 6 : 8);
     results.push(numericValue);
     
-    // 如果是变爻，记录位置
-    if (lineResult.changing) {
-      changingLines.push(i);
+      // 如果是变爻，记录位置
+      if (lineResult.changing) {
+        changingLines.push(i);
+        console.log(`🔄 生成变爻: 第${i + 1}爻 (${lineResult.line === 1 ? '老阳' : '老阴'})`);
+      }
     }
-  }
-  
-  // 查找对应的卦象 - 使用原始爻值（0或1）组成的数组
-  const currentHexagram = await generateHexagramFromLines(lines as (0 | 1)[]);
+
+    console.log(`📊 生成的爻组合:`, {
+      lines: lines.join(''),
+      changingLinesCount: changingLines.length,
+      changingLinesPositions: changingLines.map(i => i + 1).join('、') || '无'
+    });
+
+    // 查找对应的卦象 - 使用原始爻值（0或1）组成的数组
+    const currentHexagram = await generateHexagramFromLines(lines as (0 | 1)[]);
   
   if (!currentHexagram) {
     throw new Error('生成卦象失败');

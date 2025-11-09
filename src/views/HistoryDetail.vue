@@ -183,8 +183,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { UserStatsService } from '../services/userStatsService';
+import { UserStatsService } from '../services/userStatsService';  
 import type { HistoryItem } from '../services/historyService';
+import { formatContent as formatContentScheme1 } from '../utils/contentFormatter';
 
 const route = useRoute();
 const router = useRouter();
@@ -311,9 +312,10 @@ const handleImageError = (event: Event) => {
   img.src = '/src/assets/new-card-back.png';
 };
 
-// 格式化内容（将换行符转换为HTML）
+// 格式化内容（使用方案一：高亮标签 + 引用框）
 const formatContent = (content: string) => {
-  return content.replace(/\n/g, '<br>');
+  if (!content) return '';
+  return formatContentScheme1(content);
 };
 
 onMounted(() => {
@@ -328,5 +330,76 @@ onMounted(() => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+/* 方案一：高亮标签 + 引用框样式 */
+
+/* 章节标题样式 */
+:deep(.interpretation-section-title) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fbbf24;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+  padding: 12px 16px;
+  margin: 24px 0 16px 0;
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+}
+
+:deep(.section-icon) {
+  font-size: 1.5rem;
+}
+
+:deep(.section-text) {
+  flex: 1;
+}
+
+/* 易经引用样式 */
+:deep(.yijing-quote) {
+  color: #a78bfa;
+  font-style: italic;
+  background: rgba(167, 139, 250, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border-left: 3px solid #a78bfa;
+  margin: 0 2px;
+  display: inline-block;
+}
+
+/* 关键建议样式 */
+:deep(.key-advice) {
+  background: linear-gradient(120deg, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0.1) 100%);
+  color: #fde047;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+/* 结论高亮样式 */
+:deep(.conclusion-highlight) {
+  background: rgba(34, 197, 94, 0.15);
+  border-left: 4px solid #22c55e;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #86efac;
+}
+
+/* 时间徽章样式 */
+:deep(.time-badge) {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9em;
+  display: inline-block;
+  margin: 0 2px;
 }
 </style> 

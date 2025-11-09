@@ -1,6 +1,6 @@
  
 
-// 定义历史记录条目的类型
+  // 定义历史记录条目的类型
 export interface HistoryItem {
     id: string;
     type: 'fortune' | 'jiaoBei' | 'divination' | 'tarot'; // 功能类型
@@ -8,6 +8,7 @@ export interface HistoryItem {
     question?: string; // 用户提出的问题
     result: any; // 结果数据对象，具体结构取决于功能
     title: string; // 根据结果生成的简短标题
+    supabase_id?: string; // Supabase中的ID（如果已同步）
   }
   
   const HISTORY_STORAGE_KEY = 'tianxuan_history';
@@ -108,106 +109,157 @@ export interface HistoryItem {
   };
   
   /**
-   * 向LocalStorage添加一条新的历史记录
+   * 向LocalStorage添加一条新的历史记录，并尝试保存到Supabase
    * @param item - 要添加的条目，不需要id
    */
-  const addHistoryItem = (item: Omit<HistoryItem, 'id'>): Promise<HistoryItem> => {
-    return new Promise((resolve, reject) => {
-      // 验证输入
-      if (!validateHistoryItem(item)) {
-        const error = new Error('Invalid history item provided');
-        console.error('❌ Validation failed for new history item:', item);
-        reject(error);
-        return;
-      }
+  const addHistoryItem = async (item: Omit<HistoryItem, 'id'>): Promise<HistoryItem> => {                                                                             
+    // 验证输入
+    if (!validateHistoryItem(item)) {
+      const error = new Error('Invalid history item provided');
+      console.error('❌ Validation failed for new history item:', item);      
+      throw error;
+    }
+
+    // 先保存到localStorage（确保即使Supabase失败也能保存）
+    const result = safeLocalStorageOperation(
+      () => {
+        console.log('💾 Adding new history item:', item.title);
+
+        const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
+        const currentHistory: HistoryItem[] = rawData ? JSON.parse(rawData) : [];                                                                             
+
+        const newItem: HistoryItem = {
+          ...item,
+          id: simpleUUID(),
+          date: item.date || new Date().toISOString(), // 确保日期存在        
+        };
+
+        console.log('📝 Generated ID for new item:', newItem.id);
+
+        currentHistory.unshift(newItem); // 添加到数组开头
+
+        const serializedData = JSON.stringify(currentHistory);
+        localStorage.setItem(HISTORY_STORAGE_KEY, serializedData);
+
+        console.log('✅ History item saved to localStorage');
+        console.log(`📊 Total history items: ${currentHistory.length}`);      
+
+        return newItem;
+      },
+      null,
+      'Add history item'
+    );
+
+    if (!result) {
+      throw new Error('Failed to save history item to localStorage');       
+    }
+
+    // 尝试保存到Supabase（异步，不影响localStorage保存）
+    try {
+      const { default: DivinationHistoryService } = await import('./divinationHistoryService');
       
-      const result = safeLocalStorageOperation(
-        () => {
-          console.log('💾 Adding new history item:', item.title);
-          
-          const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
-          const currentHistory: HistoryItem[] = rawData ? JSON.parse(rawData) : [];
-          
-          const newItem: HistoryItem = {
-            ...item,
-            id: simpleUUID(),
-            date: item.date || new Date().toISOString(), // 确保日期存在
-          };
-          
-          console.log('📝 Generated ID for new item:', newItem.id);
-          
-          currentHistory.unshift(newItem); // 添加到数组开头
-          
-          const serializedData = JSON.stringify(currentHistory);
-          localStorage.setItem(HISTORY_STORAGE_KEY, serializedData);
-          
-          console.log('✅ History item saved to localStorage');
-          console.log(`📊 Total history items: ${currentHistory.length}`);
-          
-          return newItem;
-        },
-        null,
-        'Add history item'
-      );
+      // 转换类型
+      const supabaseType = DivinationHistoryService.convertTypeToSupabase(item.type);
       
-      if (result) {
-        resolve(fakeAsync(result));
-      } else {
-        reject(new Error('Failed to save history item to localStorage'));
+      // 保存到Supabase
+      const supabaseItem = await DivinationHistoryService.saveToSupabase({
+        type: supabaseType,
+        question: item.question,
+        result: item.result
+      });
+
+      if (supabaseItem) {
+        // 更新localStorage中的记录，添加supabase_id
+        result.supabase_id = supabaseItem.id;
+        const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
+        if (rawData) {
+          const currentHistory: HistoryItem[] = JSON.parse(rawData);
+          const index = currentHistory.findIndex(h => h.id === result.id);
+          if (index !== -1) {
+            currentHistory[index] = result;
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(currentHistory));
+          }
+        }
+        console.log('✅ History item also saved to Supabase:', supabaseItem.id);
       }
-    });
+    } catch (error) {
+      // Supabase保存失败不影响localStorage保存
+      console.warn('⚠️ Failed to save to Supabase, but localStorage save succeeded:', error);
+    }
+
+    return fakeAsync(result);
   };
   
   /**
-   * 从LocalStorage删除一条历史记录
+   * 从LocalStorage删除一条历史记录，并尝试从Supabase删除
    * @param id - 要删除的条目的ID
    */
-  const removeHistoryItem = (id: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (!id || typeof id !== 'string') {
-        const error = new Error('Invalid ID provided for removal');
-        console.error('❌ Invalid ID for removal:', id);
-        reject(error);
-        return;
+  const removeHistoryItem = async (id: string): Promise<void> => {
+    if (!id || typeof id !== 'string') {
+      const error = new Error('Invalid ID provided for removal');
+      console.error('❌ Invalid ID for removal:', id);
+      throw error;
+    }
+
+    // 先获取记录，以便从Supabase删除
+    let supabaseId: string | undefined;
+    const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (rawData) {
+      const currentHistory: HistoryItem[] = JSON.parse(rawData);
+      const item = currentHistory.find(h => h.id === id);
+      if (item && item.supabase_id) {
+        supabaseId = item.supabase_id;
       }
-      
-      const success = safeLocalStorageOperation(
-        () => {
-          console.log('🗑️ Removing history item with ID:', id);
-          
-          const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
-          if (!rawData) {
-            console.log('📚 No history data found for removal');
-            return true; // Not an error, just empty
-          }
-          
-          let currentHistory: HistoryItem[] = JSON.parse(rawData);
-          const initialLength = currentHistory.length;
-          
-          currentHistory = currentHistory.filter(item => item.id !== id);
-          
-          if (currentHistory.length === initialLength) {
-            console.warn('⚠️ Item with ID not found for removal:', id);
-            return false;
-          }
-          
-          localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(currentHistory));
-          
-          console.log('✅ History item removed from localStorage');
-          console.log(`📊 Remaining history items: ${currentHistory.length}`);
-          
-          return true;
-        },
-        false,
-        'Remove history item'
-      );
-      
-      if (success) {
-        resolve(fakeAsync(undefined));
-      } else {
-        reject(new Error('Failed to remove history item'));
+    }
+
+    // 从localStorage删除
+    const success = safeLocalStorageOperation(
+      () => {
+        console.log('🗑️ Removing history item with ID:', id);
+
+        if (!rawData) {
+          console.log('📚 No history data found for removal');
+          return true; // Not an error, just empty
+        }
+
+        let currentHistory: HistoryItem[] = JSON.parse(rawData);
+        const initialLength = currentHistory.length;
+
+        currentHistory = currentHistory.filter(item => item.id !== id);       
+
+        if (currentHistory.length === initialLength) {
+          console.warn('⚠️ Item with ID not found for removal:', id);
+          return false;
+        }
+
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(currentHistory));                                                                            
+
+        console.log('✅ History item removed from localStorage');
+        console.log(`📊 Remaining history items: ${currentHistory.length}`);  
+
+        return true;
+      },
+      false,
+      'Remove history item'
+    );
+
+    if (!success) {
+      throw new Error('Failed to remove history item');
+    }
+
+    // 尝试从Supabase删除（异步，不影响localStorage删除）
+    if (supabaseId) {
+      try {
+        const { default: DivinationHistoryService } = await import('./divinationHistoryService');
+        await DivinationHistoryService.deleteFromSupabase(supabaseId);
+        console.log('✅ History item also removed from Supabase:', supabaseId);
+      } catch (error) {
+        // Supabase删除失败不影响localStorage删除
+        console.warn('⚠️ Failed to remove from Supabase, but localStorage removal succeeded:', error);
       }
-    });
+    }
+
+    return fakeAsync(undefined);
   };
   
   /**

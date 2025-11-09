@@ -370,7 +370,8 @@ function getAttributeScore(value: any): number {
 // 生成个性化解读建议
 export function generatePersonalizedAdvice(
   hexagramName: string,
-  questionTypes: string[]
+  questionTypes: string[],
+  userQuestion?: string
 ): {
   advice: string;
   confidence: number;
@@ -388,29 +389,104 @@ export function generatePersonalizedAdvice(
   const matchScore = calculateHexagramMatch(hexagramName, questionTypes);
   const confidence = Math.min(matchScore + 0.2, 1.0); // 基础信心提升
   
-  // 根据问题类型生成建议
+  // 根据用户具体问题生成针对性建议
   let advice = '';
   let actionItems: string[] = [];
   
-  if (questionTypes.includes('事业')) {
-    advice = generateCareerAdvice(attributes);
-    actionItems = generateCareerActions(attributes);
-  } else if (questionTypes.includes('感情')) {
-    advice = generateLoveAdvice(attributes);
-    actionItems = generateLoveActions(attributes);
-  } else if (questionTypes.includes('决策辅助')) {
-    advice = generateDecisionAdvice(attributes);
-    actionItems = generateDecisionActions(attributes);
+  if (userQuestion) {
+    // 分析用户问题的关键词
+    const questionKeywords = analyzeQuestionKeywords(userQuestion);
+    
+    if (questionKeywords.includes('公务员') || questionKeywords.includes('遴选') || questionKeywords.includes('考试')) {
+      advice = generateCivilServiceAdvice(attributes, userQuestion);
+      actionItems = generateCivilServiceActions(attributes);
+    } else if (questionKeywords.includes('工作') || questionKeywords.includes('跳槽') || questionKeywords.includes('升职')) {
+      advice = generateCareerAdvice(attributes, userQuestion);
+      actionItems = generateCareerActions(attributes);
+    } else if (questionKeywords.includes('感情') || questionKeywords.includes('恋爱') || questionKeywords.includes('分手')) {
+      advice = generateLoveAdvice(attributes, userQuestion);
+      actionItems = generateLoveActions(attributes);
+    } else if (questionKeywords.includes('投资') || questionKeywords.includes('理财') || questionKeywords.includes('买房')) {
+      advice = generateFinancialAdvice(attributes, userQuestion);
+      actionItems = generateFinancialActions(attributes);
+    } else {
+      advice = generateGeneralAdvice(attributes, userQuestion);
+      actionItems = generateGeneralActions(attributes);
+    }
   } else {
-    advice = generateGeneralAdvice(attributes);
-    actionItems = generateGeneralActions(attributes);
+    // 如果没有具体问题，使用原来的逻辑
+    if (questionTypes.includes('事业')) {
+      advice = generateCareerAdvice(attributes);
+      actionItems = generateCareerActions(attributes);
+    } else if (questionTypes.includes('感情')) {
+      advice = generateLoveAdvice(attributes);
+      actionItems = generateLoveActions(attributes);
+    } else if (questionTypes.includes('决策辅助')) {
+      advice = generateDecisionAdvice(attributes);
+      actionItems = generateDecisionActions(attributes);
+    } else {
+      advice = generateGeneralAdvice(attributes);
+      actionItems = generateGeneralActions(attributes);
+    }
   }
   
   return { advice, confidence, actionItems };
 }
 
-// 生成事业建议
-function generateCareerAdvice(attributes: HexagramAttributes): string {
+// 分析问题关键词
+function analyzeQuestionKeywords(question: string): string[] {
+  const keywords = [];
+  const lowerQuestion = question.toLowerCase();
+  
+  // 事业相关
+  if (lowerQuestion.includes('公务员') || lowerQuestion.includes('遴选') || lowerQuestion.includes('考试')) {
+    keywords.push('公务员', '遴选', '考试');
+  }
+  if (lowerQuestion.includes('工作') || lowerQuestion.includes('跳槽') || lowerQuestion.includes('升职')) {
+    keywords.push('工作', '跳槽', '升职');
+  }
+  
+  // 感情相关
+  if (lowerQuestion.includes('感情') || lowerQuestion.includes('恋爱') || lowerQuestion.includes('分手')) {
+    keywords.push('感情', '恋爱', '分手');
+  }
+  
+  // 财务相关
+  if (lowerQuestion.includes('投资') || lowerQuestion.includes('理财') || lowerQuestion.includes('买房')) {
+    keywords.push('投资', '理财', '买房');
+  }
+  
+  return keywords;
+}
+
+// 生成公务员相关建议
+function generateCivilServiceAdvice(attributes: HexagramAttributes, question: string): string {
+  if (attributes.action === '主动') {
+    return `基于"${attributes.personality.join('、')}"的特质，建议你积极准备公务员遴选。当前时机有利于展现你的能力和决心，应该主动出击，充分准备考试。`;
+  } else if (attributes.action === '顺从') {
+    return `当前阶段需要稳扎稳打，循序渐进。建议你系统性地准备公务员遴选，不要急于求成，要注重基础知识的积累和能力的提升。`;
+  } else {
+    return `基于卦象的"${attributes.personality.join('、')}"特质，建议你在准备公务员遴选时保持平衡，既要积极准备，也要保持心态平和。`;
+  }
+}
+
+// 生成公务员相关行动建议
+function generateCivilServiceActions(attributes: HexagramAttributes): string[] {
+  const actions = [];
+  
+  if (attributes.action === '主动') {
+    actions.push('制定详细的备考计划', '主动寻找学习资源和指导', '积极参加模拟考试');
+  } else if (attributes.action === '顺从') {
+    actions.push('系统学习基础知识', '循序渐进提升能力', '保持稳定的学习节奏');
+  } else {
+    actions.push('平衡学习和休息', '寻求专业指导', '保持积极心态');
+  }
+  
+  return actions;
+}
+
+  // 生成事业建议
+  function generateCareerAdvice(attributes: HexagramAttributes, question?: string): string {
   if (attributes.action === '主动') {
     return `"${attributes.personality.join('、')}"的特质非常适合当前的事业发展。建议主动出击，把握机会，展现你的领导才能。`;
   } else if (attributes.action === '顺从') {
@@ -435,8 +511,8 @@ function generateCareerActions(attributes: HexagramAttributes): string[] {
   return actions;
 }
 
-// 生成感情建议
-function generateLoveAdvice(attributes: HexagramAttributes): string {
+  // 生成感情建议
+  function generateLoveAdvice(attributes: HexagramAttributes, question?: string): string {
   if (attributes.energy === '上升') {
     return `感情运势正在上升，适合主动表达和追求。保持"${attributes.personality.join('、')}"的特质，真诚对待感情。`;
   } else if (attributes.energy === '稳定') {
@@ -449,7 +525,7 @@ function generateLoveAdvice(attributes: HexagramAttributes): string {
 // 生成感情行动建议
 function generateLoveActions(attributes: HexagramAttributes): string[] {
   const actions = [];
-  
+
   if (attributes.energy === '上升') {
     actions.push('主动表达感情', '参加社交活动', '展现个人魅力');
   } else if (attributes.energy === '稳定') {
@@ -457,7 +533,37 @@ function generateLoveActions(attributes: HexagramAttributes): string[] {
   } else {
     actions.push('保持耐心', '提升个人魅力', '扩展社交圈');
   }
-  
+
+  return actions;
+}
+
+// 生成财务/投资建议
+function generateFinancialAdvice(attributes: HexagramAttributes, question?: string): string {
+  if (attributes.timing === '适合行动') {
+    return `当前时机适合进行投资理财，建议把握机会。利用"${attributes.personality.join('、')}"的特质，谨慎而果断地进行财务规划。`;
+  } else if (attributes.timing === '适合等待') {
+    return `当前投资时机还不成熟，建议保持观望。利用"${attributes.personality.join('、')}"的特质，等待市场稳定后再做决策。`;
+  } else if (attributes.fortune === '大吉' || attributes.fortune === '中吉') {
+    return `财务运势较为有利，但需要理性分析。基于"${attributes.personality.join('、')}"的特质，建议稳健投资，避免过度冒险。`;
+  } else {
+    return `财务方面需要谨慎，建议保持稳健策略。利用"${attributes.personality.join('、')}"的特质，做好风险管理，避免冲动决策。`;
+  }
+}
+
+// 生成财务/投资行动建议
+function generateFinancialActions(attributes: HexagramAttributes): string[] {
+  const actions = [];
+
+  if (attributes.timing === '适合行动') {
+    actions.push('研究投资标的', '制定理财计划', '把握投资机会');
+  } else if (attributes.timing === '适合等待') {
+    actions.push('保持现金储备', '观察市场动态', '等待合适时机');
+  } else if (attributes.fortune === '大吉' || attributes.fortune === '中吉') {
+    actions.push('稳健投资', '分散风险', '定期评估');
+  } else {
+    actions.push('谨慎理财', '控制支出', '寻求专业建议');
+  }
+
   return actions;
 }
 
@@ -487,8 +593,8 @@ function generateDecisionActions(attributes: HexagramAttributes): string[] {
   return actions;
 }
 
-// 生成通用建议
-function generateGeneralAdvice(attributes: HexagramAttributes): string {
+  // 生成通用建议
+  function generateGeneralAdvice(attributes: HexagramAttributes, question?: string): string {
   return `基于"${attributes.personality.join('、')}"的特质，当前情况需要你保持${attributes.action}的态度。结果会是${attributes.fortune}的，建议${attributes.timing}。`;
 }
 
@@ -505,4 +611,42 @@ function generateGeneralActions(attributes: HexagramAttributes): string[] {
   }
   
   return actions;
+}
+
+// 安全获取属性：当映射缺失时返回保守默认，避免编码损坏导致的空值使用
+export function getSafeHexagramAttributes(hexagramName: string) {
+  const fallback = {
+    nature: '中性',
+    element: '土',
+    personality: ['稳健'],
+    action: '稳定',
+    fortune: '中平',
+    suitableFor: ['思考','准备'],
+    avoidFor: ['冒进'],
+    timing: '适合等待',
+    energy: '平稳'
+  } as const;
+  try {
+    const v = (hexagramAttributesMap as any)[hexagramName];
+    if (!v || typeof v !== 'object') return fallback;
+    return v;
+  } catch {
+    return fallback;
+  }
+}
+
+// 基于之卦给出过渡提示（仅文本辅助，不影响算法），用纯字符串避免依赖损坏的中文常量
+export function getTransitionAdvice(currentName: string, relatedName?: string | null, changingCount?: number): string {
+  if (!relatedName) {
+    return '当前为稳定态，先小范围验证，再推进。';
+  }
+  const cc = typeof changingCount === 'number' && changingCount > 0 ? `（含${changingCount}条变爻）` : '';
+  const key = `${currentName}->${relatedName}`;
+  const table: Record<string, string> = {
+    '乾->泰': '由刚进转为通达协同，宜团队推进',
+    '否->泰': '否极泰来，建议先整顿后推进',
+    '坎->比': '险转为亲比，宜结伴协作',
+    '艮->需': '由止转为待机，收敛等待窗口'
+  };
+  return table[key] ? `${table[key]}${cc}` : `从"${currentName}"转"${relatedName}"${cc}，关注节奏与时机。`;
 }

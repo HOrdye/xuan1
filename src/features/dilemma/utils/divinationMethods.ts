@@ -1,11 +1,12 @@
 /**
  * 六十四卦占卜方法实现
- * 包括铜钱占卜法、梅花易数和随机起卦法
+ * 包括铜钱占卜法、梅花易数
+ * 已删除随机起卦法，统一使用传统易经逻辑
  */
 
-import { Hexagram, Trigram, AnalysisResult, CoinResult, PlumBlossomResult, SixCoinsResult, PlumBlossomParams } from '../types';
+import { Hexagram, Trigram, AnalysisResult, CoinResult, PlumBlossomResult, SixCoinsResult, PlumBlossomParams } from '../types';                                 
 import { loadAllHexagrams } from './loadHexagrams';
-import { Random } from '../utils/Random';
+import { generateTraditionalAnalysisCoin, generateTraditionalAnalysisPlumBlossom } from './traditionalAnalysis';
 
 // 八卦数据（先天八卦数列）
 const TRIGRAMS: Trigram[] = [
@@ -294,7 +295,35 @@ export async function plumBlossomDivination(params: PlumBlossomParams): Promise<
 }
 
 /**
- * 随机起卦法（简易现代法）
+ * 生成完整的占卜分析结果（包含传统逻辑分析）
+ * 此函数不直接删除，但已标记为废弃，改为使用coinDivination和plumBlossomDivination
+ */
+export async function generateAnalysisResultWithTraditionalLogic(
+  hexagram: Hexagram,
+  changingLines: number[],
+  relatedHexagram: Hexagram | null,
+  method: 'coin' | 'plumBlossom',
+  question?: string
+): Promise<AnalysisResult> {
+  // 生成传统逻辑分析
+  const traditionalAnalysis = method === 'coin'
+    ? generateTraditionalAnalysisCoin(hexagram, changingLines, relatedHexagram)
+    : generateTraditionalAnalysisPlumBlossom(hexagram, changingLines, relatedHexagram);
+
+  return {
+    hexagram,
+    changingLines,
+    relatedHexagram,
+    analysis: '', // 由AI生成，这里先留空
+    question,
+    method,
+    traditionalAnalysis
+  };
+}
+
+/**
+ * 随机起卦法（已删除，请使用铜钱法或梅花易数）
+ * @deprecated 此方法已废弃，请使用coinDivination或plumBlossomDivination
  */
 export async function randomDivination(question: string): Promise<AnalysisResult> {
   // 确保数据已加载

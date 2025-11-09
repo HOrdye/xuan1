@@ -71,7 +71,7 @@
     <!-- 功能卡片 -->
     <section class="features-grid">
       <!-- To be or not to be -->
-      <div class="feature-card" @click="navigateTo('/dilemma')">
+      <router-link to="/dilemma" class="feature-card block">
         <div class="feature-icon">
           ⚖️
         </div>
@@ -81,10 +81,10 @@
           输入你的困惑，让玄学给你点灵感
         </p>
         <div class="interaction-hint">点我试试</div>
-      </div>
+      </router-link>
 
       <!-- 今日运势 -->
-      <div class="feature-card" @click="navigateTo('/fortune')">
+      <router-link to="/fortune" class="feature-card block">
         <div class="feature-icon">
           ⭐
         </div>
@@ -94,10 +94,10 @@
           不是"今天宜出门"，而是"今天宜尝试燕麦拿铁"
         </p>
         <div class="interaction-hint">解锁今日签</div>
-      </div>
+      </router-link>
 
       <!-- 掐指一算 -->
-      <div class="feature-card" @click="navigateTo('/dilemma/divination')">
+      <router-link to="/dilemma/divination" class="feature-card block">
         <div class="feature-icon">
           ☯️
         </div>
@@ -107,10 +107,10 @@
           铜钱、梅花、随机起卦，仪式感满满
         </p>
         <div class="interaction-hint">开始占卜</div>
-      </div>
+      </router-link>
 
       <!-- 笅杯占卜 -->
-      <div class="feature-card" @click="navigateTo('/dilemma/divination?method=jiaobei')">
+      <router-link to="/jiaobei" class="feature-card block">
         <div class="feature-icon">
           🎲
         </div>
@@ -120,10 +120,10 @@
           正反面决定吉凶，简单直接不纠结
         </p>
         <div class="interaction-hint">掷杯问卜</div>
-      </div>
+      </router-link>
 
       <!-- 塔罗牌阵 -->
-      <div class="feature-card" @click="navigateTo('/tarot')">
+      <router-link to="/tarot" class="feature-card block">
         <div class="feature-icon">
           ✨
         </div>
@@ -133,10 +133,10 @@
           每张牌都有独特的解读，像读故事一样有趣
         </p>
         <div class="interaction-hint premium">解锁故事</div>
-      </div>
+      </router-link>
 
       <!-- 六十四卦 -->
-      <div class="feature-card" @click="navigateTo('/hexagrams')">
+      <router-link to="/hexagrams" class="feature-card block">
         <div class="feature-icon">
           📚
         </div>
@@ -146,7 +146,7 @@
           每个卦象都有详细的故事和启示
         </p>
         <div class="interaction-hint">探索卦象</div>
-      </div>
+      </router-link>
     </section>
   </div>
 </template>
@@ -184,6 +184,7 @@ const generateNewChallenge = () => {
   }
 };
 
+// 使用 router-link 进行导航，避免点击热区错位
 const navigateTo = (path: string) => {
   router.push(path);
 };
@@ -732,6 +733,7 @@ onUnmounted(() => {
   cursor: pointer;
   backdrop-filter: blur(10px);
   overflow: hidden;
+  isolation: isolate; /* 防止角标/光效跨卡片覆盖，避免点击误触 */
 }
 
 .feature-card:hover {

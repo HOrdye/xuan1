@@ -1,0 +1,17 @@
+# Enforce UTF-8 text encoding and normalize EOLs
+*.ts text eol=lf working-tree-encoding=UTF-8
+*.tsx text eol=lf working-tree-encoding=UTF-8
+*.js text eol=lf working-tree-encoding=UTF-8
+*.vue text eol=lf working-tree-encoding=UTF-8
+*.json text eol=lf working-tree-encoding=UTF-8
+*.md text eol=lf working-tree-encoding=UTF-8
+*.css text eol=lf working-tree-encoding=UTF-8
+*.scss text eol=lf working-tree-encoding=UTF-8
+
+# Keep images/binaries untouched
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.gif -text
+*.svg -text
+*.ico -text

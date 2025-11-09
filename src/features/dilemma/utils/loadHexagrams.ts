@@ -97,7 +97,7 @@ export async function loadAllHexagrams(): Promise<Hexagram[]> {
         attribute: hexagramData.nature ? hexagramData.nature.split('上')[0] : hexagramData.name, // 从 nature 提取属性
         nature: hexagramData.nature || '',
         description: hexagramData.description || '',
-        overall: hexagramData.description || '' // 使用 description 作为 overall
+        overall: hexagramData.overall || '' // 象辞，使用overall字段（不是description）
       });
         
         console.log(`✅ 成功解析卦象: ${hexagramData.sequence} - ${hexagramData.name}`);

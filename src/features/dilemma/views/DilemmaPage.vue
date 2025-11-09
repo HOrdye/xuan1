@@ -106,13 +106,6 @@
         
         <!-- 操作按钮 -->
         <div class="action-section">
-          <div class="analysis-toggle">
-            <label class="toggle-switch">
-              <input v-model="useMultipleAlgorithms" type="checkbox" class="toggle-input">
-              <span class="toggle-slider"></span>
-              <span class="toggle-label">开启玄学Plus模式</span>
-            </label>
-          </div>
           <button 
             @click="startAnalysis" 
             class="analyze-button"
@@ -143,7 +136,7 @@
         
         <div class="result-content">
           <!-- 天玄智慧解读 - 优雅的标题，不再暴露技术细节 -->
-          <div v-if="analysisResult.analysis && useMultipleAlgorithms" class="scenario-analysis-section mb-8">
+          <div v-if="analysisResult.analysis" class="scenario-analysis-section mb-8">
             <div class="section-header text-center mb-6">
               <h3 class="text-3xl font-bold text-gray-800 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ✨ 天玄智慧解读
@@ -152,17 +145,18 @@
             </div>
             
             <!-- 使用重构后的场景化分析组件 -->
-            <ScenarioAnalysisResult 
-              v-if="processedScenarioResult"
-              :result="{
-                question: `${optionA} vs ${optionB}`,
-                hexagramSymbol: analysisResult.hexagram?.symbol,
-                hexagramName: analysisResult.hexagram?.chineseName,
-                changingHexagramSymbol: analysisResult.relatedHexagram?.symbol,
-                changingHexagramName: analysisResult.relatedHexagram?.chineseName,
-                ...processedScenarioResult
-              }"
-            />
+              <ScenarioAnalysisResult
+                v-if="processedScenarioResult"
+                :result="{
+                  question: `${optionA} vs ${optionB}`,
+                  hexagramSymbol: analysisResult.hexagram?.symbol,
+                  hexagramName: analysisResult.hexagram?.chineseName,
+                  changingHexagramSymbol: analysisResult.relatedHexagram?.symbol,
+                  changingHexagramName: analysisResult.relatedHexagram?.chineseName,
+                  changingLines: analysisResult.changingLines || [],
+                  ...processedScenarioResult
+                }"
+              />
           </div>
           
         </div>
@@ -227,19 +221,22 @@ import { LLMService } from '../../../services/LLMService';
 import { ScenarioAnalyzer } from '../utils/scenarioAnalyzer';
 import ScenarioAnalysisResult from '../components/ScenarioAnalysisResult.vue';
 import { UserInfoSharingService } from '../../../services/UserInfoSharingService';
+import { generateTraditionalAnalysisCoin } from '../utils/traditionalAnalysis';
+import type { TraditionalAnalysis } from '../types';
 
 // 表单数据
-const optionA = ref('');
-const optionB = ref('');
-const question = ref(''); // 添加问题输入
-const useMultipleAlgorithms = ref(false);
+  const optionA = ref('');
+  const optionB = ref('');
+  const question = ref(''); // 添加问题输入
+  // 始终启用AI解读模式（已删除Plus模式开关）
+  const useMultipleAlgorithms = ref(true);
 const showError = ref(false);
 const showResult = ref(false);
 const analysisResult = ref<AnalysisResult | null>(null);
 const processedScenarioResult = ref<any>(null); // 场景化分析结果
 
 // 场景化AI解读函数
-async function getScenarioBasedAnalysis(hexagram: any, scenario: any): Promise<string> {
+async function getScenarioBasedAnalysis(hexagram: any, scenario: any, traditionalAnalysis?: TraditionalAnalysis): Promise<string> {
   try {
     // 准备卦象信息
     const hexagramInfo = {
@@ -260,11 +257,12 @@ async function getScenarioBasedAnalysis(hexagram: any, scenario: any): Promise<s
     };
 
     // 调用LLMService的场景化解读
-    const aiResponse = await LLMService.getScenarioBasedDilemmaInterpretation(
+    const aiResponse = await LLMService.getScenarioBasedDilemmaInterpretation(  
       optionA.value,
       optionB.value,
       scenario,
-      hexagramInfo
+      hexagramInfo,
+      traditionalAnalysis  // ⭐ 传递传统逻辑分析
     );
 
     console.log('🔍 [内容传递验证] AI原始响应:', aiResponse);
@@ -468,20 +466,32 @@ const startAnalysis = async () => {
     console.log('🎲 生成种子:', seed);
     console.log('🔮 开始调用generateHexagram...');
     
-    // 生成卦象并分析，传入种子
-    const result = await generateHexagram(
-      optionA.value,
-      optionB.value,
-      seed,
-      useMultipleAlgorithms.value
-    );
+      // 生成卦象并分析，传入种子（始终使用AI解读模式）
+      const result = await generateHexagram(
+        optionA.value,
+        optionB.value,
+        seed,
+        true // 始终启用AI解读
+      );
   
-    console.log('✅ generateHexagram完成');
-    console.log('🔧 完成后isGenerating:', isGenerating.value);
-    
-    // 收集用户信息到共享服务
-    UserInfoSharingService.collectFromDilemma(optionA.value, optionB.value, question.value || '');
-    console.log('📊 用户信息已收集到共享服务');
+      console.log('✅ generateHexagram完成');
+      console.log('🔧 完成后isGenerating:', isGenerating.value);
+
+      // ⭐ 新增：生成传统逻辑分析
+      if (!result.hexagram) {
+        throw new Error('生成卦象失败，无法进行传统逻辑分析');
+      }
+
+      const traditionalAnalysis = generateTraditionalAnalysisCoin(
+        result.hexagram,
+        result.changingLines,
+        result.relatedHexagram
+      );
+      console.log('✅ 传统逻辑分析已生成（两难抉择）:', traditionalAnalysis);
+
+      // 收集用户信息到共享服务
+      UserInfoSharingService.collectFromDilemma(optionA.value, optionB.value, question.value || '');
+      console.log('📊 用户信息已收集到共享服务');
     
     // 进行场景分析
     const scenario = ScenarioAnalyzer.analyzeUserInput(
@@ -490,14 +500,14 @@ const startAnalysis = async () => {
       question.value || undefined
     );
     
-    console.log('🔍 场景分析结果:', scenario);
-    
-    // 获取场景化AI解读
-    let aiAnalysis = '';
-    let aiData = null;
-    if (useMultipleAlgorithms.value) {
-      // 确保AI解读完成后再隐藏加载状态
-      aiAnalysis = await getScenarioBasedAnalysis(result.hexagram, scenario);
+      console.log('🔍 场景分析结果:', scenario);
+
+        // 获取场景化AI解读（始终启用）
+        let aiAnalysis = '';
+        let aiData = null;
+        // 始终执行AI解读
+        // 确保AI解读完成后再隐藏加载状态
+        aiAnalysis = await getScenarioBasedAnalysis(result.hexagram, scenario, traditionalAnalysis);
       
       // 🚨 修复：解析AI返回的JSON数据
       try {
@@ -507,20 +517,20 @@ const startAnalysis = async () => {
         console.warn('⚠️ AI数据不是JSON格式，使用原始字符串');
         aiData = null;
       }
-    }
     
-    // 转换结果格式以适配现有界面
-    analysisResult.value = {
-      ...result,
-      question: `${optionA.value} vs ${optionB.value}`,
-      method: useMultipleAlgorithms.value ? '综合分析' : '易经六十四卦',
-      recommendation: result.recommendation || 'A',
-      optionA_analysis: result.optionA_analysis || '',
-      optionB_analysis: result.optionB_analysis || '',
-      optionA_score: result.optionA_score || 50,
-      optionB_score: result.optionB_score || 50,
-      analysis: aiAnalysis, // 添加场景化AI解读
-      
+      // 转换结果格式以适配现有界面
+      analysisResult.value = {
+          ...result,
+          question: `${optionA.value} vs ${optionB.value}`,
+          method: '综合分析', // 始终使用AI解读模式
+          recommendation: result.recommendation || 'A',
+          optionA_analysis: result.optionA_analysis || '',
+          optionB_analysis: result.optionB_analysis || '',
+          optionA_score: result.optionA_score || 50,
+          optionB_score: result.optionB_score || 50,
+          analysis: aiAnalysis, // 添加场景化AI解读
+          traditionalAnalysis: traditionalAnalysis, // ⭐ 保存传统逻辑分析
+        
       // 🚨 修复：添加AI生成的卦象解读字段
       ...(aiData && {
         hexagramData: aiData.hexagramData,
@@ -529,7 +539,7 @@ const startAnalysis = async () => {
         coreNarrative: aiData.coreNarrative,
         breakthroughPlan: aiData.breakthroughPlan
       }),
-      
+
       // 添加场景信息
       scenarioContext: {
         decisionType: scenario.decisionType,
@@ -577,9 +587,9 @@ const fallbackToMockResult = () => {
     },
     changingLines: [],
     relatedHexagram: null,
-    analysis: '根据易经卦象分析，选项A更符合当前的能量场，但选项B也有其优势。在这种情况下，建议你优先考虑自己内心的直觉和感受。',
-    question: `${optionA.value} vs ${optionB.value}`,
-    method: useMultipleAlgorithms.value ? '综合分析' : '易经六十四卦',
+      analysis: '根据易经卦象分析，选项A更符合当前的能量场，但选项B也有其优势。在这种情况下，建议你优先考虑自己内心的直觉和感受。',
+      question: `${optionA.value} vs ${optionB.value}`,
+      method: '综合分析', // 始终使用AI解读模式
     recommendation: Math.random() > 0.5 ? 'A' : 'B',
     optionA_analysis: '这个选择代表着稳定和熟悉的环境，有助于巩固已有成果。',
     optionB_analysis: '这个选择意味着冒险和新的可能性，有机会获得更大的发展。',
@@ -593,12 +603,12 @@ const fallbackToMockResult = () => {
   }, 100);
 };
 
-// 重置表单
-const resetForm = () => {
-  optionA.value = '';
-  optionB.value = '';
-  useMultipleAlgorithms.value = false;
-  showResult.value = false;
+  // 重置表单
+  const resetForm = () => {
+    optionA.value = '';
+    optionB.value = '';
+    // useMultipleAlgorithms 始终为 true，不需要重置
+    showResult.value = false;
   
   setTimeout(() => {
     analysisResult.value = null;

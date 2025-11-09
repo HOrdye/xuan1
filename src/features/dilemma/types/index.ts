@@ -42,6 +42,54 @@ export interface Trigram {
   attribute: string; // 刚健、喜悦等
 }
 
+// 传统易经逻辑分析结果
+export interface TraditionalAnalysis {
+  // 卦宫信息
+  palaceData?: {
+    palace: string;
+    element: string;
+    shiYao: number;
+    yingYao: number;
+    naJiaSequence: string[];
+  };
+  
+  // 体用关系
+  bodyUsage?: {
+    method: 'plumBlossom' | 'coin';
+    bodyTrigram: string;
+    usageTrigram: string;
+    bodyElement: string;
+    usageElement: string;
+    relationship: string;
+    interpretation: {
+      generalMeaning: string;
+      careerAdvice: string;
+      wealthAdvice: string;
+      relationshipAdvice: string;
+      healthAdvice: string;
+      actionGuidance: string;
+    };
+  };
+  
+  // 六亲信息
+  sixRelatives?: Array<{
+    position: number;
+    relative: string;
+    element: string;
+    dizhi: string;
+  }>;
+  
+  // 动爻分析
+  changingLinesAnalysis?: Array<{
+    position: number;
+    relative: string;
+    element: string;
+    yaoText: string;
+    interpretation: string;
+    importance: 'high' | 'medium' | 'low';
+  }>;
+}
+
 export interface AnalysisResult {
   hexagram: Hexagram | null;
   changingLines: number[];
@@ -53,8 +101,8 @@ export interface AnalysisResult {
     advice: string;
     changingLinesAnalysis: any[];
   };
-  question?: string; 
-  method?: string; 
+  question?: string;
+  method?: string;
   optionA?: string;
   optionB?: string;
   optionA_score?: number;
@@ -63,6 +111,8 @@ export interface AnalysisResult {
   optionB_analysis?: string;
   recommendation?: string;
   results?: number[]; // 铜钱占卜的原始结果值
+  // 传统易经逻辑分析结果
+  traditionalAnalysis?: TraditionalAnalysis;
   // 场景化分析相关
   scenarioContext?: {
     decisionType: string;
@@ -70,10 +120,10 @@ export interface AnalysisResult {
     urgency: string;
     riskLevel: string;
   };
-} 
+}
 
-// 占卜方法类型
-export type DivinationMethod = 'coin' | 'plumBlossom' | 'random';
+// 占卜方法类型（已删除random，只保留coin和plumBlossom）
+export type DivinationMethod = 'coin' | 'plumBlossom';
 
 // 铜钱结果类型
 export interface CoinResult {

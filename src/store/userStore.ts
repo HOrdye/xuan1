@@ -86,10 +86,22 @@ export const useUserStore = defineStore('user', () => {
             await clearUserData();
           }
         });
-      } catch (supabaseError) {
-        console.warn('⚠️ Supabase不可用，用户系统将以本地模式运行:', supabaseError);
-        // 在本地模式下，用户始终处于未登录状态
-        currentUser.value = null;
+      } catch (supabaseError: any) {
+        // Supabase不可用或用户未登录，静默处理
+        if (supabaseError?.message && !supabaseError.message.includes('session')) {
+          console.warn('⚠️ Supabase不可用，用户系统将以本地模式运行:', supabaseError.message);
+        }
+        // 在本地模式下，尝试从本地存储加载用户
+        const localUser = localStorage.getItem('tianxuan_current_user');
+        if (localUser) {
+          try {
+            currentUser.value = JSON.parse(localUser) as AuthUser;
+          } catch (e) {
+            currentUser.value = null;
+          }
+        } else {
+          currentUser.value = null;
+        }
       }
 
       isInitialized.value = true;
@@ -205,34 +217,42 @@ export const useUserStore = defineStore('user', () => {
    */
   const loadUserData = async (userId: string): Promise<void> => {
     try {
-      const client = SupabaseManager.getClient();
-      
-      // 并行加载用户数据
-      const [profileResult, metadataResult, statsResult] = await Promise.allSettled([
-        client.from('user_profiles').select('*').eq('id', userId).single(),
-        client.from('user_metadata').select('*').eq('user_id', userId).single(),
-        client.from('user_stats').select('*').eq('user_id', userId).single()
+      // 检查Supabase客户端是否可用
+      let client;
+      try {
+        client = SupabaseManager.getClient();
+      } catch (err) {
+        // Supabase未初始化或不可用，使用本地模式
+        console.log('📝 使用本地用户模式，跳过数据加载');
+        return;
+      }
+
+      // 并行加载用户数据（使用profiles表，这是阶段二会创建的）
+      const [profileResult] = await Promise.allSettled([
+        // 优先使用profiles表（阶段二将创建）
+        client.from('profiles').select('*').eq('id', userId).single().catch(() => {
+          // 如果profiles表不存在，尝试使用旧的user_profiles表（向后兼容）
+          return client.from('user_profiles').select('*').eq('id', userId).single();
+        })
       ]);
 
       // 处理用户档案
       if (profileResult.status === 'fulfilled' && profileResult.value.data) {
         userProfile.value = profileResult.value.data;
+        console.log('✅ 用户数据加载完成');
+      } else {
+        // 表不存在或查询失败，静默处理（阶段二会创建表）
+        // 不打印错误，因为这是正常的（表还未创建）
       }
 
-      // 处理用户元数据
-      if (metadataResult.status === 'fulfilled' && metadataResult.value.data) {
-        userMetadata.value = metadataResult.value.data;
+      // 注意：user_metadata和user_stats表暂时不加载
+      // 这些表会在后续阶段创建，目前不加载避免404错误
+    } catch (err: any) {
+      // 静默处理错误，不打印（表不存在是正常的）
+      // 只在开发模式下打印详细信息
+      if (import.meta.env.DEV && err.message && !err.message.includes('does not exist')) {
+        console.log('📝 用户数据表尚未创建（阶段二任务）');
       }
-
-      // 处理用户统计
-      if (statsResult.status === 'fulfilled' && statsResult.value.data) {
-        userStats.value = statsResult.value.data;
-      }
-
-      console.log('✅ 用户数据加载完成');
-    } catch (err) {
-      console.error('❌ 加载用户数据失败:', err);
-      // 不设置error，因为这不是致命错误
     }
   };
 

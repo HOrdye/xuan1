@@ -118,14 +118,33 @@ class AuthService {
   /**
    * 用户注册
    */
-  static async signUp(registerData: RegisterData): Promise<UserOperationResult> {
+  static async signUp(registerData: RegisterData): Promise<UserOperationResult> {                                                                               
     try {
+      // 邮箱格式验证（在提交前先验证）
+      if (!this.validateEmail(registerData.email)) {
+        return {
+          success: false,
+          error: 'invalid_email',
+          message: '邮箱格式不正确'
+        };
+      }
+      
       // 密码确认检查
       if (registerData.password !== registerData.confirm_password) {
         return {
           success: false,
           error: 'password_mismatch',
           message: '两次输入的密码不一致'
+        };
+      }
+      
+      // 密码强度验证
+      const passwordValidation = this.validatePassword(registerData.password);
+      if (!passwordValidation.isValid) {
+        return {
+          success: false,
+          error: 'invalid_password',
+          message: passwordValidation.message
         };
       }
 
@@ -145,7 +164,40 @@ class AuthService {
 
         if (error) {
           console.error('❌ Supabase注册失败:', error.message);
-          throw new Error(`Supabase注册失败: ${error.message}`);
+          
+          // 处理特定的邮箱验证错误
+          if (error.message.includes('invalid') || error.message.includes('Email address')) {
+            return {
+              success: false,
+              error: 'invalid_email',
+              message: '邮箱地址无效。请使用真实的邮箱地址（如Gmail、QQ邮箱等），避免使用测试域名（如example.com）'
+            };
+          }
+          
+          // 处理用户已存在错误
+          if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+            return {
+              success: false,
+              error: 'user_exists',
+              message: '该邮箱已被注册'
+            };
+          }
+          
+          // 处理密码错误
+          if (error.message.includes('Password')) {
+            return {
+              success: false,
+              error: 'invalid_password',
+              message: this.getAuthErrorMessage(error.message)
+            };
+          }
+          
+          // 其他错误，直接返回，不抛出异常
+          return {
+            success: false,
+            error: error.message,
+            message: this.getAuthErrorMessage(error.message) || '注册失败，请稍后重试'
+          };
         }
 
         console.log('✅ Supabase用户注册成功:', data.user?.email);
@@ -318,8 +370,20 @@ class AuthService {
         
         const { data: { user }, error } = await client.auth.getUser();
 
+        // "Auth session missing" 是正常情况（用户未登录），不应该当作错误
         if (error) {
-          console.error('❌ Supabase获取用户信息失败:', error.message);
+          // 如果是session缺失错误，直接降级到本地模式，不打印错误
+          if (error.message.includes('session') || error.message.includes('Auth session missing')) {
+            // 静默降级到本地模式
+            const currentUser = localStorage.getItem('tianxuan_current_user');
+            if (currentUser) {
+              return JSON.parse(currentUser) as AuthUser;
+            }
+            return null;
+          }
+          
+          // 其他错误才打印警告（不是错误，因为未登录是正常情况）
+          console.warn('⚠️ Supabase获取用户信息:', error.message);
           throw new Error(`Supabase获取用户失败: ${error.message}`);
         }
 

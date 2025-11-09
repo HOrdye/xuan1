@@ -592,13 +592,11 @@ const getResultDescription = (result: string) => {
 // 动画循环 - 优化的渲染
 const animate = () => {
   animationId = requestAnimationFrame(animate)
-  
-  // 相机轻微摆动
-  const time = Date.now() * 0.001
-  camera.position.x = Math.sin(time * 0.5) * 0.5
-  camera.position.z = 12 + Math.cos(time * 0.3) * 0.3
+
+  // 相机固定位置，不摆动
+  camera.position.set(0, 12, 18)
   camera.lookAt(0, 0, 0)
-  
+
   renderer.render(scene, camera)
 }
 

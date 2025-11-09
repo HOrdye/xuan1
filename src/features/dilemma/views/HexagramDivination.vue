@@ -16,7 +16,7 @@
             <span class="title-icon">🔮</span>
             <span class="title-text">待我掐指一算</span>
           </h1>
-          <p class="subtitle">三种传统占卜方式，仪式感满满<br>让古老的智慧为你的困惑指点迷津</p>
+          <p class="subtitle">两种传统占卜方式，仪式感满满<br>让古老的智慧为你的困惑指点迷津</p>
           <div class="title-decoration">
             <div class="decoration-line"></div>
             <div class="decoration-symbol">☯</div>
@@ -85,31 +85,6 @@
             </div>
           </div>
           
-          <!-- 随机起卦法 -->
-          <div 
-            @click="selectMethod('random')" 
-            class="method-card"
-            :class="{'method-card-active': selectedMethod === 'random'}"
-          >
-            <div class="method-icon">
-              <div class="icon-container">
-                <span class="icon-symbol">简</span>
-                <div class="icon-glow"></div>
-              </div>
-            </div>
-            <div class="method-content">
-              <h4 class="method-title">随机起卦法</h4>
-              <p class="method-description">让命运为你选择<br>完全随机，简单快速，适合日常小困惑</p>
-              <div class="method-features">
-                <span class="feature-tag">随机</span>
-                <span class="feature-tag">简单</span>
-                <span class="feature-tag">快速</span>
-              </div>
-            </div>
-            <div class="method-indicator">
-              <div class="indicator-dot"></div>
-            </div>
-          </div>
         </div>
       </div>
       
@@ -252,7 +227,8 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { DivinationMethod, PlumBlossomParams, AnalysisResult, SixCoinsResult, PlumBlossomResult, Hexagram } from '../types';
-import { coinDivination, plumBlossomDivination, randomDivination } from '../utils/divinationMethods';
+  import { coinDivination, plumBlossomDivination } from '../utils/divinationMethods';
+  import { generateTraditionalAnalysisCoin, generateTraditionalAnalysisPlumBlossom } from '../utils/traditionalAnalysis';
 import CoinDivinationAnimation from '../components/CoinDivinationAnimation.vue';
 import DivinationResult from '../components/DivinationResult.vue';
 import LLMConfigPanel from '../components/LLMConfigPanel.vue';
@@ -272,9 +248,7 @@ onMounted(() => {
   const methodParam = route.query.method as string | undefined;
   if (methodParam === 'plumBlossom') {
     selectMethod('plumBlossom');
-  } else if (methodParam === 'random') {
-    selectMethod('random');
-  } else if (methodParam === 'coin') {
+    } else if (methodParam === 'coin') {
     selectMethod('coin');
   }
   
@@ -388,47 +362,58 @@ async function startDivination() {
           }
         }
         
-        try {
-          // 使用LLM服务获取解读内容 (修复参数格式)
-          const analysis = await LLMService.getHexagramInterpretation(
+          // 生成传统逻辑分析
+          const traditionalAnalysis = generateTraditionalAnalysisCoin(
             coinResult.hexagram,
             changingLinesCoin,
-            relatedHexagram,
-            question.value
+            relatedHexagram
           );
+          console.log('✅ 传统逻辑分析已生成（铜钱法）:', traditionalAnalysis);
+
+          try {
+            // 使用LLM服务获取解读内容，传入传统逻辑分析结果
+            const analysis = await LLMService.getHexagramInterpretation(
+              coinResult.hexagram,
+              changingLinesCoin,
+              relatedHexagram,
+              question.value,
+              traditionalAnalysis
+            );
           
           // 确保LLM返回有效结果
           if (!analysis) {
             throw new Error('AI解读返回空结果');
           }
           
-          divinationResult.value = {
-            hexagram: coinResult.hexagram,
-            changingLines: changingLinesCoin,
-            relatedHexagram,
-            analysis: analysis,
-            question: question.value,
-            method: 'coin',
-            results: coinResult.results
-          };
+            divinationResult.value = {
+              hexagram: coinResult.hexagram,
+              changingLines: changingLinesCoin,
+              relatedHexagram,
+              analysis: analysis,
+              question: question.value,
+              method: 'coin',
+              results: coinResult.results,
+              traditionalAnalysis
+            };
         } catch (llmError) {
           console.error('LLM解读失败:', llmError);
           // 创建明确的错误状态结果
-          divinationResult.value = {
-            hexagram: coinResult.hexagram,
-            changingLines: changingLinesCoin,
-            relatedHexagram,
-            analysis: {
-              title: '解读失败',
-              summary: 'AI服务暂时无法提供解读，请稍后再试',
-              detailed: `错误信息: ${llmError instanceof Error ? llmError.message : String(llmError)}`,
-              advice: '您可以尝试重新占卜或检查网络连接',
-              changingLinesAnalysis: []
-            },
-            question: question.value,
-            method: 'coin',
-            results: coinResult.results
-          };
+            divinationResult.value = {
+              hexagram: coinResult.hexagram,
+              changingLines: changingLinesCoin,
+              relatedHexagram,
+              analysis: {
+                title: '解读失败',
+                summary: 'AI服务暂时无法提供解读，请稍后再试',
+                detailed: `错误信息: ${llmError instanceof Error ? llmError.message : String(llmError)}`,
+                advice: '您可以尝试重新占卜或检查网络连接',
+                changingLinesAnalysis: []
+              },
+              question: question.value,
+              method: 'coin',
+              results: coinResult.results,
+              traditionalAnalysis
+            };
           // 确保重置加载状态
           isGenerating.value = false;
           loadingProgress.value = '';
@@ -446,13 +431,22 @@ async function startDivination() {
           throw new Error('梅花易数结果无效');
         }
         
+        // 生成传统逻辑分析
+        const traditionalAnalysisPlum = generateTraditionalAnalysisPlumBlossom(
+          plumResult.hexagram,
+          [], // 梅花易数没有变爻
+          null
+        );
+        console.log('✅ 传统逻辑分析已生成（梅花易数）:', traditionalAnalysisPlum);
+
         try {
-          // 使用LLM服务获取解读内容 (修复参数格式)
+          // 使用LLM服务获取解读内容，传入传统逻辑分析结果
           const plumAnalysis = await LLMService.getHexagramInterpretation(
             plumResult.hexagram,
             [], // 梅花易数没有变爻
             null,
-            question.value
+            question.value,
+            traditionalAnalysisPlum
           );
           
           // 确保LLM返回有效结果
@@ -466,7 +460,8 @@ async function startDivination() {
             relatedHexagram: null,
             analysis: plumAnalysis,
             question: question.value,
-            method: 'plumBlossom'
+            method: 'plumBlossom',
+            traditionalAnalysis: traditionalAnalysisPlum
           };
         } catch (llmError) {
           console.error('LLM解读失败:', llmError);
@@ -483,7 +478,8 @@ async function startDivination() {
               changingLinesAnalysis: []
             },
             question: question.value,
-            method: 'plumBlossom'
+            method: 'plumBlossom',
+            traditionalAnalysis: traditionalAnalysisPlum
           };
           // 确保重置加载状态
           isGenerating.value = false;
@@ -496,17 +492,6 @@ async function startDivination() {
         showFinalResult.value = true;
         break;
         
-      case 'random':
-        const randomResult = await randomDivination(question.value);
-        
-        if (!randomResult || !randomResult.hexagram) {
-          throw new Error('随机起卦结果无效');
-        }
-        
-        divinationResult.value = randomResult;
-        // 直接显示结果
-        showFinalResult.value = true;
-        break;
     }
     
   } catch (error) {
