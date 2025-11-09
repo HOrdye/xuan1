@@ -65,11 +65,10 @@ import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useZiweiStore } from '../store/ziweiStore';
 import type { BirthInfo } from '../types';
-import { NForm, NFormItem, NInputNumber, NSelect, NRadioGroup, NRadio, NButton, useMessage } from 'naive-ui';
+import { NForm, NFormItem, NInputNumber, NSelect, NRadioGroup, NRadio, NButton } from 'naive-ui';
 
 const router = useRouter();
 const ziweiStore = useZiweiStore();
-const message = useMessage();
 const formRef = ref();
 
 const birthInfo = reactive<BirthInfo>({
@@ -123,11 +122,12 @@ const isLoading = computed(() => ziweiStore.isLoading);
 const generateChart = async () => {
   try {
     await formRef.value?.validate();
-    await ziweiStore.generateChart({ ...birthInfo });
-    message.success('命盘生成成功！');
+    const chart = await ziweiStore.generateChart({ ...birthInfo });
+    console.log('✅ 命盘生成成功！', chart);
     router.push('/ziwei/chart');
   } catch (error: any) {
-    message.error(error.message || '命盘生成失败');
+    console.error('❌ 命盘生成失败:', error);
+    alert(error.message || '命盘生成失败，请检查输入数据');
   }
 };
 </script>
