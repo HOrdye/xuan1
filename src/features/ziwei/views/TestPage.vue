@@ -57,7 +57,7 @@
             <div class="info-item">
               <span class="label">命宫主星：</span>
               <span class="value highlight">
-                {{ testResult.mingGong.stars.map(s => s.name).join('、') || '空宫' }}
+                {{ testResult.mingGong?.stars?.map(s => s.name).join('、') || '空宫' }}
               </span>
             </div>
             <div class="info-item">
