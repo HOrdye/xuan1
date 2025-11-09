@@ -152,6 +152,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useZiweiStore } from '../store/ziweiStore';
 import type { BirthInfo, ZiweiChart } from '../types';
+import { validateChart, generateValidationReport } from '../utils/test-validation';
 import { NButton } from 'naive-ui';
 
 const router = useRouter();
@@ -210,7 +211,12 @@ const runTest = async (testCase: typeof testCases[0]) => {
     console.log('✅ 测试成功！命盘已生成:', chart);
     
     // 验证数据完整性
-    validateChart(chart);
+    const validation = performValidation(chart);
+    
+    // 如果有严重问题，显示错误
+    if (!validation.isValid) {
+      errorMessage.value = `数据验证失败：${validation.issues.join('；')}`;
+    }
   } catch (error: any) {
     console.error('❌ 测试失败:', error);
     errorMessage.value = error.message || '排盘失败，请检查输入数据';
@@ -219,26 +225,24 @@ const runTest = async (testCase: typeof testCases[0]) => {
   }
 };
 
-const validateChart = (chart: ZiweiChart) => {
-  const issues: string[] = [];
+const performValidation = (chart: ZiweiChart) => {
+  const validation = validateChart(chart);
   
-  if (chart.palaces.length !== 12) {
-    issues.push(`宫位数量不正确：应为12个，实际${chart.palaces.length}个`);
-  }
-  
-  if (!chart.mingGong) {
-    issues.push('命宫不存在');
-  }
-  
-  if (chart.daxian.length !== 12) {
-    issues.push(`大限数量不正确：应为12个，实际${chart.daxian.length}个`);
-  }
-  
-  if (issues.length > 0) {
-    console.warn('⚠️ 数据验证发现问题:', issues);
-  } else {
+  if (validation.isValid) {
     console.log('✅ 数据验证通过');
+  } else {
+    console.warn('❌ 数据验证发现问题:', validation.issues);
   }
+  
+  if (validation.warnings.length > 0) {
+    console.warn('⚠️ 警告信息:', validation.warnings);
+  }
+  
+  // 输出详细报告
+  const report = generateValidationReport(chart);
+  console.log(report);
+  
+  return validation;
 };
 
 const viewFullChart = () => {

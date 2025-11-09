@@ -72,8 +72,8 @@ export class ZiweiChartCalculator {
       wuxingJu: getJuName(wuxingJu) as WuxingJu,
       palaces,
       patterns,
-      mingGong: palaces[mingGongIndex],
-      shenGong: palaces[shenGongIndex],
+      mingGong: palaces[0], // 重新排序后，命宫在索引0
+      shenGong: palaces[(shenGongIndex - mingGongIndex + 12) % 12], // 计算身宫在新数组中的位置
       daxian,
       createdAt: new Date()
     };
