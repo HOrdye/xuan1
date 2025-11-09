@@ -122,7 +122,14 @@ const isLoading = computed(() => ziweiStore.isLoading);
 const generateChart = async () => {
   try {
     // 验证表单
-    await formRef.value?.validate();
+    try {
+      await formRef.value?.validate();
+    } catch (validationError: any) {
+      console.warn('⚠️ 表单验证失败:', validationError);
+      // 表单验证失败时不继续执行
+      return;
+    }
+    
     console.log('📝 输入的生辰信息:', { ...birthInfo });
     
     // 生成命盘
@@ -133,14 +140,21 @@ const generateChart = async () => {
     router.push('/ziwei/chart');
   } catch (error: any) {
     console.error('❌ 命盘生成失败:', error);
-    console.error('错误详情:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
+    
+    // 处理不同类型的错误
+    let errorMsg = '命盘生成失败，请检查输入数据';
+    
+    if (error instanceof Error) {
+      errorMsg = error.message || errorMsg;
+      console.error('错误堆栈:', error.stack);
+    } else if (typeof error === 'string') {
+      errorMsg = error;
+    } else if (error && typeof error === 'object') {
+      errorMsg = error.message || error.msg || JSON.stringify(error);
+      console.error('错误对象:', error);
+    }
     
     // 显示用户友好的错误信息
-    const errorMsg = error.message || '命盘生成失败，请检查输入数据';
     alert(`❌ ${errorMsg}\n\n请查看控制台获取详细信息`);
   }
 };

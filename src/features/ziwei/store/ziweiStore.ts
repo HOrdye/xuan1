@@ -62,6 +62,21 @@ export const useZiweiStore = defineStore('ziwei', {
       this.error = null;
 
       try {
+        // 验证输入数据
+        if (!birthInfo.year || !birthInfo.month || !birthInfo.day) {
+          throw new Error('请填写完整的出生日期（年、月、日）');
+        }
+        
+        if (birthInfo.hour === undefined || birthInfo.hour === null) {
+          throw new Error('请选择出生时辰');
+        }
+        
+        if (!birthInfo.gender) {
+          throw new Error('请选择性别');
+        }
+        
+        console.log('🔄 开始生成命盘，输入数据:', birthInfo);
+        
         const calculator = new ZiweiChartCalculator();
         const chart = calculator.calculate(birthInfo);
         
@@ -79,10 +94,23 @@ export const useZiweiStore = defineStore('ziwei', {
         // TODO: 保存到Supabase
         // await this.saveChartToDatabase(chart);
 
+        console.log('✅ Store: 命盘生成成功');
         return chart;
       } catch (error: any) {
-        this.error = error.message || '排盘失败';
-        throw error;
+        console.error('❌ Store: 命盘生成失败', error);
+        
+        // 确保错误是Error对象
+        let errorObj: Error;
+        if (error instanceof Error) {
+          errorObj = error;
+        } else if (typeof error === 'string') {
+          errorObj = new Error(error);
+        } else {
+          errorObj = new Error(error?.message || '排盘失败');
+        }
+        
+        this.error = errorObj.message;
+        throw errorObj;
       } finally {
         this.isLoading = false;
       }
