@@ -121,13 +121,27 @@ const isLoading = computed(() => ziweiStore.isLoading);
 
 const generateChart = async () => {
   try {
+    // 验证表单
     await formRef.value?.validate();
+    console.log('📝 输入的生辰信息:', { ...birthInfo });
+    
+    // 生成命盘
     const chart = await ziweiStore.generateChart({ ...birthInfo });
     console.log('✅ 命盘生成成功！', chart);
+    
+    // 跳转到命盘展示页面
     router.push('/ziwei/chart');
   } catch (error: any) {
     console.error('❌ 命盘生成失败:', error);
-    alert(error.message || '命盘生成失败，请检查输入数据');
+    console.error('错误详情:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // 显示用户友好的错误信息
+    const errorMsg = error.message || '命盘生成失败，请检查输入数据';
+    alert(`❌ ${errorMsg}\n\n请查看控制台获取详细信息`);
   }
 };
 </script>

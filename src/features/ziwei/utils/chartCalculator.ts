@@ -27,56 +27,75 @@ export class ZiweiChartCalculator {
    * 主函数：生成完整命盘
    */
   calculate(birthInfo: BirthInfo): ZiweiChart {
-    // 1. 计算农历（简化版，实际应该使用农历转换库）
-    const lunar = this.toLunar(birthInfo);
-    
-    // 2. 计算五行局
-    const wuxingJu = this.calculateWuxingJu(lunar.year, lunar.month);
-    
-    // 3. 定位命宫
-    const mingGongIndex = this.locateMingGong(lunar.month, birthInfo.hour);
-    
-    // 4. 定位身宫
-    const shenGongIndex = this.locateShenGong(lunar.month, birthInfo.hour);
-    
-    // 5. 定位紫微星
-    const ziweiIndex = this.locateZiwei(wuxingJu, lunar.day);
-    
-    // 6. 安十四主星
-    const mainStars = this.placeMainStars(ziweiIndex);
-    
-    // 7. 安辅星、煞星、吉星（简化版，后续完善）
-    const auxiliaryStars = this.placeAuxiliaryStars(lunar, birthInfo);
-    
-    // 8. 计算四化
-    const yearStem = getTianganByYear(birthInfo.year);
-    const sihua = getSihuaByTiangan(yearStem);
-    
-    // 9. 组装宫位
-    const palaces = this.assemblePalaces(
-      mingGongIndex,
-      shenGongIndex,
-      mainStars,
-      auxiliaryStars,
-      sihua
-    );
-    
-    // 10. 识别格局
-    const patterns = this.detectPatterns(palaces);
-    
-    // 11. 计算大限
-    const daxian = this.calculateDaxian(palaces, birthInfo.gender, wuxingJu);
-    
-    return {
-      birthInfo,
-      wuxingJu: getJuName(wuxingJu) as WuxingJu,
-      palaces,
-      patterns,
-      mingGong: palaces[0], // 重新排序后，命宫在索引0
-      shenGong: palaces[(shenGongIndex - mingGongIndex + 12) % 12], // 计算身宫在新数组中的位置
-      daxian,
-      createdAt: new Date()
-    };
+    try {
+      // 1. 计算农历（简化版，实际应该使用农历转换库）
+      const lunar = this.toLunar(birthInfo);
+      console.log('📅 农历转换:', lunar);
+      
+      // 2. 计算五行局
+      const wuxingJu = this.calculateWuxingJu(lunar.year, lunar.month);
+      console.log('🔢 五行局:', wuxingJu, getJuName(wuxingJu));
+      
+      // 3. 定位命宫
+      const mingGongIndex = this.locateMingGong(lunar.month, birthInfo.hour);
+      console.log('📍 命宫索引:', mingGongIndex);
+      
+      // 4. 定位身宫
+      const shenGongIndex = this.locateShenGong(lunar.month, birthInfo.hour);
+      console.log('📍 身宫索引:', shenGongIndex);
+      
+      // 5. 定位紫微星
+      const ziweiIndex = this.locateZiwei(wuxingJu, lunar.day);
+      console.log('⭐ 紫微星索引:', ziweiIndex);
+      
+      // 6. 安十四主星
+      const mainStars = this.placeMainStars(ziweiIndex);
+      console.log('⭐ 主星分布:', mainStars);
+      
+      // 7. 安辅星、煞星、吉星（简化版，后续完善）
+      const auxiliaryStars = this.placeAuxiliaryStars(lunar, birthInfo);
+      
+      // 8. 计算四化
+      const yearStem = getTianganByYear(birthInfo.year);
+      const sihua = getSihuaByTiangan(yearStem);
+      console.log('🔄 四化:', sihua);
+      
+      // 9. 组装宫位
+      const palaces = this.assemblePalaces(
+        mingGongIndex,
+        shenGongIndex,
+        mainStars,
+        auxiliaryStars,
+        sihua
+      );
+      console.log('🏛️ 宫位组装完成，数量:', palaces.length);
+      
+      // 10. 识别格局
+      const patterns = this.detectPatterns(palaces);
+      console.log('🎯 识别到格局:', patterns.length, '个');
+      
+      // 11. 计算大限
+      const daxian = this.calculateDaxian(palaces, birthInfo.gender, wuxingJu);
+      console.log('📊 大限计算完成，数量:', daxian.length);
+      
+      const result = {
+        birthInfo,
+        wuxingJu: getJuName(wuxingJu) as WuxingJu,
+        palaces,
+        patterns,
+        mingGong: palaces[0], // 重新排序后，命宫在索引0
+        shenGong: palaces[(shenGongIndex - mingGongIndex + 12) % 12], // 计算身宫在新数组中的位置
+        daxian,
+        createdAt: new Date()
+      };
+      
+      console.log('✅ 命盘生成完成:', result);
+      return result;
+    } catch (error: any) {
+      console.error('❌ 排盘计算错误:', error);
+      console.error('错误堆栈:', error.stack);
+      throw new Error(`排盘失败: ${error.message || '未知错误'}`);
+    }
   }
   
   /**
@@ -189,7 +208,15 @@ export class ZiweiChartCalculator {
       
       // 添加主星
       const mainStarNames = mainStars[originalIndex] || [];
-      palace.stars = mainStarNames.map(name => getMainStar(name)).filter(Boolean) as Star[];
+      palace.stars = mainStarNames
+        .map(name => {
+          const star = getMainStar(name);
+          if (!star) {
+            console.warn(`警告：未找到星曜数据：${name}`);
+          }
+          return star;
+        })
+        .filter((star): star is Star => star !== undefined);
       
       // 添加辅星（简化版）
       const auxStarNames = auxiliaryStars[originalIndex] || [];
