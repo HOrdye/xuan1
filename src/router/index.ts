@@ -157,6 +157,32 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
 
+  // 紫微斗数功能
+  {
+    path: '/ziwei',
+    name: 'Ziwei',
+    component: () => import('../features/ziwei/views/ZiweiHome.vue'),
+    meta: {
+      title: '紫微斗数 - 天玄Web'
+    }
+  },
+  {
+    path: '/ziwei/input',
+    name: 'ZiweiInput',
+    component: () => import('../features/ziwei/views/ChartInput.vue'),
+    meta: {
+      title: '输入生辰 - 紫微斗数'
+    }
+  },
+  {
+    path: '/ziwei/chart',
+    name: 'ZiweiChart',
+    component: () => import('../features/ziwei/views/ChartDisplay.vue'),
+    meta: {
+      title: '命盘展示 - 紫微斗数'
+    }
+  },
+
   // 通配符路由，重定向到404
   {
     path: '/:catchAll(.*)',
