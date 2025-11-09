@@ -139,9 +139,10 @@
 
     <!-- 错误信息 -->
     <div v-if="errorMessage" class="error-message">
-      <n-alert type="error" title="测试失败">
-        {{ errorMessage }}
-      </n-alert>
+      <div class="error-box">
+        <h4>❌ 测试失败</h4>
+        <p>{{ errorMessage }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -151,11 +152,10 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useZiweiStore } from '../store/ziweiStore';
 import type { BirthInfo, ZiweiChart } from '../types';
-import { NButton, NAlert, useMessage } from 'naive-ui';
+import { NButton } from 'naive-ui';
 
 const router = useRouter();
 const ziweiStore = useZiweiStore();
-const message = useMessage();
 
 const testCases = [
   {
@@ -207,15 +207,13 @@ const runTest = async (testCase: typeof testCases[0]) => {
   try {
     const chart = await ziweiStore.generateChart(testCase.birthInfo);
     testResult.value = chart;
-    message.success('测试成功！命盘已生成');
-    console.log('测试成功:', chart);
+    console.log('✅ 测试成功！命盘已生成:', chart);
     
     // 验证数据完整性
     validateChart(chart);
   } catch (error: any) {
-    console.error('测试失败:', error);
+    console.error('❌ 测试失败:', error);
     errorMessage.value = error.message || '排盘失败，请检查输入数据';
-    message.error(`测试失败: ${error.message || '未知错误'}`);
   } finally {
     loadingIndex.value = null;
   }
@@ -237,8 +235,7 @@ const validateChart = (chart: ZiweiChart) => {
   }
   
   if (issues.length > 0) {
-    console.warn('数据验证发现问题:', issues);
-    message.warning('数据验证发现问题，请查看控制台');
+    console.warn('⚠️ 数据验证发现问题:', issues);
   } else {
     console.log('✅ 数据验证通过');
   }
@@ -569,6 +566,24 @@ const viewFullChart = () => {
 
 .error-message {
   margin-top: 2rem;
+}
+
+.error-box {
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #991b1b;
+}
+
+.error-box h4 {
+  margin: 0 0 0.5rem 0;
+  color: #dc2626;
+}
+
+.error-box p {
+  margin: 0;
+  color: #7f1d1d;
 }
 </style>
 
