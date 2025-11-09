@@ -95,41 +95,128 @@ const hourOptions = [
 ];
 
 const rules = {
-  year: {
-    required: true,
-    message: '请输入出生年份',
-    trigger: 'blur'
-  },
-  month: {
-    required: true,
-    message: '请输入出生月份',
-    trigger: 'blur'
-  },
-  day: {
-    required: true,
-    message: '请输入出生日期',
-    trigger: 'blur'
-  },
-  hour: {
-    required: true,
-    message: '请选择出生时辰',
-    trigger: 'change'
-  }
+  year: [
+    {
+      required: true,
+      validator: (rule: any, value: number) => {
+        if (value === null || value === undefined || value === 0) {
+          return new Error('请输入出生年份');
+        }
+        if (value < 1900 || value > 2100) {
+          return new Error('年份必须在1900-2100之间');
+        }
+        return true;
+      },
+      trigger: ['blur', 'input']
+    }
+  ],
+  month: [
+    {
+      required: true,
+      validator: (rule: any, value: number) => {
+        if (value === null || value === undefined || value === 0) {
+          return new Error('请输入出生月份');
+        }
+        if (value < 1 || value > 12) {
+          return new Error('月份必须在1-12之间');
+        }
+        return true;
+      },
+      trigger: ['blur', 'input']
+    }
+  ],
+  day: [
+    {
+      required: true,
+      validator: (rule: any, value: number) => {
+        if (value === null || value === undefined || value === 0) {
+          return new Error('请输入出生日期');
+        }
+        if (value < 1 || value > 31) {
+          return new Error('日期必须在1-31之间');
+        }
+        return true;
+      },
+      trigger: ['blur', 'input']
+    }
+  ],
+  hour: [
+    {
+      required: true,
+      validator: (rule: any, value: number) => {
+        if (value === null || value === undefined) {
+          return new Error('请选择出生时辰');
+        }
+        if (value < 0 || value > 11) {
+          return new Error('请选择有效的时辰');
+        }
+        return true;
+      },
+      trigger: ['change', 'blur']
+    }
+  ],
+  gender: [
+    {
+      required: true,
+      validator: (rule: any, value: string) => {
+        if (!value) {
+          return new Error('请选择性别');
+        }
+        return true;
+      },
+      trigger: ['change']
+    }
+  ]
 };
 
 const isLoading = computed(() => ziweiStore.isLoading);
 
 const generateChart = async () => {
+  if (!formRef.value) {
+    console.error('表单引用不存在');
+    return;
+  }
+
+  // 验证表单
   try {
-    // 验证表单
-    try {
-      await formRef.value?.validate();
-    } catch (validationError: any) {
-      console.warn('⚠️ 表单验证失败:', validationError);
-      // 表单验证失败时不继续执行
-      return;
-    }
-    
+    await formRef.value.validate((errors) => {
+      if (errors) {
+        console.warn('⚠️ 表单验证失败:', errors);
+        const firstError = errors[0];
+        if (firstError && firstError.length > 0) {
+          alert(`请检查输入：${firstError[0].message || '表单验证失败'}`);
+        }
+        return;
+      }
+    });
+  } catch (validationError: any) {
+    console.warn('⚠️ 表单验证异常:', validationError);
+    return;
+  }
+
+  // 手动验证数据完整性
+  if (!birthInfo.year || birthInfo.year < 1900 || birthInfo.year > 2100) {
+    alert('请输入有效的出生年份（1900-2100）');
+    return;
+  }
+  if (!birthInfo.month || birthInfo.month < 1 || birthInfo.month > 12) {
+    alert('请输入有效的出生月份（1-12）');
+    return;
+  }
+  if (!birthInfo.day || birthInfo.day < 1 || birthInfo.day > 31) {
+    alert('请输入有效的出生日期（1-31）');
+    return;
+  }
+  if (birthInfo.hour === null || birthInfo.hour === undefined || birthInfo.hour < 0 || birthInfo.hour > 11) {
+    alert('请选择有效的出生时辰');
+    return;
+  }
+  if (!birthInfo.gender) {
+    alert('请选择性别');
+    return;
+  }
+
+  try {
     console.log('📝 输入的生辰信息:', { ...birthInfo });
     
     // 生成命盘
