@@ -3,7 +3,7 @@
  */
 
 import { defineStore } from 'pinia';
-import type { ZiweiChart, BirthInfo } from '../types';
+import type { ZiweiChart, BirthInfo, Star, Daxian } from '../types';
 import { ZiweiChartCalculator } from '../utils/chartCalculator';
 
 interface ZiweiState {
@@ -29,20 +29,20 @@ export const useZiweiStore = defineStore('ziwei', {
     /**
      * 获取当前命宫主星
      */
-    mainStar: (state) => {
+    mainStar(state): Star | null {
       if (!state.currentChart) return null;
-      return state.currentChart.mingGong.stars.find(s => s.category === '主星');
+      return state.currentChart.mingGong.stars.find(s => s.category === '主星') || null;
     },
 
     /**
      * 获取当前大限
      */
-    currentDaxian: (state) => {
+    currentDaxian(state): Daxian | null {
       if (!state.currentChart) return null;
       const currentAge = new Date().getFullYear() - state.currentChart.birthInfo.year;
       return state.currentChart.daxian.find(d => 
         currentAge >= d.startAge && currentAge <= d.endAge
-      );
+      ) || null;
     },
 
     /**
@@ -114,12 +114,6 @@ export const useZiweiStore = defineStore('ziwei', {
       this.currentChart = null;
       this.error = null;
     }
-  },
-
-  persist: {
-    key: 'ziwei-store',
-    storage: localStorage,
-    paths: ['savedCharts', 'collectedStars', 'readingHistory']
   }
 });
 
