@@ -182,6 +182,14 @@ const routes: Array<RouteRecordRaw> = [
       title: '命盘展示 - 紫微斗数'
     }
   },
+  {
+    path: '/ziwei/test',
+    name: 'ZiweiTest',
+    component: () => import('../features/ziwei/views/TestPage.vue'),
+    meta: {
+      title: '功能测试 - 紫微斗数'
+    }
+  },
 
   // 通配符路由，重定向到404
   {
