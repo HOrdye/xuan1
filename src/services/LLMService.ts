@@ -575,6 +575,120 @@ ${cards.map(card => {
     }
   }
 
+  // --- 核心结论总结服务（结合传统体用关系和具体解读）---
+  /**
+   * 通过LLM总结具体解读，结合传统体用关系生成核心结论
+   * @param analysisText 具体解读文本
+   * @param traditionalAnalysis 传统体用关系分析
+   * @param hexagramName 卦名
+   * @returns 核心结论对象
+   */
+  static async distillCoreConclusion(
+    analysisText: string,
+    traditionalAnalysis?: any,
+    hexagramName?: string
+  ): Promise<{ summary: string; confidence: number; actions: string[]; evidence: string[] } | null> {
+    const config = this.getConfig();
+
+    // 如果没有API Key，返回null
+    if (!config.apiKey) {
+      console.warn('⚠️ LLM API未配置，无法生成核心结论总结');
+      return null;
+    }
+
+    try {
+      // 构建提示词：要求LLM总结具体解读，结合传统体用关系生成关键、直接、准确的核心结论
+      let prompt = `# 任务
+你是一位精通易经的占卜师。请基于以下具体解读内容，结合传统体用关系，生成一个关键、直接、准确的核心结论。
+
+## 要求
+1. **核心结论必须基于传统体用关系**：体用生克关系是判断的核心依据
+2. **通过LLM总结具体解读**：从具体解读中提炼出最关键的信息
+3. **关键、直接、准确**：核心结论应该简洁明了（不超过150字），直接回答用户的问题，准确反映卦象的本质
+4. **结合体用关系**：必须结合传统体用关系（体克用、用克体、体生用、用生体、体用比和）来生成结论
+
+## 具体解读内容
+${analysisText.substring(0, 3000)}${analysisText.length > 3000 ? '...' : ''}
+
+`;
+
+      // 如果有传统体用关系分析，添加到提示词中
+      if (traditionalAnalysis && traditionalAnalysis.bodyUsage) {
+        const bodyUsage = traditionalAnalysis.bodyUsage;
+        prompt += `
+## 传统体用关系分析
+- **体用关系**：${bodyUsage.relationship}
+- **体卦**：${bodyUsage.bodyTrigram || '未知'}
+- **用卦**：${bodyUsage.usageTrigram || '未知'}
+- **关系解读**：${bodyUsage.interpretation || '未知'}
+
+请结合以上体用关系，从具体解读中提炼核心结论。核心结论应该：
+1. 首先明确体用关系的吉凶判断（这是核心）
+2. 然后从具体解读中提炼最关键的信息来支撑这个判断
+3. 最后给出一个直接、准确的结论
+
+`;
+      }
+
+      if (hexagramName) {
+        prompt += `## 卦名
+${hexagramName}
+
+`;
+      }
+
+      prompt += `## 输出格式
+请以JSON格式返回，包含以下字段：
+{
+  "summary": "核心结论（不超过150字，必须基于体用关系，结合具体解读提炼）",
+  "confidence": 0.85,
+  "actions": ["行动建议1", "行动建议2", "行动建议3"],
+  "evidence": ["支撑证据1", "支撑证据2"]
+}
+
+请直接返回JSON，不要有任何额外的说明或markdown格式。`;
+
+      this.updateLoadingState({ isLoading: true, progress: '正在生成核心结论...', stage: 'processing' });
+
+      const response = await this.callLLMAPI(prompt);
+      let content = response.content || '{}';
+
+      // 清理可能的markdown代码块标记
+      content = content.trim();
+      content = content.replace(/^```(?:json|JSON)?\s*\n?/i, '');
+      content = content.replace(/\n?```\s*$/i, '');
+      content = content.trim();
+
+      try {
+        const result = JSON.parse(content);
+        this.updateLoadingState({ isLoading: false, progress: '核心结论生成完成', stage: 'completed' });
+        return {
+          summary: result.summary || '',
+          confidence: result.confidence || 0.5,
+          actions: result.actions || [],
+          evidence: result.evidence || []
+        };
+      } catch (e) {
+        console.error('❌ 解析核心结论JSON失败:', e, 'Raw content:', content);
+        // 如果JSON解析失败，尝试提取summary字段
+        const summaryMatch = content.match(/"summary"\s*:\s*"([^"]+)"/);
+        if (summaryMatch) {
+          return {
+            summary: summaryMatch[1],
+            confidence: 0.5,
+            actions: [],
+            evidence: []
+          };
+        }
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ 生成核心结论总结失败:', error);
+      this.updateLoadingState({ isLoading: false, progress: '核心结论生成失败', stage: 'error' });
+      return null;
+    }
+  }
+
   // --- 场景化玄选两难解读服务 ---
   static async getScenarioBasedDilemmaInterpretation(
       optionA: string,
@@ -721,10 +835,22 @@ ${hexagram.yao_texts && hexagram.yao_texts.length > 0 ? `- 本卦爻辞:\n${hexa
   ${traditionalAnalysis.changingLinesAnalysis && traditionalAnalysis.changingLinesAnalysis.length > 0 ? `- 动爻详细分析:
 ${traditionalAnalysis.changingLinesAnalysis.map((ch: any) => `    * 第${ch.position + 1}爻（${ch.relative}，${ch.element}）: ${ch.yaoText}。${ch.interpretation}`).join('\n')}
 ` : ''}
-  **重要**: 上述传统逻辑分析是基于正统易经理论计算得出的，你的解读必须严格基于这些分析结果，不能偏离传统逻辑。` : ''}
+    **重要**: 上述传统逻辑分析是基于正统易经理论计算得出的，你的解读必须严格基于这些分析结果，不能偏离传统逻辑。
+    
+    **核心结论一致性要求（必须严格遵守）**:
+    基于上述传统逻辑分析，核心结论是：
+    ${traditionalAnalysis?.bodyUsage ? 
+      `"${hexagram.chineseName || hexagram.name}"卦${changingLines.length === 0 ? '为静卦（无动爻），' : '显示：'}${traditionalAnalysis.bodyUsage.relationship === 'body-ke-usage' ? '体克用，您能够主动控制局面，有利于主动出击' :
+               traditionalAnalysis.bodyUsage.relationship === 'usage-ke-body' ? '用克体，外部环境对您有一定压力，宜守不宜攻' :
+               traditionalAnalysis.bodyUsage.relationship === 'body-sheng-usage' ? '体生用，需要付出较多，需要谨慎管理资源' :
+               traditionalAnalysis.bodyUsage.relationship === 'usage-sheng-body' ? '用生体，外部环境对您有利，能够得到帮助和支持' :
+               '体用比和，内外和谐统一，形势稳定'}。${hexagram.judgment ? `卦辞云"${hexagram.judgment.substring(0, 50)}"，可作参考。` : ''}`
+      : ''}
+    
+    **你必须确保**：你的详细解读的最终结论必须与上述核心结论保持一致。如果核心结论是"体用比和，内外和谐统一"，你的解读不能得出"需要警惕风险"或"形势不稳定"等相反结论。你可以详细分析各个爻位和卦象变化，但最终的综合判断必须与核心结论一致。` : ''}
 
-  **解读要求（必须严格遵守易经推演逻辑）**:
-你必须按照传统易经解卦的推演过程来组织解读，包含以下完整步骤：
+    **解读要求（必须严格遵守易经推演逻辑）**:
+  你必须按照传统易经解卦的推演过程来组织解读，包含以下完整步骤：
 
 1. **本卦分析**：
    - 解释"${hexagram.chineseName || hexagram.name}"卦的核心含义
@@ -741,10 +867,11 @@ ${traditionalAnalysis.changingLinesAnalysis.map((ch: any) => `    * 第${ch.posi
    - 说明变卦卦辞对问题发展的预示
    - 分析本卦→变卦的整体演变趋势
 
-4. **综合推演**：
-   - 综合本卦、动爻、变卦三个层面，给出完整的趋势判断
-   - 明确指出当前状态、变化过程和未来走向
-   - 基于推演结果，给出针对性的建议
+  4. **综合推演**：
+     - 综合本卦、动爻、变卦三个层面，给出完整的趋势判断
+     - 明确指出当前状态、变化过程和未来走向
+     - 基于推演结果，给出针对性的建议
+     - **必须确保**：最终的综合判断必须与核心结论（基于传统逻辑分析的体用关系）保持一致，不能出现矛盾
 
   **写作要求**:
   - 必须体现易经推演的逻辑链条，展现从本卦到变卦的完整推理过程
@@ -759,21 +886,22 @@ ${traditionalAnalysis.changingLinesAnalysis.map((ch: any) => `    * 第${ch.posi
     - ✅ 正确："体用关系显示'比和'状态（体卦代表您自己，用卦代表外部环境，两者属性相同形成和谐共振），这表明您的内在状态与外部环境处于和谐状态"
   - **透明化解读**：在解读中，要适当展现传统逻辑分析的过程，让用户理解体用关系、世应位置、动爻分析、五行生克是如何得出判断的，而不是让用户感觉是黑箱操作
 
-**输出格式**:
-请按照以下结构输出，必须体现推演过程：
-【本卦分析】
-（解释本卦含义，引用卦辞，说明当前形势）
+  **输出格式**:
+  请按照以下结构输出，必须体现推演过程：
+  【本卦分析】
+  （解释本卦含义，引用卦辞，说明当前形势）
 
-【动爻推演】
-（如果有动爻，分析动爻意义和变化方向）
+  【动爻推演】
+  （如果有动爻，分析动爻意义和变化方向）
 
-【变卦趋势】
-（如果有变卦，解释变卦含义和未来走向）
+  【变卦趋势】
+  （如果有变卦，解释变卦含义和未来走向）
 
-【综合结论】
-（综合推演结果，给出判断和建议）
+  【综合结论】
+  （综合推演结果，给出判断和建议）
+  **重要**：综合结论必须与核心结论（基于传统逻辑分析的体用关系）保持一致。如果核心结论是"体用比和，内外和谐统一"，你的综合结论不能得出相反的判断。
 
-请直接返回中文正文（不要JSON/不要额外说明），严格按照上述推演逻辑组织内容。`;
+  请直接返回中文正文（不要JSON/不要额外说明），严格按照上述推演逻辑组织内容。`;
   }
 
   // 🚨 使用scenarioPromptGenerator生成完整的AI响应

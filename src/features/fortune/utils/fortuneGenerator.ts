@@ -1,12 +1,15 @@
 import type { 
-  FortuneResult, 
-  FortuneRequest, 
+  FortuneResult,
+  FortuneRequest,
   LuckyElements,
   DailyChallenge,
   PersonalizedFortuneData,
   FortuneLevel
 } from '../types/fortune';
 import { LLMService } from '../../../services/LLMService';
+// 紫微斗数融合服务
+import { ZiweiFusionService } from '../../ziwei/services/fusionService';
+import { useZiweiStore } from '../../ziwei/store/ziweiStore';
 
 // 运势等级描述，混合专业性和趣味性
 const LEVEL_DESCRIPTIONS: Record<FortuneLevel, string[]> = {
@@ -477,6 +480,26 @@ export async function generateFortune(personalData: PersonalizedFortuneData, use
     }
     
     result.date = dateString; // 统一更新日期
+    
+    // 集成紫微斗数融合功能（Phase 2: 今日运势融合）
+    try {
+      const ziweiStore = useZiweiStore();
+      if (ziweiStore.currentChart) {
+        console.log('🔮 检测到紫微命盘，开始生成紫微增强数据...');
+        const ziweiEnhancement = ZiweiFusionService.generateFortuneEnhancement(
+          ziweiStore.currentChart,
+          today
+        );
+        result.ziwei = ziweiEnhancement;
+        console.log('✅ 紫微增强数据生成完成:', ziweiEnhancement);
+      } else {
+        console.log('ℹ️ 未检测到紫微命盘，跳过紫微融合');
+      }
+    } catch (error: any) {
+      console.warn('⚠️ 紫微融合失败，继续使用基础运势:', error);
+      // 紫微融合失败不影响基础运势，继续返回结果
+    }
+    
     console.log('✅ 运势生成完成:', result);
     return result;
 

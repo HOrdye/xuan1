@@ -135,6 +135,13 @@
         </div>
         
         <div class="result-content">
+          <!-- 智能升级提示 -->
+          <SmartUpgradePrompt
+            context="dilemma"
+            :usage-count="0"
+            class="mb-6"
+          />
+
           <!-- 天玄智慧解读 - 优雅的标题，不再暴露技术细节 -->
           <div v-if="analysisResult.analysis" class="scenario-analysis-section mb-8">
             <div class="section-header text-center mb-6">
@@ -223,6 +230,7 @@ import ScenarioAnalysisResult from '../components/ScenarioAnalysisResult.vue';
 import { UserInfoSharingService } from '../../../services/UserInfoSharingService';
 import { generateTraditionalAnalysisCoin } from '../utils/traditionalAnalysis';
 import type { TraditionalAnalysis } from '../types';
+import SmartUpgradePrompt from '../../../components/membership/SmartUpgradePrompt.vue';
 
 // 表单数据
   const optionA = ref('');

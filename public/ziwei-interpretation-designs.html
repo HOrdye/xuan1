@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紫微命宫解读 - 3套UI设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .designs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .design-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .design-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .design-title {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .design-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* 方案1：卡片式布局 */
+        .design-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .design-1-header {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .design-1-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .free-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .design-1-content {
+            padding: 25px;
+        }
+
+        .interpretation-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .interpretation-card:hover {
+            transform: translateX(5px);
+        }
+
+        .card-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .card-text {
+            line-height: 1.8;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        /* 方案2：时间轴式布局 */
+        .design-2 {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-left: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+
+        .timeline-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-content {
+            color: #666;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        /* 方案3：模块化布局 */
+        .design-3 {
+            background: white;
+            border: 2px solid #e5e7eb;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .module-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .module-card:hover .module-title,
+        .module-card:hover .module-text {
+            color: white;
+        }
+
+        .module-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .module-text {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .full-width-module {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left-color: #10b981;
+        }
+
+        .full-width-module .module-title {
+            color: #10b981;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .designs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ 紫微命宫解读 - UI设计方案</h1>
+        
+        <div class="designs-grid">
+            <!-- 方案1：卡片式布局 -->
+            <div class="design-card">
+                <div class="design-title">方案1：卡片式布局</div>
+                <div class="design-description">
+                    现代扁平化设计，信息层次清晰，适合快速阅读
+                </div>
+                
+                <div class="design-1">
+                    <div class="design-1-header">
+                        <div class="design-1-title">
+                            <span>✨</span>
+                            <span>命宫解读</span>
+                            <span class="free-badge">免费</span>
+                        </div>
+                    </div>
+                    <div class="design-1-content">
+                        <div class="interpretation-card">
+                            <span class="card-label">核心特质</span>
+                            <div class="card-text">
+                                命宫坐贪狼武曲，这是一个非常特别的组合。贪狼和武曲的相遇，会产生独特的化学反应。
+                            </div>
+                        </div>
+                        <div class="interpretation-card">
+                            <span class="card-label">性格分析</span>
+                            <div class="card-text">
+                                贪狼武曲同宫，这是"武贪"格局的经典组合。你既有贪狼的多才多艺和社交能力，又有武曲的执行力和理财天赋。
+                            </div>
+                        </div>
+                        <div class="interpretation-card">
+                            <span class="card-label">人生建议</span>
+                            <div class="card-text">
+                                这个组合让你在事业上既有开拓精神，又有执行能力，是典型的创业型人才。你需要学会平衡这两种特质，让它们相互促进而不是相互冲突。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案2：时间轴式布局 -->
+            <div class="design-card">
+                <div class="design-title">方案2：时间轴式布局</div>
+                <div class="design-description">
+                    故事化展示，引导用户逐步理解，增强阅读体验
+                </div>
+                
+                <div class="design-2">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-title">
+                                <span>🎯</span>
+                                <span>命宫配置</span>
+                            </div>
+                            <div class="timeline-content">
+                                命宫坐贪狼武曲，这是一个非常特别的组合。贪狼和武曲的相遇，会产生独特的化学反应。
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">
+                                <span>⭐</span>
+                                <span>格局分析</span>
+                            </div>
+                            <div class="timeline-content">
+                                贪狼武曲同宫，这是"武贪"格局的经典组合。你既有贪狼的多才多艺和社交能力，又有武曲的执行力和理财天赋。
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">
+                                <span>💡</span>
+                                <span>性格特质</span>
+                            </div>
+                            <div class="timeline-content">
+                                这个组合让你在事业上既有开拓精神，又有执行能力，是典型的创业型人才。
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">
+                                <span>🚀</span>
+                                <span>人生建议</span>
+                            </div>
+                            <div class="timeline-content">
+                                你需要学会平衡这两种特质，让它们相互促进而不是相互冲突。命宫中的辅星会为这个组合增添不同的色彩。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案3：模块化布局 -->
+            <div class="design-card">
+                <div class="design-title">方案3：模块化布局</div>
+                <div class="design-description">
+                    信息模块化展示，重点突出，适合深度阅读
+                </div>
+                
+                <div class="design-3">
+                    <div class="module-grid">
+                        <div class="module-card">
+                            <div class="module-title">
+                                <span>🎯</span>
+                                <span>命宫配置</span>
+                            </div>
+                            <div class="module-text">
+                                命宫坐贪狼武曲，这是一个非常特别的组合。
+                            </div>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-title">
+                                <span>⭐</span>
+                                <span>格局类型</span>
+                            </div>
+                            <div class="module-text">
+                                "武贪"格局的经典组合，兼具开拓与执行能力。
+                            </div>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-title">
+                                <span>💪</span>
+                                <span>核心优势</span>
+                            </div>
+                            <div class="module-text">
+                                多才多艺、社交能力强、执行力强、理财天赋高。
+                            </div>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-title">
+                                <span>🎨</span>
+                                <span>性格特质</span>
+                            </div>
+                            <div class="module-text">
+                                既有开拓精神，又有执行能力，是典型的创业型人才。
+                            </div>
+                        </div>
+                        <div class="module-card full-width-module">
+                            <div class="module-title">
+                                <span>💡</span>
+                                <span>人生建议</span>
+                            </div>
+                            <div class="module-text">
+                                你需要学会平衡贪狼和武曲这两种特质，让它们相互促进而不是相互冲突。命宫中的辅星会为这个组合增添不同的色彩，四化星曜的影响会让这个组合的表现更加丰富多样。这个组合显示了你性格的复杂性和丰富性，你需要深入了解这两种主星的特质，学会在不同场合发挥不同的优势。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-note">
+            <strong>💡 说明：</strong>以上是3套不同的UI设计方案，每套都有其独特的视觉风格和交互体验。您可以选择最喜欢的一套，或者结合多套方案的优点进行定制。
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

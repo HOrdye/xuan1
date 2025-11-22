@@ -86,8 +86,24 @@
           </div>
           
         </div>
+
+        <!-- 六十四卦图鉴入口 -->
+        <div class="hexagram-explorer-section">
+          <div class="section-header">
+            <h3 class="section-title">📚 探索更多</h3>
+            <p class="section-description">深入了解六十四卦的智慧</p>
+          </div>
+          <router-link to="/hexagrams" class="explorer-card">
+            <div class="explorer-icon">📚</div>
+            <div class="explorer-content">
+              <h4 class="explorer-title">六十四卦图鉴</h4>
+              <p class="explorer-description">古老智慧的现代解读，每个卦象都有详细的故事和启示</p>
+            </div>
+            <div class="explorer-arrow">→</div>
+          </router-link>
+        </div>
       </div>
-      
+
       <!-- 占卜问题输入 -->
       <div v-if="selectedMethod && !divinationStarted" class="question-input-container">
         <div class="section-header">
@@ -1113,45 +1129,118 @@ function restartDivination() {
   100% { transform: rotate(360deg); }
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .methods-grid {
-    grid-template-columns: 1fr;
+  /* 六十四卦图鉴入口样式 */
+  .hexagram-explorer-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(139, 92, 246, 0.1);
   }
-  
-  .input-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .radio-group {
-    flex-direction: column;
+
+  .explorer-card {
+    display: flex;
+    align-items: center;
     gap: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
   }
-  
-  .main-title {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .title-decoration {
-    gap: 0.5rem;
-  }
-  
-  .decoration-line {
-    width: 40px;
-  }
-  
-  /* 移动端悬停修复 */
-  .method-card {
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .method-card:active {
+
+  .explorer-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(139, 92, 246, 0.3);
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
   }
-}
+
+  .explorer-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .explorer-content {
+    flex: 1;
+  }
+
+  .explorer-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4c1d95;
+    margin-bottom: 0.5rem;
+  }
+
+  .explorer-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .explorer-arrow {
+    font-size: 1.5rem;
+    color: #8b5cf6;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .explorer-card:hover .explorer-arrow {
+    transform: translateX(4px);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .methods-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .explorer-card {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .explorer-arrow {
+      transform: rotate(90deg);
+    }
+
+    .explorer-card:hover .explorer-arrow {
+      transform: rotate(90deg) translateX(4px);
+    }
+
+    .input-row {
+      grid-template-columns: 1fr;
+    }
+
+    .radio-group {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .main-title {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .title-decoration {
+      gap: 0.5rem;
+    }
+
+    .decoration-line {
+      width: 40px;
+    }
+
+    /* 移动端悬停修复 */
+    .method-card {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .method-card:active {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.3);
+      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+    }
+  }
 
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {

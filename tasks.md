@@ -1,4 +1,17 @@
-# 天玄Web开发任务清单
+# ⚠️ 此文件已迁移到 memory-bank/tasks.md
+
+**重要提示**：此文件已不再维护，请查看 `memory-bank/tasks.md` 获取最新任务清单。
+
+**统一管理说明**：所有开发计划文档已统一管理到 `memory-bank/` 文件夹，避免文件分散、更新不及时。
+
+**查看最新内容**：
+- 📋 主任务清单：`memory-bank/tasks.md`
+- 📊 项目进度：`memory-bank/progress.md`
+- 📑 开发计划索引：`memory-bank/README-开发计划索引.md`
+
+---
+
+# 天玄Web开发任务清单（旧版本，请查看 memory-bank/tasks.md）
 
 ## 🔐 SUPABASE 登录系统实装任务 (2024.12)
 

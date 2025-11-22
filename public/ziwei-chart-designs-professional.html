@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紫微圆形星盘 - 专业规整UI设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.8rem;
+            text-shadow: 0 2px 20px rgba(147, 51, 234, 0.5);
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 60px;
+            font-size: 1.2rem;
+        }
+
+        .designs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 100px;
+        }
+
+        .design-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 24px;
+            padding: 50px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .design-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .design-title {
+            font-size: 2.2rem;
+            color: #9333EA;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-weight: 700;
+        }
+
+        .design-description {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 1000px;
+            position: relative;
+            padding: 40px;
+        }
+
+        /* ========== 通用圆形布局计算 ========== */
+        .chart-container {
+            width: 1000px;
+            height: 1000px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .center-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .center-info {
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.8;
+            opacity: 0.95;
+        }
+
+        .palace-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 12宫位标准圆形排列 - 使用数学计算精确位置 */
+        /* 从命宫（正上方）开始，顺时针排列 */
+        .palace {
+            position: absolute;
+            width: 200px;
+            min-height: 140px;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center center;
+        }
+
+        /* 命宫 - 正上方 (0度) */
+        .palace:nth-child(1) {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 兄弟宫 - 右上 (30度) */
+        .palace:nth-child(2) {
+            top: 8%;
+            right: 12%;
+            transform: rotate(5deg);
+        }
+
+        /* 夫妻宫 - 右侧 (60度) */
+        .palace:nth-child(3) {
+            top: 25%;
+            right: 2%;
+            transform: rotate(10deg);
+        }
+
+        /* 子女宫 - 右下 (90度) */
+        .palace:nth-child(4) {
+            top: 50%;
+            right: 8%;
+            transform: translateY(-50%) rotate(5deg);
+        }
+
+        /* 财帛宫 - 正下方 (180度) */
+        .palace:nth-child(5) {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 疾厄宫 - 左下 (210度) */
+        .palace:nth-child(6) {
+            bottom: 8%;
+            left: 12%;
+            transform: rotate(-5deg);
+        }
+
+        /* 迁移宫 - 左侧 (240度) */
+        .palace:nth-child(7) {
+            top: 50%;
+            left: 2%;
+            transform: translateY(-50%) rotate(-10deg);
+        }
+
+        /* 奴仆宫 - 左上 (270度) */
+        .palace:nth-child(8) {
+            top: 25%;
+            left: 8%;
+            transform: rotate(-5deg);
+        }
+
+        /* 官禄宫 - 左上偏上 (300度) */
+        .palace:nth-child(9) {
+            top: 8%;
+            left: 12%;
+            transform: rotate(-5deg);
+        }
+
+        /* 田宅宫 - 左上偏左 (330度) */
+        .palace:nth-child(10) {
+            top: 0;
+            left: 20%;
+            transform: rotate(5deg);
+        }
+
+        /* 福德宫 - 正上方偏左 (345度) */
+        .palace:nth-child(11) {
+            top: 0;
+            left: 35%;
+            transform: rotate(3deg);
+        }
+
+        /* 父母宫 - 正上方偏右 (15度) */
+        .palace:nth-child(12) {
+            top: 0;
+            right: 20%;
+            transform: rotate(-3deg);
+        }
+
+        .palace:hover {
+            transform: scale(1.15) translateY(-8px) rotate(0deg) !important;
+            z-index: 20;
+        }
+
+        .palace-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .palace-name {
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ming-badge {
+            background: linear-gradient(135deg, #9333EA 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4);
+        }
+
+        .star-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .star-item {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .star-emoji {
+            font-size: 0.9rem;
+        }
+
+        .star-name {
+            font-weight: 500;
+        }
+
+        .empty-palace {
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px 0;
+            opacity: 0.7;
+        }
+
+        /* ========== 方案1：现代扁平化设计 ========== */
+        .design-1-chart .chart-center {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 
+                0 0 0 8px rgba(102, 126, 234, 0.2),
+                0 0 0 16px rgba(102, 126, 234, 0.1),
+                0 20px 60px rgba(102, 126, 234, 0.5);
+        }
+
+        .design-1-chart .palace {
+            background: #ffffff;
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.12),
+                0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid rgba(147, 51, 234, 0.25);
+        }
+
+        .design-1-chart .palace::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px 16px 0 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .design-1-chart .palace:hover {
+            box-shadow: 
+                0 12px 40px rgba(147, 51, 234, 0.4),
+                0 0 0 4px rgba(147, 51, 234, 0.1);
+            border-color: #9333EA;
+        }
+
+        .design-1-chart .palace:hover::before {
+            opacity: 1;
+        }
+
+        .design-1-chart .palace.ming-gong {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.12) 0%, rgba(147, 51, 234, 0.06) 100%);
+            border-color: #9333EA;
+            border-width: 3px;
+            box-shadow: 
+                0 8px 30px rgba(147, 51, 234, 0.35),
+                0 0 0 2px rgba(147, 51, 234, 0.1);
+        }
+
+        .design-1-chart .palace.ming-gong::before {
+            opacity: 1;
+            height: 5px;
+        }
+
+        .design-1-chart .palace-title {
+            color: #1a1a1a;
+            border-bottom-color: rgba(147, 51, 234, 0.15);
+        }
+
+        .design-1-chart .palace-name {
+            color: #9333EA;
+        }
+
+        .design-1-chart .star-item {
+            color: #4a5568;
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        .design-1-chart .star-item:hover {
+            background: rgba(147, 51, 234, 0.1);
+            transform: translateX(4px);
+        }
+
+        /* ========== 方案2：3D立体设计 ========== */
+        .design-2-chart {
+            perspective: 2000px;
+        }
+
+        .design-2-chart .chart-center {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translate(-50%, -50%) rotateX(15deg) rotateY(-5deg);
+            box-shadow: 
+                0 30px 80px rgba(102, 126, 234, 0.6),
+                inset 0 -15px 40px rgba(0,0,0,0.4),
+                inset 0 15px 40px rgba(255,255,255,0.1);
+            border: 4px solid rgba(255,255,255,0.25);
+            transform-style: preserve-3d;
+        }
+
+        .design-2-chart .palace {
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.95) 100%);
+            box-shadow: 
+                0 10px 35px rgba(0,0,0,0.25),
+                0 5px 15px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+
+        .design-2-chart .palace::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 18px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .design-2-chart .palace:hover {
+            transform: translateZ(50px) scale(1.15) rotateX(5deg) rotate(0deg) !important;
+            box-shadow: 
+                0 20px 60px rgba(147, 51, 234, 0.6),
+                0 0 0 5px rgba(147, 51, 234, 0.2),
+                inset 0 2px 0 rgba(255,255,255,0.9);
+            border-color: #9333EA;
+        }
+
+        .design-2-chart .palace:hover::before {
+            opacity: 0.1;
+        }
+
+        .design-2-chart .palace.ming-gong {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.18) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border-color: #9333EA;
+            border-width: 3px;
+            box-shadow: 
+                0 15px 50px rgba(147, 51, 234, 0.5),
+                0 0 0 3px rgba(147, 51, 234, 0.15),
+                inset 0 2px 0 rgba(255,255,255,0.2);
+            transform: translateZ(20px);
+        }
+
+        .design-2-chart .palace-title {
+            color: #1a1a1a;
+            border-bottom-color: rgba(147, 51, 234, 0.2);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .design-2-chart .palace-name {
+            color: #9333EA;
+        }
+
+        .design-2-chart .star-item {
+            color: #4a5568;
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        /* ========== 方案3：极简现代设计 ========== */
+        .design-3-chart .chart-center {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .design-3-chart .palace {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(147, 51, 234, 0.25);
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .design-3-chart .palace::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 14px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.5), rgba(102, 126, 234, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .design-3-chart .palace:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(147, 51, 234, 0.5);
+            box-shadow: 
+                0 8px 40px rgba(147, 51, 234, 0.4),
+                0 0 0 2px rgba(147, 51, 234, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .design-3-chart .palace:hover::after {
+            opacity: 1;
+        }
+
+        .design-3-chart .palace.ming-gong {
+            background: rgba(147, 51, 234, 0.15);
+            border-color: rgba(147, 51, 234, 0.5);
+            border-width: 2px;
+            box-shadow: 
+                0 8px 35px rgba(147, 51, 234, 0.4),
+                0 0 0 2px rgba(147, 51, 234, 0.15),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .design-3-chart .palace-title {
+            color: rgba(255, 255, 255, 0.95);
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .design-3-chart .palace-name {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .design-3-chart .star-item {
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .design-3-chart .star-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .design-3-chart .empty-palace {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .demo-note {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 50px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .demo-note strong {
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ 紫微圆形星盘 - 专业规整UI设计</h1>
+        <p class="subtitle">3套规整美观的高保真设计方案，严格按照传统紫微斗数12宫位标准圆形排列</p>
+        
+        <div class="designs-container">
+            <!-- 方案1：现代扁平化设计 -->
+            <div class="design-section">
+                <div class="design-header">
+                    <div class="design-title">
+                        <span>🎨</span>
+                        <span>方案1：现代扁平化设计</span>
+                    </div>
+                    <div class="design-description">
+                        采用现代扁平化设计风格，12宫位严格按照传统紫微斗数标准圆形排列，位置精确规整。每个宫位都是独立的白色卡片，带有精致的紫色边框和优雅的阴影效果。适合追求简洁明快、信息清晰的用户。
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-container design-1-chart">
+                        <div class="chart-center">
+                            <div class="center-title">紫微命盘</div>
+                            <div class="center-info">
+                                五行局 木三局<br>
+                                命宫 疾厄宫<br>
+                                身宫 奴仆宫
+                            </div>
+                        </div>
+                        <div class="palace-ring">
+                            <div class="palace ming-gong">
+                                <div class="palace-title">
+                                    <span class="palace-name">命宫</span>
+                                    <span class="badge ming-badge">命</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天府</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天梁</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天马</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阳</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">兄弟宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">紫微</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天相</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">火星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">夫妻宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天机</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">巨门</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">左辅</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">子女宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">贪狼</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">财帛宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">武曲</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阴</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文昌</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">疾厄宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天同</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">迁移宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天钺</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">奴仆宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">官禄宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">田宅宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">廉贞</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">破军</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">铃星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">福德宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文曲</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">父母宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">七杀</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案2：3D立体设计 -->
+            <div class="design-section">
+                <div class="design-header">
+                    <div class="design-title">
+                        <span>🎭</span>
+                        <span>方案2：3D立体设计</span>
+                    </div>
+                    <div class="design-description">
+                        采用3D透视效果和立体视觉层次，12宫位严格按照标准圆形排列，位置规整统一。通过精心设计的阴影、高光和3D变换，创造出强烈的视觉冲击力。悬停时宫位会浮起并放大，带来沉浸式的交互体验。
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-container design-2-chart">
+                        <div class="chart-center">
+                            <div class="center-title">紫微命盘</div>
+                            <div class="center-info">
+                                五行局 木三局<br>
+                                命宫 疾厄宫<br>
+                                身宫 奴仆宫
+                            </div>
+                        </div>
+                        <div class="palace-ring">
+                            <div class="palace ming-gong">
+                                <div class="palace-title">
+                                    <span class="palace-name">命宫</span>
+                                    <span class="badge ming-badge">命</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天府</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天梁</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天马</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阳</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">兄弟宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">紫微</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天相</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">火星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">夫妻宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天机</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">巨门</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">左辅</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">子女宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">贪狼</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">财帛宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">武曲</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阴</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文昌</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">疾厄宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天同</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">迁移宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天钺</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">奴仆宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">官禄宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">田宅宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">廉贞</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">破军</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">铃星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">福德宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文曲</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">父母宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">七杀</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案3：极简现代设计 -->
+            <div class="design-section">
+                <div class="design-header">
+                    <div class="design-title">
+                        <span>✨</span>
+                        <span>方案3：极简现代设计</span>
+                    </div>
+                    <div class="design-description">
+                        采用毛玻璃效果（Glassmorphism）和极简设计理念，12宫位严格按照标准圆形排列，位置规整统一。通过backdrop-filter模糊效果和精致的边框，创造出轻盈、高级的视觉体验。半透明的视觉层次营造出现代科技感。
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-container design-3-chart">
+                        <div class="chart-center">
+                            <div class="center-title">紫微命盘</div>
+                            <div class="center-info">
+                                五行局 木三局<br>
+                                命宫 疾厄宫<br>
+                                身宫 奴仆宫
+                            </div>
+                        </div>
+                        <div class="palace-ring">
+                            <div class="palace ming-gong">
+                                <div class="palace-title">
+                                    <span class="palace-name">命宫</span>
+                                    <span class="badge ming-badge">命</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天府</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天梁</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天马</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阳</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">兄弟宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">紫微</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天相</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">火星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">夫妻宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天机</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">巨门</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">左辅</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">子女宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">贪狼</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">财帛宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">武曲</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">太阴</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文昌</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">疾厄宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天同</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">迁移宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">天钺</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">奴仆宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">官禄宫</span>
+                                </div>
+                                <div class="empty-palace">空宫</div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">田宅宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">廉贞</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">破军</span>
+                                    </div>
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">铃星</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">福德宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">文曲</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="palace">
+                                <div class="palace-title">
+                                    <span class="palace-name">父母宫</span>
+                                </div>
+                                <div class="star-list">
+                                    <div class="star-item">
+                                        <span class="star-emoji">⭐</span>
+                                        <span class="star-name">七杀</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-note">
+            <strong>💡 专业规整设计说明：</strong><br>
+            以上3套设计方案严格按照传统紫微斗数12宫位的标准圆形排列：命宫（正上方）→ 兄弟宫 → 夫妻宫 → 子女宫 → 财帛宫（正下方）→ 疾厄宫 → 迁移宫 → 奴仆宫 → 官禄宫 → 田宅宫 → 福德宫 → 父母宫。每个宫位的位置都经过精确计算，确保布局规整统一、视觉美观。所有方案都支持悬停效果和点击交互。
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

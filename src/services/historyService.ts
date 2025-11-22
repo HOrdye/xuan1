@@ -66,12 +66,54 @@ export interface HistoryItem {
   // --- Public API ---
   
   /**
-   * 从LocalStorage获取所有历史记录
+   * 获取会员等级对应的历史记录保存天数
    */
-  const getHistory = (): Promise<HistoryItem[]> => {
-    return new Promise((resolve) => {
+  const getHistoryDays = async (): Promise<number> => {
+    try {
+      const { useMembershipGuard } = await import('../composables/useMembershipGuard');
+      const { getHistoryDays: getDays } = useMembershipGuard();
+      return await getDays();
+    } catch (error) {
+      console.warn('⚠️ 获取会员历史记录天数失败，使用默认值7天:', error);
+      return 7; // 默认7天
+    }
+  };
+
+  /**
+   * 根据会员等级过滤历史记录
+   */
+  const filterHistoryByMembership = async (history: HistoryItem[]): Promise<HistoryItem[]> => {
+    const historyDays = await getHistoryDays();
+    
+    // 如果历史记录天数为-1（无限），返回所有记录
+    if (historyDays === -1) {
+      return history;
+    }
+
+    // 计算截止日期
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - historyDays);
+    
+    // 过滤出在保存天数内的记录
+    const filtered = history.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= cutoffDate;
+    });
+
+    if (filtered.length !== history.length) {
+      console.log(`📅 根据会员等级过滤历史记录: 保留${filtered.length}条（${historyDays}天内），删除${history.length - filtered.length}条`);
+    }
+
+    return filtered;
+  };
+
+  /**
+   * 从LocalStorage获取所有历史记录（根据会员等级过滤）
+   */
+  const getHistory = async (): Promise<HistoryItem[]> => {
+    return new Promise(async (resolve) => {
       const result = safeLocalStorageOperation(
-        () => {
+        async () => {
           const rawData = localStorage.getItem(HISTORY_STORAGE_KEY);
           console.log('📚 Raw localStorage data length:', rawData?.length || 0);
           
@@ -98,7 +140,17 @@ export interface HistoryItem {
           
           // 按日期降序排序
           const sortedHistory = validHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          return sortedHistory;
+          
+          // 根据会员等级过滤历史记录
+          const filteredHistory = await filterHistoryByMembership(sortedHistory);
+          
+          // 如果过滤后记录数减少，更新localStorage
+          if (filteredHistory.length < sortedHistory.length) {
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(filteredHistory));
+            console.log('✅ 已清理过期历史记录');
+          }
+          
+          return filteredHistory;
         },
         [],
         'Get history'
@@ -138,11 +190,14 @@ export interface HistoryItem {
 
         currentHistory.unshift(newItem); // 添加到数组开头
 
-        const serializedData = JSON.stringify(currentHistory);
+        // 根据会员等级清理过期历史记录
+        const filteredHistory = await filterHistoryByMembership(currentHistory);
+        
+        const serializedData = JSON.stringify(filteredHistory);
         localStorage.setItem(HISTORY_STORAGE_KEY, serializedData);
 
         console.log('✅ History item saved to localStorage');
-        console.log(`📊 Total history items: ${currentHistory.length}`);      
+        console.log(`📊 Total history items: ${filteredHistory.length}`);      
 
         return newItem;
       },

@@ -75,11 +75,17 @@
 
       <!-- AI个性化分析（新增） -->
       <div v-if="fortune?.aiAnalysis && isAIAnalyzed" class="mt-6">
-        <AIAnalysisDisplay 
-          :content="fortune.aiAnalysis || ''" 
+        <AIAnalysisDisplay
+          :content="fortune.aiAnalysis || ''"
           :is-loading="false"
         />
       </div>
+
+      <!-- 紫微斗数增强数据（Phase 2: 今日运势融合） -->
+      <ZiweiFortuneEnhancement
+        v-if="fortune?.ziwei"
+        :ziwei-data="fortune.ziwei"
+      />
 
       <!-- 每日建议 -->
       <div class="mt-6">
@@ -102,6 +108,7 @@
 import { computed } from 'vue';
 import type { FortuneResult } from '../types/fortune';
 import AIAnalysisDisplay from './AIAnalysisDisplay.vue';
+import ZiweiFortuneEnhancement from './ZiweiFortuneEnhancement.vue';
 
 const props = defineProps<{
   fortune: FortuneResult;

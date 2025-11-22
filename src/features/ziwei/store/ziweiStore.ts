@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia';
 import type { ZiweiChart, BirthInfo, Star, Daxian } from '../types';
 import { ZiweiChartCalculator } from '../utils/chartCalculator';
+import { ChartStorageService } from '../services/chartStorageService';
 
 interface ZiweiState {
   currentChart: ZiweiChart | null;
@@ -91,8 +92,12 @@ export const useZiweiStore = defineStore('ziwei', {
           });
         });
 
-        // TODO: 保存到Supabase
-        // await this.saveChartToDatabase(chart);
+        // 自动保存到用户信息和 localStorage
+        try {
+          await ChartStorageService.saveChartToUser(chart);
+        } catch (saveError) {
+          console.warn('⚠️ 保存命盘数据失败（不影响使用）:', saveError);
+        }
 
         console.log('✅ Store: 命盘生成成功');
         return chart;
@@ -135,12 +140,56 @@ export const useZiweiStore = defineStore('ziwei', {
       }
     },
 
+      /**
+       * 清除当前命盘
+       */
+      async clearChart(): Promise<void> {
+        this.currentChart = null;
+        this.error = null;
+        // 清除用户信息和 localStorage 中的命盘
+        try {
+          await ChartStorageService.clearChartFromUser();
+        } catch (error) {
+          console.warn('清除命盘数据失败:', error);
+        }
+      },
+
+      /**
+       * 从用户信息加载命盘
+       */
+      async loadChartFromUser(): Promise<ZiweiChart | null> {
+        try {
+          const chart = await ChartStorageService.loadChartFromUser();
+          if (chart) {
+            this.currentChart = chart;
+            console.log('✅ Store: 从用户信息加载命盘成功');
+          }
+          return chart;
+        } catch (error: any) {
+          console.error('❌ Store: 从用户信息加载命盘失败', error);
+          return null;
+        }
+      },
+
     /**
-     * 清除当前命盘
+     * 添加收藏星曜
      */
-    clearChart(): void {
-      this.currentChart = null;
-      this.error = null;
+    addCollectedStar(starName: string): void {
+      if (!this.collectedStars.includes(starName)) {
+        this.collectedStars.push(starName);
+        // TODO: 保存到Supabase
+      }
+    },
+
+    /**
+     * 移除收藏星曜
+     */
+    removeCollectedStar(starName: string): void {
+      const index = this.collectedStars.indexOf(starName);
+      if (index > -1) {
+        this.collectedStars.splice(index, 1);
+        // TODO: 从Supabase删除
+      }
     }
   }
 });

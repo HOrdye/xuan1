@@ -135,17 +135,30 @@
         <div class="interaction-hint premium">解锁故事</div>
       </router-link>
 
-      <!-- 六十四卦 -->
-      <router-link to="/hexagrams" class="feature-card block">
+      <!-- 紫微斗数 -->
+      <router-link to="/ziwei" class="feature-card block">
         <div class="feature-icon">
-          📚
+          🌟
         </div>
-        <h3 class="feature-title">六十四卦图鉴</h3>
+        <h3 class="feature-title">紫微斗数</h3>
         <p class="feature-description">
-          古老智慧的现代解读<br>
-          每个卦象都有详细的故事和启示
+          命盘排盘与深度解读<br>
+          探索你的命盘奥秘，了解人生轨迹
         </p>
-        <div class="interaction-hint">探索卦象</div>
+        <div class="interaction-hint">查看命盘</div>
+      </router-link>
+
+      <!-- 三维解读 -->
+      <router-link to="/triple-analysis" class="feature-card block">
+        <div class="feature-icon">
+          🔮
+        </div>
+        <h3 class="feature-title">三维解读</h3>
+        <p class="feature-description">
+          易经·紫微·塔罗<br>
+          三个维度，一个答案，全方位决策指引
+        </p>
+        <div class="interaction-hint premium">解锁三维</div>
       </router-link>
     </section>
   </div>

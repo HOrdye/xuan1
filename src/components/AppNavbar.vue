@@ -18,6 +18,7 @@
           <router-link to="/jiaobei" class="nav-link" :class="{ 'active': isActive('/jiaobei') }">笅杯占卜</router-link>
           <router-link to="/tarot" class="nav-link" :class="{ 'active': isActive('/tarot') }">塔罗牌</router-link>
           <router-link to="/fortune" class="nav-link" :class="{ 'active': isActive('/fortune') }">今日运势</router-link>
+          <router-link to="/triple-analysis" class="nav-link" :class="{ 'active': isActive('/triple-analysis') }">三维解读</router-link>
         </div>
 
         <!-- 右侧用户菜单 -->
@@ -49,6 +50,14 @@
 
             <!-- 已登录状态 -->
             <div v-else class="flex items-center space-x-3">
+              <!-- 会员徽章（如果是会员） -->
+              <div v-if="userStore.isPremium" class="hidden md:flex items-center">
+                <div class="subscription-badge-nav" :class="userStore.subscriptionTier">
+                  <span class="badge-icon-nav">{{ getTierIcon(userStore.subscriptionTier) }}</span>
+                  <span class="badge-text-nav">{{ getTierText(userStore.subscriptionTier) }}</span>
+                </div>
+              </div>
+              
               <!-- 用户头像/名称 -->
               <button 
                 @click="toggleUserMenu"
@@ -69,8 +78,32 @@
               <transition name="dropdown">
                 <div 
                   v-if="showUserMenu"
-                  class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                  class="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                 >
+                  <!-- 会员状态显示 -->
+                  <div v-if="userStore.subscriptionStatus" class="px-4 py-3 border-b border-gray-100">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs text-gray-500">会员状态</span>
+                      <div v-if="!userStore.isPremium" class="text-xs text-yellow-600 font-medium">
+                        免费版
+                      </div>
+                      <div v-else class="subscription-badge-menu" :class="userStore.subscriptionTier">
+                        <span class="badge-icon-menu">{{ getTierIcon(userStore.subscriptionTier) }}</span>
+                        <span class="badge-text-menu">{{ getTierText(userStore.subscriptionTier) }}</span>
+                      </div>
+                    </div>
+                    <div v-if="userStore.subscriptionStatus.expiresAt" class="text-xs text-gray-500">
+                      到期时间：{{ formatExpiryDate(userStore.subscriptionStatus.expiresAt) }}
+                    </div>
+                    <button 
+                      v-if="!userStore.isPremium"
+                      @click="goToUpgrade"
+                      class="mt-2 w-full text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1.5 rounded-md font-medium hover:from-yellow-500 hover:to-orange-500 transition-all"
+                    >
+                      升级会员（首月¥9.9）
+                    </button>
+                  </div>
+                  
                   <router-link 
                     to="/profile" 
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -128,12 +161,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../store/userStore';
 import ModernAuthModal from './auth/ModernAuthModal.vue';
+import type { SubscriptionTier } from '../core/types/subscription';
 
 const route = useRoute();
+const router = useRouter();
 const userStore = useUserStore();
 
 // 组件状态
@@ -189,9 +224,54 @@ const handleClickOutside = (event: Event) => {
   }
 };
 
+// 获取会员等级图标
+const getTierIcon = (tier: SubscriptionTier): string => {
+  switch (tier) {
+    case 'premium':
+      return '👑';
+    case 'advanced':
+      return '💎';
+    default:
+      return '';
+  }
+};
+
+// 获取会员等级文本
+const getTierText = (tier: SubscriptionTier): string => {
+  switch (tier) {
+    case 'premium':
+      return '会员';
+    case 'advanced':
+      return '高级会员';
+    default:
+      return '免费版';
+  }
+};
+
+// 格式化到期日期
+const formatExpiryDate = (dateStr: string | null): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+// 跳转到升级页面
+const goToUpgrade = () => {
+  closeUserMenu();
+  router.push('/pricing');
+};
+
 // 初始化用户状态
 onMounted(async () => {
   await userStore.initialize();
+  // 如果用户已登录，加载会员状态
+  if (userStore.isAuthenticated && userStore.currentUser) {
+    await userStore.loadSubscriptionStatus(userStore.currentUser.id);
+  }
   document.addEventListener('click', handleClickOutside);
 });
 
@@ -219,5 +299,64 @@ onUnmounted(() => {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+/* 导航栏会员徽章 */
+.subscription-badge-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.subscription-badge-nav.premium {
+  background: linear-gradient(135deg, #f8c400 0%, #ffd700 100%);
+  color: #0a1e4d;
+}
+
+.subscription-badge-nav.advanced {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.badge-icon-nav {
+  font-size: 0.875rem;
+}
+
+.badge-text-nav {
+  font-weight: 700;
+}
+
+/* 下拉菜单会员徽章 */
+.subscription-badge-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.subscription-badge-menu.premium {
+  background: linear-gradient(135deg, #f8c400 0%, #ffd700 100%);
+  color: #0a1e4d;
+}
+
+.subscription-badge-menu.advanced {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.badge-icon-menu {
+  font-size: 0.75rem;
+}
+
+.badge-text-menu {
+  font-weight: 700;
 }
 </style> 

@@ -11,7 +11,14 @@ export type StarCategory = '主星' | '辅星' | '煞星' | '吉星';
 /**
  * 星曜亮度
  */
-export type StarBrightness = '庙' | '旺' | '平' | '陷';
+export type StarBrightness = '庙' | '旺' | '利' | '得' | '平' | '不得地' | '陷';
+
+/**
+ * 长生十二神
+ */
+export type ChangshengStatus = 
+  | '长生' | '沐浴' | '冠带' | '临官' | '帝旺' | '衰'
+  | '病' | '死' | '墓' | '绝' | '胎' | '养';
 
 /**
  * 五行
@@ -63,9 +70,12 @@ export type PalaceName =
 export interface Palace {
   name: PalaceName;
   index: number;  // 0-11
+  dizhi: Dizhi;  // 地支
+  tiangan?: Tiangan;  // 宫干（天干）
   stars: Star[];
   brightness: string;
   sihua?: Sihua;
+  changsheng?: ChangshengStatus;  // 长生十二神
   description?: string;
 }
 
@@ -86,15 +96,19 @@ export interface Pattern {
   palaces?: number[];
 }
 
-/**
- * 大限数据
- */
-export interface Daxian {
-  startAge: number;
-  endAge: number;
-  palace: Palace;
-  palaceIndex: number;
-}
+  /**
+   * 大限数据
+   */
+  export interface Daxian {
+    startAge: number;
+    endAge: number;
+    palace: Palace;
+    palaceIndex: number;
+    tiangan?: Tiangan;  // 大限天干
+    dizhi?: Dizhi;  // 大限地支
+    sihua?: Sihua;  // 大限四化
+    feixing?: import('../utils/sihuaFeixingCalculator').SihuaFeixingResult; // 大限四化飞星结果
+  }
 
 /**
  * 出生信息
@@ -125,7 +139,12 @@ export interface ZiweiChart {
   patterns: Pattern[];
   mingGong: Palace;  // 命宫
   shenGong: Palace;  // 身宫
+  mingZhu?: string;  // 命主星
+  shenZhu?: string;  // 身主星
   daxian: Daxian[];  // 大限列表
+  liunian?: any;  // 当前流年信息（LiunianInfo）
+  liumonth?: any;  // 当前流月信息（LiumonthInfo）
+  liuday?: any;  // 当前流日信息（LiudayInfo）
   createdAt: Date;
 }
 

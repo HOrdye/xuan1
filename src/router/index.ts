@@ -182,12 +182,55 @@ const routes: Array<RouteRecordRaw> = [
       title: '命盘展示 - 紫微斗数'
     }
   },
+    {
+      path: '/ziwei/test',
+      name: 'ZiweiTest',
+      component: () => import('../features/ziwei/views/TestPage.vue'),
+      meta: {
+        title: '功能测试 - 紫微斗数'
+      }
+    },
+    {
+      path: '/ziwei/empty-palace',
+      name: 'ZiweiEmptyPalace',
+      component: () => import('../features/ziwei/views/EmptyPalaceAnalysis.vue'),
+      meta: {
+        title: '空宫解读 - 紫微斗数'
+      }
+    },
+    {
+      path: '/ziwei/personality-test',
+      name: 'ZiweiPersonalityTest',
+      component: () => import('../features/ziwei/views/PersonalityTest.vue'),
+      meta: {
+        title: '人格测试 - 紫微斗数'
+      }
+    },
+    {
+      path: '/ziwei/triple-analysis',
+      name: 'ZiweiTripleAnalysisMVP',
+      component: () => import('../features/ziwei/components/TripleAnalysisMVP.vue'),
+      meta: {
+        title: '三维解读 - 紫微斗数'
+      }
+    },
+
+  // 三维决策系统（易经+紫微+塔罗）
   {
-    path: '/ziwei/test',
-    name: 'ZiweiTest',
-    component: () => import('../features/ziwei/views/TestPage.vue'),
+    path: '/triple-analysis',
+    name: 'TripleAnalysis',
+    component: () => import('../features/cross-system/views/TripleAnalysisPage.vue'),
     meta: {
-      title: '功能测试 - 紫微斗数'
+      title: '三维决策系统 - 天玄Web'
+    }
+  },
+  // 会员套餐页面
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('../views/Pricing.vue'),
+    meta: {
+      title: '会员套餐 - 天玄Web'
     }
   },
 

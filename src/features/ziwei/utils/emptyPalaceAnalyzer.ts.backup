@@ -1,0 +1,269 @@
+/**
+ * 空宫分析工具
+ * 检测空宫、识别对宫、生成解读
+ */
+
+import type { Palace, ZiweiChart, Star } from '../types';
+import { PALACE_NAMES } from '../data/palaces';
+
+/**
+ * 空宫分析结果
+ */
+export interface EmptyPalaceAnalysis {
+  palace: Palace;
+  palaceIndex: number;
+  oppositePalace: Palace;
+  oppositePalaceIndex: number;
+  oppositeStars: Star[];
+  interpretation: string;
+  characteristics: string[];
+  suggestions: string[];
+}
+
+/**
+ * 判断宫位是否为空宫
+ * 空宫定义：没有主星（category === '主星'）的宫位
+ */
+export function isEmptyPalace(palace: Palace): boolean {
+  // 检查是否有主星
+  const hasMainStar = palace.stars.some(star => star.category === '主星');
+  return !hasMainStar;
+}
+
+/**
+ * 获取对宫索引
+ * 对宫 = 当前宫位索引 + 6（取模12）
+ */
+export function getOppositePalaceIndex(palaceIndex: number): number {
+  return (palaceIndex + 6) % 12;
+}
+
+/**
+ * 获取对宫名称
+ */
+export function getOppositePalaceName(palaceIndex: number): string {
+  const oppositeIndex = getOppositePalaceIndex(palaceIndex);
+  return PALACE_NAMES[oppositeIndex];
+}
+
+/**
+ * 分析命盘中的所有空宫
+ */
+export function analyzeEmptyPalaces(chart: ZiweiChart): EmptyPalaceAnalysis[] {
+  const emptyPalaces: EmptyPalaceAnalysis[] = [];
+
+  chart.palaces.forEach((palace, index) => {
+    if (isEmptyPalace(palace)) {
+      const oppositeIndex = getOppositePalaceIndex(index);
+      const oppositePalace = chart.palaces[oppositeIndex];
+      
+      // 获取对宫的主星
+      const oppositeMainStars = oppositePalace.stars.filter(
+        star => star.category === '主星'
+      );
+
+      // 获取对宫的辅星和煞星
+      const oppositeAuxiliaryStars = oppositePalace.stars.filter(
+        star => star.category === '辅星' || star.category === '煞星'
+      );
+
+      // 生成解读
+      const analysis = generateEmptyPalaceInterpretation(
+        palace,
+        index,
+        oppositePalace,
+        oppositeIndex,
+        oppositeMainStars,
+        oppositeAuxiliaryStars
+      );
+
+      emptyPalaces.push(analysis);
+    }
+  });
+
+  return emptyPalaces;
+}
+
+/**
+ * 生成空宫解读
+ */
+function generateEmptyPalaceInterpretation(
+  palace: Palace,
+  palaceIndex: number,
+  oppositePalace: Palace,
+  oppositeIndex: number,
+  oppositeMainStars: Star[],
+  oppositeAuxiliaryStars: Star[]
+): EmptyPalaceAnalysis {
+  const oppositeStars = [...oppositeMainStars, ...oppositeAuxiliaryStars];
+  
+  // 根据宫位类型生成不同的解读
+  const interpretation = getPalaceSpecificInterpretation(
+    palace.name,
+    oppositeMainStars,
+    oppositeAuxiliaryStars
+  );
+
+  const characteristics = getEmptyPalaceCharacteristics(
+    palace.name,
+    oppositeMainStars
+  );
+
+  const suggestions = getEmptyPalaceSuggestions(
+    palace.name,
+    oppositeMainStars
+  );
+
+  return {
+    palace,
+    palaceIndex,
+    oppositePalace,
+    oppositePalaceIndex: oppositeIndex,
+    oppositeStars,
+    interpretation,
+    characteristics,
+    suggestions
+  };
+}
+
+/**
+ * 获取宫位特定的解读
+ */
+function getPalaceSpecificInterpretation(
+  palaceName: string,
+  oppositeMainStars: Star[],
+  oppositeAuxiliaryStars: Star[]
+): string {
+  const mainStarNames = oppositeMainStars.map(s => s.name).join('、');
+  const auxiliaryStarNames = oppositeAuxiliaryStars.map(s => s.name).join('、');
+  
+  const starDescription = mainStarNames 
+    ? `对宫${mainStarNames}${auxiliaryStarNames ? `和${auxiliaryStarNames}` : ''}`
+    : '对宫星曜';
+
+  switch (palaceName) {
+    case '命宫':
+      return `你的命宫是空宫，这意味着你的个性不像有主星的人那么鲜明固定。你的性格特质要看对面"迁移宫"的${starDescription}。这让你的可塑性强，容易受到环境和身边人的影响，但也要注意不要过度迎合他人而失去自我。`;
+
+    case '夫妻宫':
+      return `你的夫妻宫是空宫，说明婚姻缘分相对平淡，配偶可能个性不明显。要看对面"官禄宫"的${starDescription}来了解配偶的特质。这样的配置让你在感情中更加灵活，但也需要主动经营关系。`;
+
+    case '官禄宫':
+      return `你的事业宫是空宫，说明事业方向多样化，适合自由职业或多重身份。要看对面"夫妻宫"的${starDescription}来了解事业发展。这样的配置让你不受固定职业束缚，但也需要自己主动探索和规划。`;
+
+    case '财帛宫':
+      return `你的财帛宫是空宫，说明财运起伏较大，赚钱方式不固定。要看对面"福德宫"的${starDescription}来了解财运状况。这样的配置让你在财务上更加灵活，但也需要主动寻找机会。`;
+
+    case '兄弟宫':
+      return `你的兄弟宫是空宫，说明兄弟姐妹关系相对平淡。要看对面"奴仆宫"的${starDescription}来了解同辈关系。`;
+
+    case '子女宫':
+      return `你的子女宫是空宫，说明子女缘分或创作能力需要看对面"田宅宫"的${starDescription}。`;
+
+    case '疾厄宫':
+      return `你的疾厄宫是空宫，健康方面要看对面"父母宫"的${starDescription}。`;
+
+    case '迁移宫':
+      return `你的迁移宫是空宫，外出发展要看对面"命宫"的${starDescription}。`;
+
+    case '奴仆宫':
+      return `你的奴仆宫是空宫，人际关系要看对面"兄弟宫"的${starDescription}。`;
+
+    case '田宅宫':
+      return `你的田宅宫是空宫，房产和家庭环境要看对面"子女宫"的${starDescription}。`;
+
+    case '福德宫':
+      return `你的福德宫是空宫，精神享受和内心世界要看对面"财帛宫"的${starDescription}。`;
+
+    case '父母宫':
+      return `你的父母宫是空宫，父母关系和根源要看对面"疾厄宫"的${starDescription}。`;
+
+    default:
+      return `你的${palaceName}是空宫，要看对面宫位的${starDescription}来了解这个方面的特质。`;
+  }
+}
+
+/**
+ * 获取空宫的特点
+ */
+function getEmptyPalaceCharacteristics(
+  palaceName: string,
+  oppositeMainStars: Star[]
+): string[] {
+  const baseCharacteristics = [
+    '可塑性强：不受主星固定特质束缚，更灵活',
+    '受环境影响大：容易受外界、他人影响',
+    '需要主动性：不像有主星那样有明确特质，需要自己探索'
+  ];
+
+  // 根据对宫主星添加特定特点
+  if (oppositeMainStars.length > 0) {
+    const starNames = oppositeMainStars.map(s => s.name).join('、');
+    baseCharacteristics.push(`借对宫${starNames}的特质来论命`);
+  }
+
+  return baseCharacteristics;
+}
+
+/**
+ * 获取空宫的建议
+ */
+function getEmptyPalaceSuggestions(
+  palaceName: string,
+  oppositeMainStars: Star[]
+): string[] {
+  const suggestions: string[] = [];
+
+  switch (palaceName) {
+    case '命宫':
+      suggestions.push('保持开放心态，多接触不同的人和事');
+      suggestions.push('培养独立思考能力，不要过度依赖他人意见');
+      suggestions.push('发挥可塑性强的优势，适应不同环境');
+      break;
+
+    case '夫妻宫':
+      suggestions.push('主动经营感情关系，不要被动等待');
+      suggestions.push('多关注配偶的需求和感受');
+      suggestions.push('在感情中保持灵活性，但也要有原则');
+      break;
+
+    case '官禄宫':
+      suggestions.push('探索多种职业可能性，不要局限于单一方向');
+      suggestions.push('考虑自由职业或多重身份');
+      suggestions.push('主动规划事业发展路径');
+      break;
+
+    case '财帛宫':
+      suggestions.push('保持财务灵活性，不要过度依赖单一收入来源');
+      suggestions.push('主动寻找赚钱机会');
+      suggestions.push('培养理财能力，合理规划财务');
+      break;
+
+    default:
+      suggestions.push('发挥空宫的灵活性优势');
+      suggestions.push('主动探索和规划这个方面');
+      suggestions.push('参考对宫星曜的特质，但不要完全依赖');
+  }
+
+  return suggestions;
+}
+
+/**
+ * 获取空宫数量统计
+ */
+export function getEmptyPalaceStats(chart: ZiweiChart): {
+  total: number;
+  emptyPalaces: string[];
+  percentage: number;
+} {
+  const emptyPalaces = analyzeEmptyPalaces(chart);
+  const emptyPalaceNames = emptyPalaces.map(ep => ep.palace.name);
+  
+  return {
+    total: emptyPalaces.length,
+    emptyPalaces: emptyPalaceNames,
+    percentage: Math.round((emptyPalaces.length / 12) * 100)
+  };
+}
+
+

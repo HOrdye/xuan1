@@ -364,13 +364,14 @@ function findHexagram(inputLines: (0 | 1)[] | number[]): Hexagram | null {
  * 分析选项
  */
 async function analyzeOptions(
-  hexagram: Hexagram,
-  relatedHexagram: Hexagram | undefined,
-  optionA: string,
-  optionB: string,
-  changingLines: number[],
-  useMultipleAlgorithms: boolean
-): Promise<{
+    hexagram: Hexagram,
+    relatedHexagram: Hexagram | undefined,
+    optionA: string,
+    optionB: string,
+    changingLines: number[],
+    useMultipleAlgorithms: boolean,
+    traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
+  ): Promise<{
   optionA_score: number;
   optionB_score: number;
   optionA_analysis: string;
@@ -435,8 +436,9 @@ async function analyzeOptions(
   const optionA_analysis = generateOptionAnalysis(hexagram, optionA, 'A', changingLines, optionA_score, optionB_score);
   const optionB_analysis = generateOptionAnalysis(hexagram, optionB, 'B', changingLines, optionB_score, optionA_score);
   
-  // 生成综合分析
-  const analysis = await generateOverallAnalysis(hexagram, relatedHexagram, optionA, optionB, changingLines, recommendation);
+    // 生成综合分析
+    // ⭐ 传递traditionalAnalysis，确保AI解读与核心结论基于相同的传统逻辑分析
+    const analysis = await generateOverallAnalysis(hexagram, relatedHexagram, optionA, optionB, changingLines, recommendation, traditionalAnalysis);
   
   console.log('🎯 分析完成:', { recommendation, analysis: analysis.substring(0, 100) + '...' });
   
@@ -703,13 +705,14 @@ function generateOptionAnalysis(
  * 生成综合分析 - 改进版本
  */
 async function generateOverallAnalysis(
-  hexagram: Hexagram,
-  relatedHexagram: Hexagram | undefined,
-  optionA: string,
-  optionB: string,
-  changingLines: number[],
-  recommendation: string
-): Promise<string> {
+    hexagram: Hexagram,
+    relatedHexagram: Hexagram | undefined,
+    optionA: string,
+    optionB: string,
+    changingLines: number[],
+    recommendation: string,
+    traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
+  ): Promise<string> {
   console.log('🎯 开始生成综合分析:', { 
     hexagramName: hexagram.chineseName, 
     hasRelatedHexagram: !!relatedHexagram,
@@ -724,13 +727,15 @@ async function generateOverallAnalysis(
       
     console.log('🤖 尝试调用LLM服务...');
       
-    // 使用LLM服务生成解读
-    const analysis = await LLMService.getHexagramInterpretation(
-      hexagram,
-      changingLines,
-      relatedHexagram || null,
-      question
-    );
+      // 使用LLM服务生成解读
+      // ⭐ 传递traditionalAnalysis，确保AI解读与核心结论基于相同的传统逻辑分析
+      const analysis = await LLMService.getHexagramInterpretation(
+        hexagram,
+        changingLines,
+        relatedHexagram || null,
+        question,
+        traditionalAnalysis  // ⭐ 传递传统逻辑分析，确保与核心结论一致
+      );
     
     if (analysis && analysis.trim().length > 50) {
       console.log('✅ LLM分析成功，内容长度:', analysis.length);
@@ -999,20 +1004,22 @@ export async function generateHexagramFromLines(lines: (0 | 1)[]): Promise<Hexag
   }
 }
 
-// 新增异步解析功能
-export async function generateAnalysisAsync(
-  hexagram: Hexagram,
-  changingLines: number[],
-  relatedHexagram: Hexagram | null,
-  question?: string
-): Promise<string> {
-  return await LLMService.getHexagramInterpretation(
-    hexagram,
-    changingLines,
-    relatedHexagram,
-    question || ''
-  );
-}
+  // 新增异步解析功能
+  export async function generateAnalysisAsync(
+    hexagram: Hexagram,
+    changingLines: number[],
+    relatedHexagram: Hexagram | null,
+    question?: string,
+    traditionalAnalysis?: any  // ⭐ 新增：传统逻辑分析参数
+  ): Promise<string> {
+    return await LLMService.getHexagramInterpretation(
+      hexagram,
+      changingLines,
+      relatedHexagram,
+      question || '',
+      traditionalAnalysis  // ⭐ 传递传统逻辑分析
+    );
+  }
 
 // 移除同步generateAnalysis，改用异步版本
 export function generateAnalysis(_hexagram: any, _changingLines: number[], _relatedHexagram: any): string {

@@ -120,6 +120,16 @@ export interface AnalysisResult {
     urgency: string;
     riskLevel: string;
   };
+  /**
+   * 紫微斗数匹配分析（可选，向后兼容）
+   * 当用户有紫微命盘时，提供基于命盘的选项匹配和适配度分析
+   */
+  ziweiMatch?: import('../../../shared/types/cross-system').ZiweiMatchAnalysis;
+  /**
+   * 紫微命盘视角（可选，向后兼容）
+   * 提供基于命盘的卦象解读视角
+   */
+  palacePerspective?: import('../../../shared/types/cross-system').PalacePerspective;
 }
 
 // 占卜方法类型（已删除random，只保留coin和plumBlossom）

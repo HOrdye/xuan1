@@ -7,6 +7,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import AuthService from '../core/services/authService';
 import { SupabaseManager } from '../core/services/supabaseClient';
+import SubscriptionService from '../core/services/subscriptionService';
 import type { 
   AuthUser, 
   UserProfile, 
@@ -15,6 +16,10 @@ import type {
   CompleteUserInfo,
   UserOperationResult 
 } from '../core/types/user';
+import type {
+  SubscriptionStatusResponse,
+  SubscriptionTier
+} from '../core/types/subscription';
 
 export const useUserStore = defineStore('user', () => {
   // 响应式状态
@@ -22,12 +27,15 @@ export const useUserStore = defineStore('user', () => {
   const userProfile = ref<UserProfile | null>(null);
   const userMetadata = ref<UserMetadata | null>(null);
   const userStats = ref<UserStats | null>(null);
+  const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<string | null>(null);
 
   // 计算属性
   const isAuthenticated = computed(() => !!currentUser.value);
+  const isPremium = computed(() => subscriptionStatus.value?.isPremium ?? false);
+  const subscriptionTier = computed<SubscriptionTier>(() => subscriptionStatus.value?.tier ?? 'free');
   const username = computed(() => 
     userProfile.value?.username || 
     currentUser.value?.user_metadata?.username || 
@@ -73,6 +81,7 @@ export const useUserStore = defineStore('user', () => {
         if (user) {
           currentUser.value = user;
           await loadUserData(user.id);
+          await loadSubscriptionStatus(user.id);
         }
 
         // 监听认证状态变化
@@ -82,6 +91,7 @@ export const useUserStore = defineStore('user', () => {
           if (event === 'SIGNED_IN' && session?.user) {
             currentUser.value = session.user as AuthUser;
             await loadUserData(session.user.id);
+            await loadSubscriptionStatus(session.user.id);
           } else if (event === 'SIGNED_OUT') {
             await clearUserData();
           }
@@ -128,6 +138,7 @@ export const useUserStore = defineStore('user', () => {
       if (result.success && result.data) {
         currentUser.value = result.data;
         await loadUserData(result.data.id);
+        await loadSubscriptionStatus(result.data.id);
       } else {
         error.value = result.error || '登录失败';
       }
@@ -257,6 +268,45 @@ export const useUserStore = defineStore('user', () => {
   };
 
   /**
+   * 加载会员状态
+   */
+  const loadSubscriptionStatus = async (userId: string): Promise<void> => {
+    try {
+      const status = await SubscriptionService.getUserSubscription(userId);
+      subscriptionStatus.value = status;
+      console.log('✅ 会员状态加载完成:', status.tier);
+    } catch (err: any) {
+      console.warn('⚠️ 加载会员状态失败，使用免费版:', err.message);
+      // 失败时使用免费版
+      subscriptionStatus.value = {
+        isPremium: false,
+        tier: 'free',
+        status: 'active',
+        features: SubscriptionService.getPlan('free').features,
+        expiresAt: null,
+        trialEndsAt: null,
+      };
+    }
+  };
+
+  /**
+   * 刷新会员状态
+   */
+  const refreshSubscription = async (): Promise<void> => {
+    if (currentUser.value) {
+      await loadSubscriptionStatus(currentUser.value.id);
+    }
+  };
+
+  /**
+   * 检查功能权限
+   */
+  const hasFeature = (feature: keyof typeof subscriptionStatus.value.features): boolean => {
+    if (!subscriptionStatus.value) return false;
+    return subscriptionStatus.value.features[feature] === true;
+  };
+
+  /**
    * 清空用户数据
    */
   const clearUserData = async (): Promise<void> => {
@@ -264,6 +314,7 @@ export const useUserStore = defineStore('user', () => {
     userProfile.value = null;
     userMetadata.value = null;
     userStats.value = null;
+    subscriptionStatus.value = null;
     error.value = null;
     console.log('🧹 用户数据已清空');
   };
@@ -337,12 +388,15 @@ export const useUserStore = defineStore('user', () => {
     userProfile,
     userMetadata,
     userStats,
+    subscriptionStatus,
     isLoading,
     isInitialized,
     error,
     
     // 计算属性
     isAuthenticated,
+    isPremium,
+    subscriptionTier,
     username,
     email,
     avatarUrl,
@@ -354,6 +408,9 @@ export const useUserStore = defineStore('user', () => {
     signUp,
     signOut,
     loadUserData,
+    loadSubscriptionStatus,
+    refreshSubscription,
+    hasFeature,
     clearUserData,
     updateProfile,
     reset

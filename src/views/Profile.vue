@@ -9,13 +9,54 @@
     <!-- 用户资料卡片 -->
     <div class="bg-white rounded-xl shadow-md mb-6 overflow-hidden">
       <div class="bg-gradient-to-r from-primary to-mystic p-5 text-white">
-        <div class="flex items-center">
-          <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mr-4">
-            <i class="fas fa-user text-2xl text-primary"></i>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mr-4">
+              <i class="fas fa-user text-2xl text-primary"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold">{{ userName }}</h2>
+                <!-- 会员徽章 -->
+                <div v-if="isPremium" class="subscription-badge-inline" :class="subscriptionTier">
+                  <span class="badge-icon">{{ tierIcon }}</span>
+                  <span class="badge-text">{{ tierText }}</span>
+                </div>
+              </div>
+              <p class="text-sm opacity-80">注册时间：{{ registrationDate }}</p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-xl font-bold">{{ userName }}</h2>
-            <p class="text-sm opacity-80">注册时间：{{ registrationDate }}</p>
+        </div>
+      </div>
+      
+      <!-- 会员信息卡片 -->
+      <div v-if="subscriptionStatus" class="p-4 border-b border-gray-100">
+        <div class="subscription-info-card" :class="{ 'premium-active': isPremium }">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-gray-700 mb-1">会员状态</div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold" :class="isPremium ? 'text-yellow-600' : 'text-gray-600'">
+                  {{ subscriptionStatusText }}
+                </span>
+                <span v-if="subscriptionStatus.expiresAt" class="text-xs text-gray-500">
+                  ({{ formatExpiryDate(subscriptionStatus.expiresAt) }}到期)
+                </span>
+              </div>
+            </div>
+            <div v-if="!isPremium" class="flex flex-col items-end">
+              <button 
+                @click="goToUpgrade"
+                class="upgrade-btn-inline"
+              >
+                升级会员
+              </button>
+              <span class="text-xs text-gray-500 mt-1">首月¥9.9</span>
+            </div>
+            <div v-else class="text-right">
+              <div class="text-xs text-gray-500">会员权益</div>
+              <div class="text-xs font-medium text-green-600">已激活</div>
+            </div>
           </div>
         </div>
       </div>
@@ -36,6 +77,29 @@
           </div>
         </div>
         
+        <!-- 会员功能统计 -->
+        <div v-if="isPremium" class="mt-4 pt-4 border-t border-gray-100">
+          <div class="text-xs text-gray-500 mb-2">会员专属功能</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-green-600">✓</span>
+              <span class="text-gray-700">AI综合洞察</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-green-600">✓</span>
+              <span class="text-gray-700">无限次使用</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-green-600">✓</span>
+              <span class="text-gray-700">30天趋势预测</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-green-600">✓</span>
+              <span class="text-gray-700">专家复核</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="flex justify-end">
           <button 
             @click="editProfile"
@@ -47,6 +111,22 @@
       </div>
     </div>
     
+    <!-- 会员管理入口 -->
+    <div v-if="!isPremium" class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl shadow-md mb-6 p-4 border-2 border-yellow-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-1">升级会员，解锁更多功能</h3>
+          <p class="text-sm text-gray-600">享受AI综合洞察、无限次使用等高级功能</p>
+        </div>
+        <button 
+          @click="goToUpgrade"
+          class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-2 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-500 transition-all shadow-md"
+        >
+          立即升级
+        </button>
+      </div>
+    </div>
+
     <!-- 功能入口 -->
     <div class="bg-white rounded-xl shadow-md mb-6">
       <div class="px-4 py-3 border-b">
@@ -140,6 +220,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../store/userStore';
 import { UserStatsService, type UserStats } from '../services/userStatsService';
+import type { SubscriptionTier } from '../core/types/subscription';
 // import { useUserPreferencesStore } from '../store/userPreferences'; // 暂未使用
 
 const router = useRouter();
@@ -166,12 +247,61 @@ const registrationDate = computed(() => {
   return '2024年4月24日';
 });
 
+// 会员状态
+const isPremium = computed(() => userStore.isPremium);
+const subscriptionTier = computed<SubscriptionTier>(() => userStore.subscriptionTier);
+const subscriptionStatus = computed(() => userStore.subscriptionStatus);
+
+const tierIcon = computed(() => {
+  switch (subscriptionTier.value) {
+    case 'premium':
+      return '👑';
+    case 'advanced':
+      return '💎';
+    default:
+      return '';
+  }
+});
+
+const tierText = computed(() => {
+  switch (subscriptionTier.value) {
+    case 'premium':
+      return '会员';
+    case 'advanced':
+      return '高级会员';
+    default:
+      return '免费版';
+  }
+});
+
+const subscriptionStatusText = computed(() => {
+  if (isPremium.value) {
+    return subscriptionTier.value === 'premium' ? '会员版' : '高级版';
+  }
+  return '免费版';
+});
+
+const formatExpiryDate = (dateStr: string | null): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 // 检查用户是否已登录，未登录则重定向
 onMounted(async () => {
   await userStore.initialize();
   if (!userStore.isAuthenticated) {
     router.push('/');
     return;
+  }
+  
+  // 加载会员状态
+  if (userStore.currentUser) {
+    await userStore.loadSubscriptionStatus(userStore.currentUser.id);
   }
   
   // 加载用户统计数据
@@ -207,8 +337,72 @@ const goToFavorites = () => {
 const goToNotifications = () => {
   router.push('/settings/notifications');
 };
+
+// 跳转到升级页面
+const goToUpgrade = () => {
+  router.push('/pricing');
+};
 </script>
 
 <style scoped>
-/* 添加所需的样式 */
+/* 会员徽章样式 */
+.subscription-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.subscription-badge-inline.premium {
+  background: linear-gradient(135deg, #f8c400 0%, #ffd700 100%);
+  color: #0a1e4d;
+}
+
+.subscription-badge-inline.advanced {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.badge-icon {
+  font-size: 0.875rem;
+}
+
+.badge-text {
+  font-weight: 700;
+}
+
+/* 会员信息卡片 */
+.subscription-info-card {
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.subscription-info-card.premium-active {
+  background: linear-gradient(135deg, rgba(248, 196, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border-color: #f8c400;
+}
+
+.upgrade-btn-inline {
+  background: linear-gradient(135deg, #f8c400 0%, #ffd700 100%);
+  color: #0a1e4d;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(248, 196, 0, 0.3);
+}
+
+.upgrade-btn-inline:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 196, 0, 0.4);
+}
 </style> 

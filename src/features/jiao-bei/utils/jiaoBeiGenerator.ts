@@ -280,82 +280,174 @@ function generateSingleJiaoBei(question: JiaoBeiQuestion, throwIndex: number): J
 }
 
 // 生成筊杯组合结果
-export function generateJiaoBeiResult(question: JiaoBeiQuestion): JiaoBeiCombination {
+export function generateJiaoBeiResult(question: JiaoBeiQuestion): JiaoBeiCombination {                                                                          
   // 传统筊杯需要投掷三次
   const first = generateSingleJiaoBei(question, 1);
   const second = generateSingleJiaoBei(question, 2);
   const third = generateSingleJiaoBei(question, 3);
-  
-  const combination = `${first}、${second}、${third}`;
-  const traditionalData = TRADITIONAL_SIGNS[combination as keyof typeof TRADITIONAL_SIGNS];
-  
-  if (!traditionalData) {
-    // 如果没有找到对应的传统签文，使用默认解读
-    return {
-      first,
-      second,
-      third,
-      combination,
-      meaning: '此组合暂无传统解读，请以虔诚之心理解神明的指引。',
-      advice: '保持虔诚，静心思考，神明自有安排。',
-      energy: 'neutral',
-      category: question.category,
-      traditionalSign: '未知',
-      traditionalPoem: '传统签文暂缺'
-    };
-  }
-  
-  return {
-    first,
-    second,
-    third,
-    combination,
-    meaning: traditionalData.meaning,
-    advice: getAdviceByEnergy(traditionalData.energy, question.category),
-    energy: traditionalData.energy,
-    category: question.category,
-    traditionalSign: traditionalData.sign,
-    traditionalPoem: traditionalData.poem
-  };
+
+  // 使用统一的生成逻辑
+  return generateJiaoBeiResultFromThrows(question, [first, second, third]);
 }
 
 // 根据三次投掷结果生成组合
-export function generateJiaoBeiResultFromThrows(question: JiaoBeiQuestion, throwResults: string[]): JiaoBeiCombination {
+export function generateJiaoBeiResultFromThrows(question: JiaoBeiQuestion, throwResults: string[]): JiaoBeiCombination {                                        
   if (throwResults.length !== 3) {
     throw new Error('筊杯占卜需要三次投掷结果');
   }
-  
-  const [first, second, third] = throwResults as [JiaoBeiResult, JiaoBeiResult, JiaoBeiResult];
+
+  const [first, second, third] = throwResults as [JiaoBeiResult, JiaoBeiResult, JiaoBeiResult];                                                                 
   const combination = `${first}、${second}、${third}`;
-  const traditionalData = TRADITIONAL_SIGNS[combination as keyof typeof TRADITIONAL_SIGNS];
-  
-  if (!traditionalData) {
-    // 如果没有找到对应的传统签文，使用默认解读
+  const traditionalData = TRADITIONAL_SIGNS[combination as keyof typeof TRADITIONAL_SIGNS];                                                                     
+
+  // 检查是否包含立杯或叠杯
+  const hasLibei = first === '立杯' || second === '立杯' || third === '立杯';
+  const hasDiebei = first === '叠杯' || second === '叠杯' || third === '叠杯';
+
+  // 如果找到传统签文，直接使用
+  if (traditionalData) {
     return {
       first,
       second,
       third,
       combination,
-      meaning: '此组合暂无传统解读，请以虔诚之心理解神明的指引。',
-      advice: '保持虔诚，静心思考，神明自有安排。',
-      energy: 'neutral',
+      meaning: traditionalData.meaning,
+      advice: getAdviceByEnergy(traditionalData.energy, question.category),       
+      energy: traditionalData.energy,
       category: question.category,
-      traditionalSign: '未知',
-      traditionalPoem: '传统签文暂缺'
+      traditionalSign: traditionalData.sign,
+      traditionalPoem: traditionalData.poem
     };
   }
-  
+
+  // 如果包含立杯，使用立杯特殊解读
+  if (hasLibei) {
+    const libeiCount = [first, second, third].filter(r => r === '立杯').length;
+    let meaning = '';
+    let poem = '';
+    let sign = '';
+    let energy: 'positive' | 'neutral' | 'negative' = 'neutral';
+
+    if (libeiCount === 3) {
+      // 三次都是立杯 - 已经在TRADITIONAL_SIGNS中，不应该到这里
+      meaning = '三次立杯，神明显灵，有重大警示';
+      poem = '筊杯直立显神迹，神明警示需注意；诚心反思过往事，改过向善得转机。';
+      sign = '神明显灵';
+      energy = 'negative';
+    } else if (libeiCount === 2) {
+      // 两次立杯 - 神明强烈警示
+      meaning = '两次立杯，神明显灵，有重要警示，需立即反思';
+      poem = '双杯直立显神威，神明警示不可违；诚心忏悔过往错，改过自新得转机。';
+      sign = '神明警示';
+      energy = 'negative';
+    } else {
+      // 一次立杯 - 神明特别关注
+      const otherResults = [first, second, third].filter(r => r !== '立杯');
+      const hasPositive = otherResults.includes('圣杯');
+      const hasNegative = otherResults.includes('阴杯');
+
+      if (hasPositive) {
+        meaning = '立杯出现，神明显灵，虽有应允但需特别注意，不可大意';
+        poem = '一立一应显神威，神明应允需谨慎；虽有吉兆在前路，小心行事莫轻心。';
+        sign = '神明应允但需谨慎';
+        energy = 'positive';
+      } else if (hasNegative) {
+        meaning = '立杯出现，神明显灵，有重要警示，需立即反思并改变';
+        poem = '立杯警示显神威，神明提醒不可违；诚心改过向善行，转危为安得转机。';
+        sign = '神明警示';
+        energy = 'negative';
+      } else {
+        meaning = '立杯出现，神明显灵，有特别指示，需静心领悟';
+        poem = '筊杯直立显神迹，神明有意示玄机；静心思考领悟深，诚心向善得指引。';
+        sign = '神明显灵';
+        energy = 'neutral';
+      }
+    }
+
+    return {
+      first,
+      second,
+      third,
+      combination,
+      meaning,
+      advice: getAdviceByEnergy(energy, question.category) + ' 立杯出现表示神明显灵，请以虔诚之心反思自身，诚心改过，神明自有安排。',
+      energy,
+      category: question.category,
+      traditionalSign: sign,
+      traditionalPoem: poem
+    };
+  }
+
+  // 如果包含叠杯，使用叠杯特殊解读
+  if (hasDiebei) {
+    const diebeiCount = [first, second, third].filter(r => r === '叠杯').length;
+    let meaning = '';
+    let poem = '';
+    let sign = '';
+    let energy: 'positive' | 'neutral' | 'negative' = 'neutral';
+
+    if (diebeiCount === 3) {
+      // 三次都是叠杯 - 已经在TRADITIONAL_SIGNS中，不应该到这里
+      meaning = '三次叠杯，神明特别关注，有重要暗示';
+      poem = '双杯重叠显神迹，天机玄妙不可测；神明有意示玄机，静心领悟得真谛。';
+      sign = '神明暗示';
+      energy = 'positive';
+    } else if (diebeiCount === 2) {
+      // 两次叠杯 - 神明强烈暗示
+      meaning = '两次叠杯，神明有重要暗示，需仔细领悟';
+      poem = '双杯重叠显神威，神明暗示不可违；静心思考领悟深，诚心向善得指引。';
+      sign = '神明暗示';
+      energy = 'positive';
+    } else {
+      // 一次叠杯 - 神明暗示
+      const otherResults = [first, second, third].filter(r => r !== '叠杯');
+      const hasPositive = otherResults.includes('圣杯');
+      const hasNegative = otherResults.includes('阴杯');
+
+      if (hasPositive) {
+        meaning = '叠杯出现，神明暗示，虽有应允但需仔细思考，不可草率决定';
+        poem = '一叠一应显神威，神明应允需思考；虽有吉兆在前路，仔细领悟莫轻心。';
+        sign = '神明应允但需思考';
+        energy = 'positive';
+      } else if (hasNegative) {
+        meaning = '叠杯出现，神明暗示，虽有否定但需仔细思考，可能有转机';
+        poem = '叠杯暗示显神威，神明提醒需思考；虽有阻碍在前路，仔细领悟得转机。';
+        sign = '神明暗示需思考';
+        energy = 'neutral';
+      } else {
+        meaning = '叠杯出现，神明暗示，需静心思考，仔细领悟神明的指引';
+        poem = '双杯重叠显神迹，神明有意示玄机；静心思考领悟深，诚心向善得指引。';
+        sign = '神明暗示';
+        energy = 'neutral';
+      }
+    }
+
+    return {
+      first,
+      second,
+      third,
+      combination,
+      meaning,
+      advice: getAdviceByEnergy(energy, question.category) + ' 叠杯出现表示神明暗示，请以虔诚之心静心思考，仔细领悟神明的指引。',
+      energy,
+      category: question.category,
+      traditionalSign: sign,
+      traditionalPoem: poem
+    };
+  }
+
+  // 如果没有找到对应的传统签文，且不包含立杯或叠杯，使用默认解读
   return {
     first,
     second,
     third,
     combination,
-    meaning: traditionalData.meaning,
-    advice: getAdviceByEnergy(traditionalData.energy, question.category),
-    energy: traditionalData.energy,
+    meaning: '此组合暂无传统解读，请以虔诚之心理解神明的指引。',
+    advice: '保持虔诚，静心思考，神明自有安排。',
+    energy: 'neutral',
     category: question.category,
-    traditionalSign: traditionalData.sign,
-    traditionalPoem: traditionalData.poem
+    traditionalSign: '未知',
+    traditionalPoem: '传统签文暂缺'
   };
 }
 

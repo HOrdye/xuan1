@@ -142,32 +142,26 @@
                 :animation-url="animationUrl"
                 @throw-complete="handleThrowComplete"
               />
+
+              <!-- 操作按钮 - 覆盖在视频上方 -->
+              <div v-if="!isAllThrowsCompleted && !isThrowing" class="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                <div class="space-y-3 pointer-events-auto">
+                  <button
+                    @click="startThrow"
+                    :disabled="!question.trim()"
+                    class="px-16 py-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-bold text-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-2xl backdrop-blur-sm bg-opacity-90"                      
+                  >
+                    <span class="flex items-center justify-center">
+                      <span class="text-3xl mr-3">🥤</span>
+                      开始投掷
+                    </span>
+                  </button>
+                  <p class="text-gray-500 text-sm mt-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg">点击按钮开始投掷，将获得三次投掷结果</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-
-                 <!-- 操作按钮 -->
-         <div v-if="!isAllThrowsCompleted" class="text-center mb-4">
-           <div v-if="!isThrowing" class="space-y-3">
-             <button
-               @click="startThrow"
-               :disabled="!question.trim() || isThrowing"
-               class="px-16 py-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-bold text-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-2xl"                      
-             >
-               <span class="flex items-center justify-center">
-                 <span class="text-3xl mr-3">🥤</span>
-                 开始投掷
-               </span>
-             </button>
-             <p class="text-gray-500 text-sm mt-2">点击按钮开始投掷，将获得三次投掷结果</p>
-           </div>
-
-           <div v-else class="flex items-center justify-center">
-             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mr-3"></div>                                                            
-             <span class="text-purple-600 font-semibold text-lg">投掷中...</span>       
-           </div>
-         </div>
 
         <!-- 结果显示 -->
         <div v-if="isThrowCompleted" ref="jiaobeResultRef" class="space-y-8">   
@@ -214,25 +208,32 @@
 
           <!-- 操作按钮 -->
           <div class="flex justify-center space-x-4">
-                         <SaveButton
-               :item="{
-                 type: 'jiaoBei',
-                 question: question,
-                 result: {
-                   combination: jiaoBeiCombination,
-                   interpretation: jiaoBeiInterpretation,
-                   results: jiaoBeiResults
-                 }
-               }"
-               title="笅杯占卜结果"
-               class="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
-             >
+            <SaveButton
+              :item="{
+                type: 'jiaoBei',
+                question: question,
+                result: {
+                  combination: jiaoBeiCombination,
+                  interpretation: jiaoBeiInterpretation,
+                  results: jiaoBeiResults
+                }
+              }"
+              title="笅杯占卜结果"
+              class="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"                                          
+            >
               💾 保存结果
             </SaveButton>
-            
+
+            <button
+              @click="isSharePanelOpen = true"
+              class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-colors shadow-lg hover:shadow-xl"
+            >
+              📤 分享结果
+            </button>
+
             <button
               @click="resetDivination"
-              class="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+              class="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"                                             
             >
               🔄 重新占卜
             </button>

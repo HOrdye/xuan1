@@ -2,10 +2,10 @@
   <div>
     <div v-if="result" class="divination-result bg-white shadow-xl rounded-lg p-6 animate-fadeIn">
       <!-- 页面头部 - 品牌标识 -->
-      <div class="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200">           
+      <div class="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200">
         <!-- 天玄品牌标识 -->
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">                                    
+          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
             <span class="text-white font-bold text-lg">天</span>
           </div>
           <div>
@@ -13,7 +13,7 @@
             <p class="text-sm text-blue-600">智慧决策助手</p>
           </div>
         </div>
-
+        
       </div>
 
       <!-- 标题和问题回顾 -->
@@ -46,6 +46,22 @@
         </div>
       </div>
 
+      <!-- 升级提示 -->
+      <UpgradePrompt
+        v-if="showUpgradePrompt"
+        title="解锁AI深度分析"
+        description="升级会员可享受AI个性化深度分析、历史卦象对比、专家解读库等高级功能"
+        :features="[
+          'AI个性化深度分析',
+          '历史卦象对比',
+          '专家解读库',
+          '无限次使用'
+        ]"
+        required-tier="basic"
+        @dismiss="showUpgradePrompt = false"
+        class="mb-6"
+      />
+
       <!-- 问题连接卡片 - 智能连接算法的核心展示 -->
       <div v-if="personalizedInsight" class="personalized-insight mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-100 animate-reveal">
         <div class="text-center mb-4">
@@ -55,11 +71,11 @@
           <h4 class="text-xl font-semibold text-gray-800 mb-2">天玄智能解读</h4>
         </div>
         
-          <!-- 核心结论 -->
-          <div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-300 shadow-lg">
-            <h5 class="font-bold text-green-800 mb-4 text-lg">核心结论</h5>
-            <p class="text-2xl font-bold text-gray-900 leading-relaxed">{{ personalizedInsight.coreConclusion }}</p>
-          </div>
+        <!-- 核心结论 -->
+        <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">                                                          
+          <h5 class="font-semibold text-green-800 mb-2">核心结论</h5>       
+          <p class="text-gray-700">{{ personalizedInsight.coreConclusion }}</p>                                                                             
+        </div>
       </div>
 
       <!-- ========== 卦象内容区域 ========== -->
@@ -330,32 +346,18 @@
             </ul>
           </div>
         </div>
-        </div>
-
-      <!-- Action Buttons -->
-      <div class="mt-8 flex justify-center items-center space-x-4">
-        <div class="flex items-center space-x-2">
-          <SaveButton
-            v-if="result"
-            :item="{
-              type: 'divination',
-              question: result?.question || '',
-              result: result
-            }"
-            :title="`易经占卜 - ${result?.hexagram?.chineseName || result?.hexagram?.name || '未知卦象'}`"
-          />
-          <span class="text-sm text-gray-600 ml-1">保存结果</span>
-        </div>
       </div>
 
-      <!-- 用户反馈系统 -->
-        <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-lg border border-indigo-200 animate-reveal">
-          <div class="text-center mb-4">
-            <h4 class="text-lg font-semibold text-gray-800 mb-2">这个解读对你有帮助吗？</h4>
-            <p class="text-sm text-gray-600">你的反馈帮助我们不断优化解读质量</p>
-          </div>
 
-          <div class="flex flex-wrap justify-center gap-3">
+
+      <!-- 用户反馈系统 -->
+      <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-lg border border-indigo-200 animate-reveal">
+        <div class="text-center mb-4">
+          <h4 class="text-lg font-semibold text-gray-800 mb-2">这个解读对你有帮助吗？</h4>
+          <p class="text-sm text-gray-600">你的反馈帮助我们不断优化解读质量</p>
+        </div>
+        
+        <div class="flex flex-wrap justify-center gap-3">
           <button 
             @click="submitFeedback('helpful')"
             class="px-4 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors duration-200 flex items-center space-x-2"
@@ -404,11 +406,50 @@
           </div>
         </div>
       </div>
+
+      <!-- P1.1: 三维解读轻量级入口 -->
+      <div v-if="shouldShowTripleAnalysisEntry" class="triple-analysis-entry mt-8 p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl shadow-lg border border-purple-200 animate-reveal">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">💫</span>
+              <h4 class="text-lg font-semibold text-gray-800">想结合命盘看这个问题？</h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">
+              基于你的星盘特质，从紫微或塔罗视角提供更精准的解读
+            </p>
+            <div class="flex gap-2">
+              <button
+                @click="openTripleAnalysisSidebar"
+                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+              >
+                <span>🌟</span>
+                <span>紫微视角</span>
+              </button>
+              <button
+                @click="openTripleAnalysisSidebar"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+              >
+                <span>✨</span>
+                <span>塔罗视角</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- 三维解读侧边栏 -->
+    <TripleAnalysisSidebar
+      :question="result?.question || ''"
+      :hexagram-name="result?.hexagram?.chineseName || result?.hexagram?.name"
+      :is-visible="showTripleAnalysisSidebar"
+      @close="closeTripleAnalysisSidebar"
+    />
   </div>
 </template>
 
-  <script setup lang="ts">
+<script setup lang="ts">
 import { defineProps, computed, ref, onMounted, watch } from 'vue';
 import type { AnalysisResult } from '../types';
 import HexagramDisplay from '../../../components/hexagram/HexagramDisplay.vue';
@@ -419,29 +460,109 @@ import {
 } from '../utils/hexagramAttributes';
 import { LLMService } from '../../../services/LLMService';
 import { formatContent as formatContentScheme1 } from '../../../utils/contentFormatter';
-import SaveButton from '../../../components/common/SaveButton.vue';
+import { useZiweiStore } from '../../ziwei/store/ziweiStore';
+import { 
+  shouldShowTripleAnalysisEntry as checkShouldShowEntry,
+  matchQuestionToPalaces
+} from '../../cross-system/utils/questionMatcher';
+import TripleAnalysisSidebar from '../../cross-system/components/TripleAnalysisSidebar.vue';
+import UpgradePrompt from '../../../components/membership/UpgradePrompt.vue';
+import { useMembershipGuard } from '../../../composables/useMembershipGuard';
 
 const _props = defineProps<{
   result: AnalysisResult | null;
 }>();
 
-// 为了在模板中方便使用，创建一个计算属性
-const result = computed(() => {
-  console.log('🔍 DivinationResult - result computed:', _props.result);
-  return _props.result;
+// 会员权限守卫
+const { currentTier, getFeatureUsage } = useMembershipGuard();
+const showUpgradePrompt = ref(false);
+
+// 检查是否需要显示升级提示
+onMounted(async () => {
+  if (currentTier.value === 'free') {
+    const usage = await getFeatureUsage('yijing');
+    // 如果使用次数接近限制，显示升级提示
+    if (!usage.isUnlimited && usage.remaining <= 1) {
+      showUpgradePrompt.value = true;
+    }
+  }
 });
 
 // 标签页状态管理
-const activeTab = ref('changing'); // 默认显示变卦分析，因为这是用户最关心的
-
-// 行动指南状态
-const actionGuide = ref<{
-  advice: string;
-  action: string;
-} | null>(null);
+const activeTab = ref('changing'); // 默认显示变卦分析，因为这是用户最关心的  
 
 // 用户反馈状态
 const feedbackSubmitted = ref(false);
+
+// P1.1: 三维解读侧边栏状态
+const showTripleAnalysisSidebar = ref(false);
+const ziweiStore = useZiweiStore();
+
+// 从 localStorage 恢复命盘数据（如果存在）
+onMounted(() => {
+  try {
+    const savedChartStr = localStorage.getItem('ziwei_current_chart');
+    if (savedChartStr && !ziweiStore.currentChart) {
+      const savedChart = JSON.parse(savedChartStr);
+      ziweiStore.currentChart = savedChart;
+      console.log('✅ 从 localStorage 恢复命盘数据');
+    }
+  } catch (error) {
+    console.warn('⚠️ 恢复命盘数据失败:', error);
+  }
+});
+
+// 检查是否应该显示三维解读入口
+const shouldShowTripleAnalysisEntry = computed(() => {
+  if (!_props.result?.question) {
+    return false;
+  }
+  
+  // 检查用户是否有命盘（包括从 localStorage 恢复的）
+  let hasChart = !!ziweiStore.currentChart;
+  
+  // 如果 store 中没有，尝试从 localStorage 读取
+  if (!hasChart) {
+    try {
+      const savedChartStr = localStorage.getItem('ziwei_current_chart');
+      if (savedChartStr) {
+        const savedChart = JSON.parse(savedChartStr);
+        if (savedChart && savedChart.birthInfo) {
+          hasChart = true;
+          // 同时更新 store
+          ziweiStore.currentChart = savedChart;
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ 读取命盘数据失败:', error);
+    }
+  }
+  
+  // 使用问题匹配工具判断
+  const shouldShow = checkShouldShowEntry(_props.result.question, hasChart);
+  
+  // 开发模式下输出调试信息
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 三维解读入口显示检查:', {
+      question: _props.result.question,
+      hasChart,
+      shouldShow,
+      matchedPalaces: matchQuestionToPalaces(_props.result.question)
+    });
+  }
+  
+  return shouldShow;
+});
+
+// 打开三维解读侧边栏
+const openTripleAnalysisSidebar = () => {
+  showTripleAnalysisSidebar.value = true;
+};
+
+// 关闭三维解读侧边栏
+const closeTripleAnalysisSidebar = () => {
+  showTripleAnalysisSidebar.value = false;
+};
 
 // 开发模式标识
 const isDevelopment = ref(process.env.NODE_ENV === 'development');
@@ -450,18 +571,44 @@ const isDevelopment = ref(process.env.NODE_ENV === 'development');
 const animationState = ref<'idle' | 'highlighting' | 'flipping' | 'complete'>('idle');
 const currentAnimationStep = ref(0);
 
-// LLM distilled core conclusion
+// LLM distilled core conclusion - 通过LLM总结具体解读，结合传统体用关系生成核心结论
 const distilled = ref<{ summary: string; confidence: number; actions: string[]; evidence: string[] } | null>(null);
 watch(
-  () => _props.result?.analysis,
-  async (val) => {
+  () => [_props.result?.analysis, _props.result?.traditionalAnalysis, _props.result?.hexagram],
+  async ([analysisVal, traditionalAnalysisVal, hexagramVal]: [any, any, any]) => {
     try {
-      if (!val) { distilled.value = null; return; }
-      const text = typeof val === 'string' ? val : (() => { try { return JSON.stringify(val); } catch { return '' } })();
-      if (!text) { distilled.value = null; return; }
-      const res = await LLMService.distillCoreConclusion(text);
+      if (!analysisVal) { 
+        distilled.value = null; 
+        return; 
+      }
+      const text = typeof analysisVal === 'string' 
+        ? analysisVal 
+        : (() => { 
+            try { 
+              return JSON.stringify(analysisVal); 
+            } catch { 
+              return ''; 
+            } 
+          })();
+      if (!text) { 
+        distilled.value = null; 
+        return; 
+      }
+      
+      // 获取卦名
+      const hexagramName = hexagramVal && typeof hexagramVal === 'object' && 'chineseName' in hexagramVal
+        ? (hexagramVal.chineseName || hexagramVal.name || '')
+        : '';
+      
+      // 调用LLM总结具体解读，结合传统体用关系生成核心结论
+      const res = await LLMService.distillCoreConclusion(
+        text, 
+        traditionalAnalysisVal, 
+        hexagramName
+      );
       distilled.value = res && res.summary ? res : null;
-    } catch {
+    } catch (error) {
+      console.error('❌ 生成核心结论总结失败:', error);
       distilled.value = null;
     }
   },
@@ -592,8 +739,12 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
     // 生成开场白
     const opening = `从"${hexagramName}"这个卦象来看，关于你的"${question}"，`;
     
-    // 生成独立的核心结论 - 不再简单重复建议内容
-    const coreConclusion = generateCoreConclusion(hexagramName, questionTypes, personalizedAdvice);
+    // 生成独立的核心结论 - 优先使用LLM总结的结果，结合传统体用关系
+    // 如果distilled存在（通过LLM总结具体解读生成），优先使用它
+    // 否则使用传统逻辑生成
+    const coreConclusion = distilled.value?.summary 
+      ? distilled.value.summary 
+      : generateCoreConclusion(hexagramName, questionTypes, personalizedAdvice);
     
     // 计算信心指数
     const confidenceLevel = Math.round((personalizedAdvice.confidence || 0.5) * 100);
@@ -641,13 +792,31 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
         let conclusion = '';
         
         // 第一步：确立核心分析框架（体用生克）
-        // 体用关系解读 - 这是核心，不受卦辞影响
-        const relationshipText = 
-          bodyUsage.relationship === 'body-ke-usage' ? '体克用，您能够主动控制局面，有利于主动出击'
-          : bodyUsage.relationship === 'usage-ke-body' ? '用克体，外部环境对您有一定压力，宜守不宜攻'
-          : bodyUsage.relationship === 'body-sheng-usage' ? '体生用，需要付出较多，需要谨慎管理资源'
-          : bodyUsage.relationship === 'usage-sheng-body' ? '用生体，外部环境对您有利，能够得到帮助和支持'
-          : '体用比和，内外和谐统一，形势稳定';
+        // 体用关系解读 - 需要结合卦象本身的含义来判断
+        // 某些卦象（如蹇、困、否等）本身代表困难、险阻，即使体克用也不宜主动出击
+        
+        // 判断卦象本身的含义（困难卦、险阻卦）
+        const difficultHexagrams = ['蹇', '困', '否', '剥', '明夷', '坎', '艮'];
+        const isDifficultHexagram = difficultHexagrams.some(name => hexagramName.includes(name));
+        
+        let relationshipText = '';
+        if (bodyUsage.relationship === 'body-ke-usage') {
+          // 体克用：如果能控制局面
+          if (isDifficultHexagram) {
+            // 困难卦：即使体克用，也不宜主动出击，应该谨慎守成
+            relationshipText = '体克用，虽能控制局面，但卦象显示当前存在困难险阻，宜守不宜攻';
+          } else {
+            relationshipText = '体克用，您能够主动控制局面，有利于主动出击';
+          }
+        } else if (bodyUsage.relationship === 'usage-ke-body') {
+          relationshipText = '用克体，外部环境对您有一定压力，宜守不宜攻';
+        } else if (bodyUsage.relationship === 'body-sheng-usage') {
+          relationshipText = '体生用，需要付出较多，需要谨慎管理资源';
+        } else if (bodyUsage.relationship === 'usage-sheng-body') {
+          relationshipText = '用生体，外部环境对您有利，能够得到帮助和支持';
+        } else {
+          relationshipText = '体用比和，内外和谐统一，形势稳定';
+        }
         
         console.log('📊 体用关系（核心）:', bodyUsage.relationship, '->', relationshipText);
         
@@ -668,21 +837,35 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
                                        bodyUsage.relationship === 'usage-sheng-body' || 
                                        bodyUsage.relationship === 'bihe';
           
-          if (bodyUsageIsPositive && hasPositiveSign) {
-            // 一致：体用吉，卦辞也吉，可以强化
-            judgmentSupplement = `卦辞云"${judgmentCore}"，可作印证，内外皆吉。`;
-          } else if (!bodyUsageIsPositive && hasNegativeWarning) {
-            // 一致：体用不吉，卦辞也不吉，可以强化
-            judgmentSupplement = `卦辞云"${judgmentCore}"，正应此象，需谨慎应对。`;
-          } else if (bodyUsageIsPositive && hasNegativeWarning) {
-            // 不一致：体用吉但卦辞不吉，卦辞作为过程警示
-            judgmentSupplement = `然卦辞云"${judgmentCore}"，提示需防微杜渐，注意过程中的心态与细节。`;
-          } else if (!bodyUsageIsPositive && hasPositiveSign) {
-            // 不一致：体用不吉但卦辞吉，卦辞作为背景参考
-            judgmentSupplement = `卦辞云"${judgmentCore}"，可为参考，但需以体用生克为主。`;
+          // 对于困难卦，即使体用关系看起来积极，也要谨慎
+          if (isDifficultHexagram) {
+            // 困难卦：卦辞通常包含警示，需要谨慎对待
+            if (hasNegativeWarning) {
+              judgmentSupplement = `卦辞云"${judgmentCore}"，正应此象，需谨慎应对。`;
+            } else if (hasPositiveSign) {
+              // 即使有积极词汇，也要结合卦象本身的困难含义
+              judgmentSupplement = `卦辞云"${judgmentCore}"，但卦象本身显示困难险阻，需谨慎行事。`;
+            } else {
+              judgmentSupplement = `卦辞云"${judgmentCore}"，需结合卦象困难本质谨慎判断。`;
+            }
           } else {
-            // 中立或无法判断
-            judgmentSupplement = `卦辞云"${judgmentCore}"，可作参考。`;
+            // 非困难卦：正常判断
+            if (bodyUsageIsPositive && hasPositiveSign) {
+              // 一致：体用吉，卦辞也吉，可以强化
+              judgmentSupplement = `卦辞云"${judgmentCore}"，可作印证，内外皆吉。`;
+            } else if (!bodyUsageIsPositive && hasNegativeWarning) {
+              // 一致：体用不吉，卦辞也不吉，可以强化
+              judgmentSupplement = `卦辞云"${judgmentCore}"，正应此象，需谨慎应对。`;
+            } else if (bodyUsageIsPositive && hasNegativeWarning) {
+              // 不一致：体用吉但卦辞不吉，卦辞作为过程警示
+              judgmentSupplement = `然卦辞云"${judgmentCore}"，提示需防微杜渐，注意过程中的心态与细节。`;
+            } else if (!bodyUsageIsPositive && hasPositiveSign) {
+              // 不一致：体用不吉但卦辞吉，卦辞作为背景参考
+              judgmentSupplement = `卦辞云"${judgmentCore}"，可为参考，但需以体用生克为主。`;
+            } else {
+              // 中立或无法判断
+              judgmentSupplement = `卦辞云"${judgmentCore}"，可作参考。`;
+            }
           }
         }
         
@@ -725,12 +908,12 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
           console.log('📝 核心结论（有动爻但无分析）:', conclusion);
         }
         
-        // 如果有变卦，补充变卦信息
-        if (relatedHexagram) {
-          conclusion += ` 将变至"${relatedHexagram.chineseName || relatedHexagram.name}"卦。`;
-        }
-        
-        return conclusion;
+          // 如果有变卦，补充变卦信息
+          if (relatedHexagram) {
+            conclusion += ` 将变至"${relatedHexagram.chineseName || relatedHexagram.name}"卦。`;
+          }
+
+          return conclusion;
       } else {
         console.log('⚠️ 未找到传统逻辑分析，使用降级方案');
       }
@@ -783,103 +966,6 @@ function generatePersonalizedInsight(question: string, hexagram: any, questionTy
     }
   }
 
-// 生成行动指南 - 使用卦象属性系统
-function generateActionGuide() {
-  try {
-    if (!_props.result?.hexagram) {
-      console.warn('generateActionGuide: 没有卦象数据');
-      return;
-    }
-    
-    const hexagram = _props.result.hexagram;
-    const hexagramName = hexagram.chineseName || hexagram.name;
-    const question = _props.result.question || '';
-    
-    // 基于问题和卦象生成具体的行动建议
-    if (question.includes('公务员') || question.includes('遴选') || question.includes('考试')) {
-      actionGuide.value = {
-        advice: `针对您的公务员遴选问题，"${hexagramName}"卦建议您系统性地准备考试。建议您制定详细的备考计划，包括行政职业能力测试、申论写作等各个科目的学习安排。同时，建议您多做一些模拟题，熟悉考试题型和答题技巧。`,
-        action: `具体行动：1）制定3个月备考计划，每天固定学习时间；2）重点攻克薄弱环节，如行测中的数量关系、申论中的材料分析；3）参加模拟考试，熟悉考试节奏；4）关注时事政策，为申论写作积累素材。`
-      };
-    } else if (question.includes('工作') || question.includes('跳槽')) {
-      actionGuide.value = {
-        advice: `针对您的职场问题，"${hexagramName}"卦建议您综合分析当前情况。建议您评估当前工作的优劣势，包括薪资待遇、发展前景、工作环境等因素。同时，建议您明确自己的职业目标和期望，以便做出最适合的决定。`,
-        action: `具体行动：1）制作一份优劣势对比表，客观评估当前工作；2）了解目标职位的具体要求和发展空间；3）与行业内的朋友或前辈交流，获取真实信息；4）做出决策后，制定详细的过渡计划。`
-      };
-    } else if (question.includes('感情') || question.includes('恋爱')) {
-      actionGuide.value = {
-        advice: `针对您的感情问题，"${hexagramName}"卦建议您真诚沟通。建议您主动表达自己的想法和感受，同时也要倾听对方的意见。建议您多做一些能增进感情的事情，如共同参加活动、真诚交流想法等。`,
-        action: `具体行动：1）安排一次坦诚的对话，表达自己的想法；2）做一些能增进感情的活动，如约会、送礼物；3）如果面临困难，考虑寻求朋友的帮助或专业的建议；4）保持耐心，给关系发展的时间。`
-      };
-    } else {
-      // 通用建议
-      actionGuide.value = {
-        advice: `基于"${hexagramName}"卦的智慧，建议您保持积极主动的态度。`,
-        action: `具体行动：1）明确您的目标和期望；2）制定详细的计划；3）积极采取行动；4）保持信心和耐心。`
-      };
-    }
-  } catch (error) {
-    console.error('生成行动指南时出错:', error);
-    // 返回安全的默认指南
-    const hexagramName = _props.result?.hexagram?.chineseName || _props.result?.hexagram?.name || '卦象';
-    actionGuide.value = {
-      advice: `基于"${hexagramName}"的智慧，今天适合保持开放和谨慎的态度。`,
-      action: "保持平衡，既要有进取心，也要有耐心。"
-    };
-  }
-}
-
-// 基于卦象属性生成具体行动
-function generateActionBasedOnAttributes(attributes: any): string {
-  if (attributes.action === '主动') {
-    return '主动出击，把握机会，展现你的能力和魅力。';
-  } else if (attributes.action === '顺从') {
-    return '顺应时势，保持耐心，等待合适的时机。';
-  } else if (attributes.action === '合作') {
-    return '加强团队合作，寻求他人的支持和帮助。';
-  } else if (attributes.action === '稳定') {
-    return '稳扎稳打，循序渐进地推进目标。';
-  } else {
-    return '保持平衡，既要有进取心，也要有耐心。';
-  }
-}
-
-// 基于时机生成行动建议
-function generateTimingBasedAction(attributes: any): string {
-  if (attributes.timing === '适合行动') {
-    return '果断行动，把握当前的良好时机。';
-  } else if (attributes.timing === '适合等待') {
-    return '耐心等待，做好充分的准备。';
-  } else if (attributes.timing === '适合合作') {
-    return '寻求合作，与他人共同推进。';
-  } else {
-    return '谨慎决策，平衡各种因素。';
-  }
-}
-
-// 基于适宜场景生成行动建议
-function generateSuitableAction(attributes: any): string {
-  if (attributes.suitableFor && attributes.suitableFor.length > 0) {
-    const suitableAreas = attributes.suitableFor.slice(0, 2).join('、');
-    return `在${suitableAreas}方面投入时间和精力，发挥你的优势。`;
-  }
-  return '在当前擅长的领域继续深耕，保持专注和耐心。';
-}
-
-// 保存行动指南
-function saveActionGuide() {
-  if (!actionGuide.value) return;
-  
-  // 这里可以添加保存到本地存储的逻辑
-  localStorage.setItem('savedActionGuide', JSON.stringify({
-    ...actionGuide.value,
-    timestamp: new Date().toISOString(),
-    hexagram: _props.result?.hexagram?.name
-  }));
-  
-  // 显示保存成功提示
-  alert('行动指南已保存！');
-}
 
 // 提交用户反馈
 function submitFeedback(type: 'helpful' | 'confused' | 'accurate') {
@@ -1049,13 +1135,12 @@ function getChangingLineClass(lineIndex: number): string {
 }
 
 // 页面内导航函数
-function scrollToSection(section: string) {
-  const sections = {
-    core: '.personalized-insight',
-    interpretation: '.interpretation-section',
-    hexagram: '.hexagram-section',
-    action: '.action-section'
-  };
+  function scrollToSection(section: string) {
+    const sections = {
+      core: '.personalized-insight',
+      interpretation: '.interpretation-section',
+      hexagram: '.hexagram-section'
+    };
   
   const targetElement = document.querySelector(sections[section as keyof typeof sections]);
   if (targetElement) {
@@ -1079,117 +1164,48 @@ onMounted(() => {
   // 组件初始化逻辑（如需要）
 });
 
-  // 格式化解读文本，添加HTML标签使其更易读（使用方案一：高亮标签 + 引用框）    
-  function formatAnalysisText(text: string): string {
-    if (!text) return '';
-
-    try {
-      // 先清理格式标记
-      let cleaned = text;
-
-      // 移除带引号的CSS类标记
-      cleaned = cleaned.replace(/"([^"]*text-[^"]*|[^"]*block[^"]*|[^"]*pl-\d+[^"]*)"/g, '""');
-
-      // 移除CSS类标记，如[text-primary text-lg block mt-4 mb-2]
-      cleaned = cleaned.replace(/\[[^\]]+\]/g, '');
-
-      // 移除英文括号及其内容
-      cleaned = cleaned.replace(/\s*\([^)]*\)/g, '');
-
-      // 使用方案一的格式化工具进行关键词句突出
-      let formatted = formatContentScheme1(cleaned);
-
-      // 如果格式化后没有段落标签，添加段落标签
-      if (!formatted.includes('<p>') && !formatted.includes('<div class="interpretation-section-title">')) {
-        // 将换行符转换为段落
-        formatted = formatted
-          .replace(/\n\n+/g, '</p><p>')
-          .replace(/\n([^\n])/g, '<br>$1');
-
-        if (!formatted.startsWith('<p>') && !formatted.startsWith('<div')) {
-          formatted = '<p>' + formatted;
-        }
-        if (!formatted.endsWith('</p>') && !formatted.endsWith('</div>')) {
-          formatted = formatted + '</p>';
-        }
-      }
-
-      // 在每个部分（本卦分析、动爻推演、变卦趋势、综合结论）的最后一句加粗
-      formatted = formatLastSentenceBold(formatted);
-
-      return formatted;
-    } catch (error) {
-      console.error('格式化文本时出错:', error);
-      // 发生错误时返回原始文本，但确保包含在段落标签中
-      return `<p>${text.replace(/\n/g, '<br>')}</p>`;
-    }
-  }
-
-  // 在每个部分的最后一句加粗
-  function formatLastSentenceBold(html: string): string {
-    // 识别各个部分的标题
-    const sectionTitles = ['本卦分析', '动爻推演', '变卦趋势', '综合结论'];
+// 格式化解读文本，添加HTML标签使其更易读
+function formatAnalysisText(text: string): string {
+  if (!text) return '';
+  
+  try {
+    // 先清理格式标记
+    let cleaned = text;
     
-    // 按部分分割内容
-    let result = html;
+    // 移除带引号的CSS类标记
+    cleaned = cleaned.replace(/"([^"]*text-[^"]*|[^"]*block[^"]*|[^"]*pl-\d+[^"]*)"/g, '""');
     
-    sectionTitles.forEach(title => {
-      // 查找标题位置
-      const titleRegex = new RegExp(`(${title}[^<]*</[^>]+>)`, 'gi');
-      const matches = [...result.matchAll(titleRegex)];
+    // 移除CSS类标记，如[text-primary text-lg block mt-4 mb-2]
+    cleaned = cleaned.replace(/\[[^\]]+\]/g, '');
+    
+    // 移除英文括号及其内容
+    cleaned = cleaned.replace(/\s*\([^)]*\)/g, '');
+    
+    // 使用 formatContentScheme1 来突出关键语句
+    let formatted = formatContentScheme1(cleaned);
+    
+    // 如果格式化后没有段落标签，添加段落标签
+    if (!formatted.includes('<p>') && !formatted.includes('<div class="interpretation-section-title">')) {
+      // 将换行符转换为段落
+      formatted = formatted
+        .replace(/\n\n+/g, '</p><p>')
+        .replace(/\n([^\n])/g, '<br>$1');
       
-      if (matches.length > 0) {
-        // 从后往前处理每个匹配
-        for (let i = matches.length - 1; i >= 0; i--) {
-          const match = matches[i];
-          const titleEnd = match.index! + match[0].length;
-          
-          // 查找下一个标题或文档结尾
-          let sectionEnd = result.length;
-          for (let j = i + 1; j < matches.length; j++) {
-            if (matches[j].index! > titleEnd) {
-              sectionEnd = matches[j].index!;
-              break;
-            }
-          }
-          
-          // 提取该部分的内容
-          const sectionContent = result.substring(titleEnd, sectionEnd);
-          
-          // 查找该部分中最后一个段落或最后一个句子
-          // 先尝试找最后一个</p>标签
-          const lastPIndex = sectionContent.lastIndexOf('</p>');
-          if (lastPIndex !== -1) {
-            // 找到最后一个段落
-            const lastPStart = sectionContent.lastIndexOf('<p>', lastPIndex);
-            if (lastPStart !== -1) {
-              const paragraph = sectionContent.substring(lastPStart, lastPIndex + 4);
-              // 提取段落中的文本（去除HTML标签）
-              const textContent = paragraph.replace(/<[^>]+>/g, '');
-              
-              // 找到最后一个句子（以。！？结尾）
-              const lastSentenceMatch = textContent.match(/[^。！？]*[。！？][^。！？]*$/);
-              if (lastSentenceMatch) {
-                const lastSentence = lastSentenceMatch[0].trim();
-                if (lastSentence.length > 0) {
-                  // 在段落中加粗最后一句
-                  const boldedParagraph = paragraph.replace(
-                    new RegExp(lastSentence.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-                    `<strong style="font-weight: bold; font-size: 1.1em;">${lastSentence}</strong>`
-                  );
-                  result = result.substring(0, titleEnd + lastPStart) + 
-                          boldedParagraph + 
-                          result.substring(titleEnd + lastPIndex + 4);
-                }
-              }
-            }
-          }
-        }
+      if (!formatted.startsWith('<p>') && !formatted.startsWith('<div')) {
+        formatted = '<p>' + formatted;
       }
-    });
+      if (!formatted.endsWith('</p>') && !formatted.endsWith('</div>')) {
+        formatted = formatted + '</p>';
+      }
+    }
     
-    return result;
+    return formatted;
+  } catch (error) {
+    console.error('格式化文本时出错:', error);
+    // 发生错误时返回原始文本，但确保包含在段落标签中
+    return `<p>${text.replace(/\n/g, '<br>')}</p>`;
   }
+}
 
 /**
  * 清理文本中的格式标记和英文内容
@@ -1495,7 +1511,7 @@ button:hover {
   font-size: 1.25rem;
   font-weight: 700;
   color: #fbbf24;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);                                                              
   padding: 12px 16px;
   margin: 24px 0 16px 0;
   border-left: 4px solid #fbbf24;
@@ -1510,50 +1526,26 @@ button:hover {
   flex: 1;
 }
 
-/* 易经引用样式 */
-:deep(.yijing-quote) {
-  color: #a78bfa;
-  font-style: italic;
-  background: rgba(167, 139, 250, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border-left: 3px solid #a78bfa;
-  margin: 0 2px;
-  display: inline-block;
-}
-
-/* 关键建议样式 */
+/* 关键建议样式 - 简洁突出，不花哨，与前文平齐 */
 :deep(.key-advice) {
-  background: linear-gradient(120deg, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0.1) 100%);
-  color: #fde047;
+  background: rgba(251, 191, 36, 0.2);
+  color: #d97706;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  display: inline-block;
-  margin: 0 2px;
+  display: inline;
+  margin: 0;
+  line-height: inherit;
 }
 
-/* 结论高亮样式 */
+/* 结论高亮样式 - 简洁的框线突出 */
 :deep(.conclusion-highlight) {
-  background: rgba(34, 197, 94, 0.15);
+  background: rgba(34, 197, 94, 0.1);
   border-left: 4px solid #22c55e;
   padding: 12px 16px;
   margin: 16px 0;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 500;
-  color: #86efac;
+  line-height: 1.7;
 }
-
-/* 时间徽章样式 */
-:deep(.time-badge) {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.9em;
-  display: inline-block;
-  margin: 0 2px;
-}
-
 </style>

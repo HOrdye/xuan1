@@ -96,6 +96,11 @@ export interface FortuneResult {
   dailyOpportunity: DailyChallenge;
   aiAnalysis?: string;
   personalizedTips?: string[];
+  /**
+   * 紫微斗数增强数据（可选，向后兼容）
+   * 当用户有紫微命盘时，提供基于命盘的个性化运势分析
+   */
+  ziwei?: import('../../../shared/types/cross-system').ZiweiFortuneEnhancement;
 }
 
 /**

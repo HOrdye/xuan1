@@ -206,11 +206,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '../store/userStore';
-import AvatarSelector from '../components/profile/AvatarSelector.vue';
+  <script setup lang="ts">
+  import { ref, computed, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useUserStore } from '../store/userStore';
+  import { SupabaseManager } from '../core/services/supabaseClient';
+  import AvatarSelector from '../components/profile/AvatarSelector.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -276,53 +277,83 @@ const goBack = () => {
   router.back();
 };
 
-// 保存个人资料
-const saveProfile = async () => {
-  isSaving.value = true;
-  
-  try {
-    // 获取当前用户
-    const currentUser = userStore.currentUser;
-    if (!currentUser) {
-      throw new Error('用户信息不存在');
-    }
+  // 保存个人资料
+  const saveProfile = async () => {
+    isSaving.value = true;
 
-    // 更新用户元数据
-    const updatedUser = {
-      ...currentUser,
-      username: profileData.value.username,
-      user_metadata: {
+    try {
+      // 获取当前用户
+      const currentUser = userStore.currentUser;
+      if (!currentUser) {
+        throw new Error('用户信息不存在');
+      }
+
+      // 准备更新的用户元数据
+      const updatedMetadata = {
         ...currentUser.user_metadata,
         ...profileData.value
-      },
-      updated_at: new Date().toISOString()
-    };
+      };
 
-    // 更新本地存储
-    const users = JSON.parse(localStorage.getItem('tianxuan_local_users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.id === currentUser.id);
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser;
-      localStorage.setItem('tianxuan_local_users', JSON.stringify(users));
+      // 尝试更新 Supabase 用户元数据（如果 Supabase 可用）
+      try {
+        const client = SupabaseManager.getClient();
+        const { data, error } = await client.auth.updateUser({
+          data: updatedMetadata
+        });
+
+        if (error) {
+          console.warn('⚠️ Supabase 更新用户元数据失败，使用本地存储:', error);
+        } else if (data?.user) {
+          // Supabase 更新成功，使用返回的用户数据
+          console.log('✅ Supabase 用户元数据更新成功');
+          userStore.currentUser = data.user as any;
+        }
+      } catch (supabaseError: any) {
+        // Supabase 不可用或更新失败，使用本地存储
+        console.log('📝 使用本地存储模式保存用户数据');
+      }
+
+      // 更新用户对象（用于本地存储和 store）
+      const updatedUser = {
+        ...currentUser,
+        username: profileData.value.username,
+        user_metadata: updatedMetadata,
+        updated_at: new Date().toISOString()
+      };
+
+      // 更新本地存储（用于本地模式或作为备份）
+      const users = JSON.parse(localStorage.getItem('tianxuan_local_users') || '[]');
+      const userIndex = users.findIndex((u: any) => u.id === currentUser.id);
+      if (userIndex !== -1) {
+        users[userIndex] = updatedUser;
+        localStorage.setItem('tianxuan_local_users', JSON.stringify(users));
+      }
       localStorage.setItem('tianxuan_current_user', JSON.stringify(updatedUser));
+
+      // 更新store中的用户数据（如果 Supabase 更新失败，使用本地数据）
+      if (!userStore.currentUser || !userStore.currentUser.user_metadata?.birthday) {
+        userStore.currentUser = updatedUser;
+      }
+
+      // 显示成功提示
+      showSuccess.value = true;
+      setTimeout(() => {
+        showSuccess.value = false;
+      }, 2000);
+
+      // 触发页面刷新（如果是从其他页面跳转过来的）
+      setTimeout(() => {
+        // 触发一个自定义事件，通知其他组件用户信息已更新
+        window.dispatchEvent(new CustomEvent('user-profile-updated'));
+      }, 100);
+
+    } catch (error) {
+      console.error('保存个人资料失败:', error);
+      alert('保存失败，请稍后重试');
+    } finally {
+      isSaving.value = false;
     }
-
-    // 更新store中的用户数据
-    userStore.currentUser = updatedUser;
-
-    // 显示成功提示
-    showSuccess.value = true;
-    setTimeout(() => {
-      showSuccess.value = false;
-    }, 2000);
-
-  } catch (error) {
-    console.error('保存个人资料失败:', error);
-    alert('保存失败，请稍后重试');
-  } finally {
-    isSaving.value = false;
-  }
-};
+  };
 
 // 显示头像选择器
 const showAvatarOptions = () => {
